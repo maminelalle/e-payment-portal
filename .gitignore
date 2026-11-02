@@ -12,6 +12,7 @@ Thumbs.db
 
 # Java / Maven
 target/
+build/
 !.mvn/wrapper/maven-wrapper.jar
 
 # Node / Angular
