@@ -1,0 +1,36 @@
+<section class="hero">
+  <div class="brand">
+    <span class="brand-logo inverse">EP</span>
+    <span class="brand-name">E-Payment</span>
+  </div>
+
+  <div class="pitch">
+    <h1>Vos paiements, encadrés par votre contrat.</h1>
+    <p>Un seul portail pour gérer les contrats, signer en ligne et payer avec les moyens autorisés.</p>
+    <ul>
+      @for (atout of atouts; track atout) {
+        <li><i class="pi pi-check"></i>{{ atout }}</li>
+      }
+    </ul>
+  </div>
+
+  <small>© 2026 Portail E-Payment</small>
+</section>
+
+<section class="form-side">
+  <div class="card">
+    <h2>Connexion</h2>
+    <p class="page-subtitle">Accédez à votre espace E-Payment</p>
+
+    <!-- Semaine 3 : redirection vers Keycloak (OIDC) puis vers l'espace correspondant au rôle. -->
+    <p-button label="Se connecter" styleClass="w-full" [disabled]="true" />
+
+    <p class="hint">Administrateur ou abonné : l'espace s'adapte à votre compte.</p>
+
+    <div class="preview">
+      <span>Aperçu des espaces (développement)</span>
+      <a routerLink="/admin">Espace administrateur</a>
+      <a routerLink="/abonne">Espace abonné</a>
+    </div>
+  </div>
+</section>

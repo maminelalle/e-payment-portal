@@ -1,0 +1,27 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" routerLink="/abonne">
+      <span class="brand-logo">EP</span>
+      <span class="brand-name">E-Payment</span>
+    </a>
+    <nav>
+      @for (item of menu; track item.lien) {
+        <a
+          class="nav-item"
+          [routerLink]="item.lien"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          >{{ item.libelle }}</a
+        >
+      }
+    </nav>
+    <div class="topbar-actions">
+      <button type="button" class="icon-button" aria-label="Notifications"><i class="pi pi-bell"></i></button>
+      <a class="avatar" routerLink="/abonne/profil" aria-label="Mon profil">SA</a>
+    </div>
+  </div>
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>

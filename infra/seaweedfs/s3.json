@@ -1,0 +1,11 @@
+{
+  "identities": [
+    {
+      "name": "epayment",
+      "credentials": [
+        { "accessKey": "epayment-dev", "secretKey": "epayment-dev-secret" }
+      ],
+      "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+    }
+  ]
+}

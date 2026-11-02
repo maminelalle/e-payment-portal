@@ -1,0 +1,32 @@
+<aside class="sidebar">
+  <a class="brand" routerLink="/admin">
+    <span class="brand-logo">EP</span>
+    <span class="brand-name">E-Payment</span>
+  </a>
+  <nav>
+    @for (item of menu; track item.lien) {
+      <a
+        class="nav-item"
+        [routerLink]="item.lien"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+      >
+        <i [class]="item.icone"></i>
+        <span>{{ item.libelle }}</span>
+      </a>
+    }
+  </nav>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <span></span>
+    <div class="topbar-actions">
+      <button type="button" class="icon-button" aria-label="Notifications"><i class="pi pi-bell"></i></button>
+      <span class="avatar">AD</span>
+    </div>
+  </header>
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

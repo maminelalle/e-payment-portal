@@ -15,12 +15,12 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [ ] Tableau des tâches (GitHub Projects / issues)
 
 ### Semaine 2 (9–13 nov.) — Socle technique
-- [ ] Projet Spring Boot 3 / Java 21 avec modules Spring Modulith
-- [ ] Projet Angular 20 + PrimeNG, espaces `/admin` et `/abonne`
-- [ ] Docker Compose : PostgreSQL 16, Keycloak, MinIO, Nginx, Mailpit
-- [ ] Migration Flyway V1 (app_user, role, subscriber)
-- [ ] CI GitHub Actions : build et tests backend + frontend
-- [ ] README : lancer le projet en local
+- [x] Projet Spring Boot 4.1 / Java 21 avec modules Spring Modulith (voir D9)
+- [x] Projet Angular 21 + PrimeNG 21, espaces `/admin` et `/abonne` (voir D9)
+- [x] Docker Compose : PostgreSQL 16, Keycloak, stockage S3 (SeaweedFS, voir D10), Nginx, Mailpit
+- [x] Migration Flyway V1 (app_user, role, subscriber)
+- [x] CI GitHub Actions : build et tests backend + frontend
+- [x] README : lancer le projet en local
 
 ### Semaine 3 (16–20 nov.) — Authentification et rôles
 - [ ] Realm Keycloak : rôles ADMIN / ABONNE, politique de mot de passe

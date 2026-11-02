@@ -26,6 +26,9 @@ Registre des décisions de cadrage. Une ligne par décision ; on ajoute, on ne r
 | D6 | 2026-11-02 | Monorepo : `backend/`, `frontend/`, `simulator/`, `infra/`, `docs/` | Un seul dépôt pour un développeur seul |
 | D7 | 2026-11-02 | Fournisseurs simulés par une application Spring Boot séparée (`simulator/`) qui envoie des webhooks HMAC | Avancer sans dépendre des accès sandbox |
 | D8 | 2026-11-02 | Le JDK local est le 24 ; le code cible Java 21 (`release 21`) et la CI utilise Java 21 | Conforme au choix Java 21 LTS |
+| D9 | 2026-11-02 | **Spring Boot 4.1** (au lieu de 3) et Spring Modulith 2.1 ; **Angular 21 + PrimeNG 21** (au lieu de 20) | Spring Boot 3 n'a plus de support open source depuis mi-2026 et Angular 20 sort de LTS en novembre 2026. Angular 22 exige Node ≥ 24.15 (poste : 24.11) : passage à 22 par `ng update` après mise à jour de Node ; Angular 21 est en LTS jusqu'en mai 2027 |
+| D10 | 2026-11-02 | Stockage objet local : **SeaweedFS** (API S3) au lieu de MinIO ; le backend utilise un client S3 standard | MinIO ne publie plus d'images Docker communautaires ; l'API S3 garde le choix interchangeable (MinIO, Garage, S3 cloud) |
+| D11 | 2026-11-02 | Une seule instance PostgreSQL en dev, avec deux bases : `epayment` et `keycloak` | Moins de conteneurs sur le poste |
 
 ## Actions externes à lancer dès la semaine 1
 

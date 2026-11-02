@@ -1,0 +1,64 @@
+{
+  "realm": "epayment",
+  "displayName": "E-Payment",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["fr"],
+  "defaultLocale": "fr",
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername and passwordHistory(3)",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "roles": {
+    "realm": [
+      { "name": "ADMIN", "description": "Administrateur du portail" },
+      { "name": "ABONNE", "description": "Abonné" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "epayment-frontend",
+      "name": "Portail E-Payment",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "rootUrl": "http://localhost",
+      "redirectUris": ["http://localhost/*", "http://localhost:4200/*"],
+      "webOrigins": ["http://localhost", "http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost/*##http://localhost:4200/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@epayment.mr",
+      "email": "admin@epayment.mr",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Démo",
+      "enabled": true,
+      "realmRoles": ["ADMIN"],
+      "credentials": [{ "type": "password", "value": "Admin#Demo2026", "temporary": false }]
+    },
+    {
+      "username": "contact@exemple.mr",
+      "email": "contact@exemple.mr",
+      "emailVerified": true,
+      "firstName": "Société",
+      "lastName": "ABC",
+      "enabled": true,
+      "realmRoles": ["ABONNE"],
+      "credentials": [{ "type": "password", "value": "Abonne#Demo2026", "temporary": false }]
+    }
+  ]
+}

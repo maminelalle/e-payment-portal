@@ -1,0 +1,95 @@
+@use 'primeicons/primeicons.css';
+
+/* Jetons de la charte (docs/01-ecrans.md) */
+:root {
+  --ep-primary: #2563eb;
+  --ep-primary-dark: #1e3a8a;
+  --ep-primary-soft: #eff6ff;
+  --ep-background: #f8fafc;
+  --ep-surface: #ffffff;
+  --ep-border: #e2e8f0;
+  --ep-text: #0f172a;
+  --ep-text-muted: #64748b;
+  --ep-bankily: #2563eb;
+  --ep-masrvi: #0f766e;
+  --ep-visa: #7c3aed;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  color: var(--ep-text);
+  background: var(--ep-background);
+}
+
+.page-title {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--ep-text-muted);
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ep-primary);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+
+  &.inverse {
+    background: #ffffff;
+    color: var(--ep-primary-dark);
+  }
+}
+
+.brand-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--ep-border);
+  border-radius: 8px;
+  background: var(--ep-surface);
+  color: var(--ep-text);
+  cursor: pointer;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: var(--ep-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.w-full {
+  width: 100%;
+}

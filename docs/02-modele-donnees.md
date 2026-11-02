@@ -105,7 +105,7 @@ Contrainte : `(type = 'PHYSIQUE' AND nni IS NOT NULL) OR (type = 'MORALE' AND ni
 | provider_id | uuid | → payment_provider, not null |
 | short_label | varchar(4) | pastille : `BK`, `MS`, `VI` |
 | color | varchar(7) | `#2563EB`… |
-| logo_object_key | varchar(300) | logo dans MinIO (optionnel) |
+| logo_object_key | varchar(300) | logo dans le stockage S3 (optionnel) |
 | description / instructions | text | affichés à l'abonné |
 | currency | char(3) | `MRU` |
 | status | varchar(20) | `ACTIVE`, `INACTIVE` |
@@ -134,7 +134,7 @@ Contrainte : `(type = 'PHYSIQUE' AND nni IS NOT NULL) OR (type = 'MORALE' AND ni
 | status | varchar(30) | `DRAFT`, `PENDING_SIGNATURE`, `SIGNED`, `ACTIVE`, `SUSPENDED`, `EXPIRED`, `TERMINATED` |
 | start_date / end_date | date | `end_date >= start_date` |
 | commission_rate | numeric(5,2) | optionnel |
-| pdf_object_key / pdf_sha256 | varchar | PDF généré (MinIO) et son empreinte |
+| pdf_object_key / pdf_sha256 | varchar | PDF généré (stockage S3) et son empreinte |
 | signed_pdf_object_key / signed_pdf_sha256 | varchar | PDF scellé PAdES |
 | sent_at, signed_at, activated_at, terminated_at | timestamptz | |
 | termination_reason | varchar(300) | |
@@ -207,7 +207,7 @@ Contrainte : `(type = 'PHYSIQUE' AND nni IS NOT NULL) OR (type = 'MORALE' AND ni
 | payer_phone | varchar(20) | wallets uniquement |
 | card_masked_pan | varchar(19) | `411111******1111` (Visa) — jamais le PAN complet |
 | failure_code / failure_message | varchar | |
-| receipt_object_key | varchar(300) | reçu PDF dans MinIO |
+| receipt_object_key | varchar(300) | reçu PDF dans le stockage S3 |
 | created_at / updated_at / completed_at / version | | |
 
 Contraintes : `UNIQUE (subscriber_id, idempotency_key)` ; `UNIQUE (payment_method_id, provider_reference)`.
@@ -248,7 +248,7 @@ Table en ajout seul (pas de `UPDATE`/`DELETE` par l'application).
 |-------|------|---------|
 | `webhook_event` | Anti-rejeu : `UNIQUE (provider_code, event_id)` + horodatage de réception | S8 |
 | `shedlock` | Verrou des jobs planifiés (ShedLock) | S7 |
-| `event_publication` | Registre des événements Spring Modulith | S2 |
+| `event_publication` | Registre des événements Spring Modulith (ajouté avec les premiers événements inter-modules) | S7 |
 
 ## Ordre des migrations prévu
 
