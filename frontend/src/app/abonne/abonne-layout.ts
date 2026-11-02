@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+import { Session } from '../core/session';
 
 @Component({
   selector: 'app-abonne-layout',
@@ -8,6 +10,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styleUrl: './abonne-layout.scss',
 })
 export class AbonneLayout {
+  protected readonly session = inject(Session);
+
   protected readonly menu = [
     { libelle: 'Accueil', lien: '/abonne', exact: true },
     { libelle: 'Mon contrat', lien: '/abonne/contrat', exact: false },

@@ -23,13 +23,14 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] README : lancer le projet en local
 
 ### Semaine 3 (16–20 nov.) — Authentification et rôles
-- [ ] Realm Keycloak : rôles ADMIN / ABONNE, politique de mot de passe
-- [ ] MFA pour les administrateurs
-- [ ] Backend : resource server JWT, contrôle des rôles par endpoint
-- [ ] Frontend : connexion OIDC, guards, intercepteur HTTP
-- [ ] Mise en page des 2 espaces (menu, en-tête, déconnexion)
-- [ ] Module Audit : audit_log + connexions et actions admin
-- [ ] Test : un abonné ne peut pas appeler une API admin
+- [x] Realm Keycloak : rôles ADMIN / ABONNE, politique de mot de passe, protection force brute, événements
+- [x] MFA pour les administrateurs (flux `browser-mfa-admin` : TOTP exigé pour le rôle ADMIN)
+- [x] Backend : resource server JWT, contrôle des rôles par préfixe (`/api/admin/**`, `/api/abonne/**`), refus par défaut
+- [x] Frontend : connexion OIDC (code + PKCE), guards par rôle, intercepteurs HTTP (jeton, 401/403)
+- [x] Mise en page des 2 espaces (menu, en-tête, déconnexion)
+- [x] Module Audit : audit_log + connexions (LOGIN), refus d'accès (ACCESS_DENIED), requêtes admin modifiantes
+- [x] Test : un abonné ne peut pas appeler une API admin (`SecurityRulesTests`)
+- [ ] Thème Keycloak aux couleurs du portail (page de connexion de la maquette) — reporté, non bloquant
 
 ### Semaine 4 (23–27 nov.) — Abonnés et catalogue
 - [ ] API abonnés : créer, modifier, activer, suspendre, désactiver

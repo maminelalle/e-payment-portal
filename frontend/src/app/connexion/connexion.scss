@@ -89,25 +89,6 @@ small {
   color: var(--ep-text-muted);
 }
 
-.preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px dashed var(--ep-border);
-  font-size: 0.85rem;
-
-  span {
-    width: 100%;
-    color: var(--ep-text-muted);
-  }
-
-  a {
-    color: var(--ep-primary);
-  }
-}
-
 @media (max-width: 900px) {
   :host {
     grid-template-columns: 1fr;

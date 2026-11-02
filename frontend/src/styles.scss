@@ -90,6 +90,14 @@ body {
   text-decoration: none;
 }
 
+.user-name {
+  font-weight: 500;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
 .w-full {
   width: 100%;
 }

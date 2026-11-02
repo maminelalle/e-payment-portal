@@ -33,7 +33,7 @@ erDiagram
     PAYMENT_METHOD ||--o{ PAYMENT_TRANSACTION : via
     CONTRACT ||--o{ PAYMENT_TRANSACTION : "autorisee par"
     SUBSCRIBER ||--o{ NOTIFICATION : recoit
-    APP_USER ||--o{ AUDIT_LOG : acteur
+    APP_USER |o..o{ AUDIT_LOG : "acteur (sub Keycloak)"
 ```
 
 ## Entités
@@ -232,7 +232,7 @@ Contraintes : `UNIQUE (subscriber_id, idempotency_key)` ; `UNIQUE (payment_metho
 |---------|------|-------------|
 | id | bigint | PK identity |
 | occurred_at | timestamptz | not null |
-| actor_id | uuid | → app_user (nullable : système) |
+| actor_subject | varchar(64) | identifiant Keycloak (`sub`), sans clé étrangère pour que l’audit n’échoue jamais (null : système) |
 | actor_label | varchar(254) | email ou `SYSTEM` |
 | action | varchar(50) | `LOGIN`, `SUBSCRIBER_CREATED`, `CONTRACT_SENT`… |
 | resource_type / resource_id | varchar | |

@@ -23,7 +23,11 @@
     <span></span>
     <div class="topbar-actions">
       <button type="button" class="icon-button" aria-label="Notifications"><i class="pi pi-bell"></i></button>
-      <span class="avatar">AD</span>
+      <span class="user-name">{{ session.user()?.fullName }}</span>
+      <span class="avatar" [title]="session.user()?.email">{{ session.initials() }}</span>
+      <button type="button" class="icon-button" aria-label="Se déconnecter" title="Se déconnecter" (click)="session.logout()">
+        <i class="pi pi-sign-out"></i>
+      </button>
     </div>
   </header>
   <main class="content">

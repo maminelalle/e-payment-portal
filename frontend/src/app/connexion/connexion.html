@@ -22,15 +22,9 @@
     <h2>Connexion</h2>
     <p class="page-subtitle">Accédez à votre espace E-Payment</p>
 
-    <!-- Semaine 3 : redirection vers Keycloak (OIDC) puis vers l'espace correspondant au rôle. -->
-    <p-button label="Se connecter" styleClass="w-full" [disabled]="true" />
+    <!-- Identifiant, mot de passe et code TOTP (administrateurs) sont saisis sur la page sécurisée de Keycloak. -->
+    <p-button label="Se connecter" styleClass="w-full" (onClick)="session.login()" />
 
     <p class="hint">Administrateur ou abonné : l'espace s'adapte à votre compte.</p>
-
-    <div class="preview">
-      <span>Aperçu des espaces (développement)</span>
-      <a routerLink="/admin">Espace administrateur</a>
-      <a routerLink="/abonne">Espace abonné</a>
-    </div>
   </div>
 </section>

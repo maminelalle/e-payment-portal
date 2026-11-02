@@ -70,6 +70,21 @@ Comptes de démonstration du realm `epayment` :
 | ADMIN | `admin@epayment.mr` | `Admin#Demo2026` |
 | ABONNE | `contact@exemple.mr` | `Abonne#Demo2026` |
 
+À la première connexion, l'administrateur doit enregistrer un code TOTP (Google Authenticator, FreeOTP, Microsoft Authenticator…) : le flux de connexion l'exige pour le rôle ADMIN. Pour le réinitialiser en dev : console Keycloak → realm `epayment` → Users → admin → Credentials → supprimer « otp ».
+
+Le realm n'est importé qu'au premier démarrage. Après modification de `infra/keycloak/epayment-realm.json`, supprimer le realm `epayment` dans la console puis `docker restart epayment-keycloak-1`.
+
+### API et sécurité
+
+| Préfixe | Accès |
+|---------|-------|
+| `/api/me`, `/api/me/connexion` | Tout utilisateur connecté (profil, journalisation de la connexion) |
+| `/api/admin/**` | Rôle `ADMIN` |
+| `/api/abonne/**` | Rôle `ABONNE` |
+| Tout autre chemin `/api/**` | Refusé |
+
+Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `audit_log` (consultable via `GET /api/admin/audit`).
+
 ### 2. Backend
 
 ```bash

@@ -1,14 +1,25 @@
 import { Routes } from '@angular/router';
 
-// Les guards par rôle (ADMIN / ABONNE) et la connexion OIDC arrivent en semaine 3.
+import { anonymousOnlyGuard, homeRedirectGuard, roleGuard } from './core/guards';
+
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'connexion' },
+  // La racine reçoit aussi le retour de Keycloak, puis envoie chacun vers son espace.
+  { path: '', pathMatch: 'full', canActivate: [homeRedirectGuard], children: [] },
   {
     path: 'connexion',
     title: 'Connexion · E-Payment',
+    canActivate: [anonymousOnlyGuard],
     loadComponent: () => import('./connexion/connexion').then((m) => m.Connexion),
   },
-  { path: 'admin', loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES) },
-  { path: 'abonne', loadChildren: () => import('./abonne/abonne.routes').then((m) => m.ABONNE_ROUTES) },
-  { path: '**', redirectTo: 'connexion' },
+  {
+    path: 'admin',
+    canMatch: [roleGuard('ADMIN')],
+    loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
+  {
+    path: 'abonne',
+    canMatch: [roleGuard('ABONNE')],
+    loadChildren: () => import('./abonne/abonne.routes').then((m) => m.ABONNE_ROUTES),
+  },
+  { path: '**', redirectTo: '' },
 ];

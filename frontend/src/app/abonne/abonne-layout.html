@@ -17,7 +17,12 @@
     </nav>
     <div class="topbar-actions">
       <button type="button" class="icon-button" aria-label="Notifications"><i class="pi pi-bell"></i></button>
-      <a class="avatar" routerLink="/abonne/profil" aria-label="Mon profil">SA</a>
+      <a class="avatar" routerLink="/abonne/profil" aria-label="Mon profil" [title]="session.user()?.fullName">{{
+        session.initials()
+      }}</a>
+      <button type="button" class="icon-button" aria-label="Se déconnecter" title="Se déconnecter" (click)="session.logout()">
+        <i class="pi pi-sign-out"></i>
+      </button>
     </div>
   </div>
 </header>

@@ -26,6 +26,8 @@ spring:
 server:
   port: 8080
   shutdown: graceful
+  # IP réelle du client transmise par Nginx (X-Forwarded-For, proxys internes uniquement)
+  forward-headers-strategy: native
 
 management:
   endpoints:

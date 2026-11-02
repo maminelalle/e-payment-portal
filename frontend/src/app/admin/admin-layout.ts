@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+import { Session } from '../core/session';
 
 @Component({
   selector: 'app-admin-layout',
@@ -8,6 +10,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styleUrl: './admin-layout.scss',
 })
 export class AdminLayout {
+  protected readonly session = inject(Session);
+
   protected readonly menu = [
     { libelle: 'Tableau de bord', icone: 'pi pi-th-large', lien: '/admin', exact: true },
     { libelle: 'Abonnés', icone: 'pi pi-users', lien: '/admin/abonnes', exact: false },

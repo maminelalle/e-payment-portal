@@ -15,6 +15,52 @@
   "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername and passwordHistory(3)",
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 1800,
+  "eventsEnabled": true,
+  "eventsExpiration": 7776000,
+  "adminEventsEnabled": true,
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "browserFlow": "browser-mfa-admin",
+  "authenticatorConfig": [
+    { "alias": "role-admin", "config": { "condUserRole": "ADMIN", "negate": "false" } }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "browser-mfa-admin",
+      "description": "Connexion navigateur : mot de passe pour tous, code TOTP en plus pour le rôle ADMIN",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "auth-cookie", "requirement": "ALTERNATIVE", "priority": 10, "autheticatorFlow": false, "userSetupAllowed": false },
+        { "requirement": "ALTERNATIVE", "priority": 20, "autheticatorFlow": true, "flowAlias": "browser-mfa-admin forms", "userSetupAllowed": false }
+      ]
+    },
+    {
+      "alias": "browser-mfa-admin forms",
+      "description": "Identifiant et mot de passe, puis OTP conditionnel",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "auth-username-password-form", "requirement": "REQUIRED", "priority": 10, "autheticatorFlow": false, "userSetupAllowed": false },
+        { "requirement": "CONDITIONAL", "priority": 20, "autheticatorFlow": true, "flowAlias": "browser-mfa-admin otp admin", "userSetupAllowed": false }
+      ]
+    },
+    {
+      "alias": "browser-mfa-admin otp admin",
+      "description": "Code TOTP exigé si l'utilisateur a le rôle ADMIN (configuration au premier passage)",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "conditional-user-role", "authenticatorConfig": "role-admin", "requirement": "REQUIRED", "priority": 10, "autheticatorFlow": false, "userSetupAllowed": false },
+        { "authenticator": "auth-otp-form", "requirement": "REQUIRED", "priority": 20, "autheticatorFlow": false, "userSetupAllowed": false }
+      ]
+    }
+  ],
   "roles": {
     "realm": [
       { "name": "ADMIN", "description": "Administrateur du portail" },
