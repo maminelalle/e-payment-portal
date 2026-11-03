@@ -28,8 +28,12 @@ export const ABONNE_ROUTES: Routes = [
       {
         path: 'transactions',
         title: 'Transactions · E-Payment',
-        component: AVenir,
-        data: { titre: 'Transactions', semaine: 'semaine 10' },
+        loadComponent: () => import('./transactions/transactions').then((m) => m.AbonneTransactions),
+      },
+      {
+        path: 'paiement/retour',
+        title: 'Paiement · E-Payment',
+        loadComponent: () => import('./paiement/payment-return').then((m) => m.PaymentReturn),
       },
       {
         path: 'profil',

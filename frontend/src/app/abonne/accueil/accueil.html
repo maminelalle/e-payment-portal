@@ -58,7 +58,8 @@
 
 <div class="section-head">
   <h2>Dernières transactions</h2>
+  <a routerLink="/abonne/transactions">Voir tout</a>
 </div>
-<p class="card empty muted">L'historique de vos paiements et les reçus seront disponibles prochainement.</p>
+<app-transaction-table [transactions]="latest()" />
 
-<app-payment-drawer [method]="paying()" (closed)="paying.set(null)" />
+<app-payment-drawer [method]="paying()" (closed)="paying.set(null)" (completed)="loadLatest()" />

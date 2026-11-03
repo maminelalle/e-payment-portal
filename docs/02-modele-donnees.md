@@ -263,5 +263,6 @@ Table en ajout seul (pas de `UPDATE`/`DELETE` par l'application).
 | `V5__signature.sql` | signature | S6 |
 | `V6__entitlements.sql` | subscriber_entitlement, shedlock | S7 |
 | `V7__webhooks.sql` | webhook_event | S8 |
-| `V8__transactions.sql` | payment_transaction | S10 |
-| `V9__notifications.sql` | notification | S11 |
+| `V8__catalog_logos.sql` | logos des moyens ; Sedad et Mastercard (désactivés) | S9 |
+| `V9__transactions.sql` | payment_transaction | S9 |
+| `V10__notifications.sql` | notification | S11 |

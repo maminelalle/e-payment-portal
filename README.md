@@ -114,11 +114,12 @@ Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `aud
 | `POST /api/abonne/contrat/signature` | Envoie le code de signature par email (5 min, renvoi après 60 s) |
 | `POST /api/abonne/contrat/signature/{id}/confirmation` | Vérifie le code (3 essais), scelle le PDF (PAdES) ; le contrat est ensuite activé automatiquement |
 | `GET /api/abonne/moyens` | Mes moyens de paiement : uniquement ceux ouverts par le contrat en vigueur |
-| `POST /api/abonne/paiements` | Paiement (simulé) : droit et plafond revérifiés ; 403 si le moyen n'est pas au contrat, 422 si plafond dépassé |
+| `POST /api/abonne/paiements` (en-tête `Idempotency-Key` obligatoire) | Paiement via le fournisseur : droit et plafonds (transaction et mois) revérifiés ; 403 si le moyen n'est pas au contrat, 422 si plafond dépassé ; carte : renvoie `redirectUrl` (page hébergée de la passerelle) |
+| `GET /api/abonne/paiements`, `GET /api/abonne/paiements/{ref}?actualiser=true`, `POST /api/abonne/paiements/{ref}/annuler` | Historique, suivi (statut redemandé au fournisseur), abandon d'un paiement carte non payé |
 
 Côté admin, le cycle de vie d'un contrat signé : `POST /api/admin/contrats/{id}/activer` · `/suspendre` · `/reprendre` · `/resilier`, et `GET /api/admin/contrats/{id}/droits`.
 
-Paiements simulés (démo) : un montant se terminant par ,13 est refusé, ,51 « solde insuffisant », ,99 « en attente », sinon réussi.
+Paiements (démo, via le simulateur) : un montant se terminant par ,13 est refusé, ,51 « solde insuffisant », ,99 confirmé après 60 s, sinon confirmé après 3 s. Carte : 4111 1111 1111 1111 acceptée. **Le simulateur doit tourner** pour payer ; les tests du backend utilisent des fournisseurs en mémoire (`epayment.providers.mode=mock`).
 
 Les erreurs suivent le format ProblemDetail (RFC 9457) ; les erreurs de validation listent les champs dans `errors`.
 

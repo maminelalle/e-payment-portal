@@ -1,25 +1,29 @@
-import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { Subscription } from 'rxjs';
 
-import { ApiProblem, EntitledMethod, PaymentResult } from '../../core/api.models';
+import { ApiProblem, EntitledMethod, isFinal, Transaction } from '../../core/api.models';
 import { formatAmount } from '../../shared/formatting';
-import { AbonneApi } from '../abonne-api';
 import { MethodLogo } from '../../shared/method-logo';
+import { AbonneApi } from '../abonne-api';
+import { PaymentOutcome } from './payment-outcome';
+import { watchPayment } from './payment-watch';
 
 /**
- * Paiement avec un moyen autorisé (maquette B3). Le serveur revérifie le droit et les plafonds :
- * l'interface n'est qu'une aide, un refus serveur est affiché tel quel.
+ * Paiement avec un moyen autorisé (maquette B3). Le serveur revérifie droit et plafonds à chaque appel.
+ * Wallet : l'abonné confirme sur son téléphone, l'écran suit la confirmation.
+ * Carte : redirection vers la page sécurisée de la passerelle (le portail ne voit jamais la carte).
  */
 @Component({
   selector: 'app-payment-drawer',
-  imports: [DatePipe, FormsModule, RouterLink, ButtonModule, DrawerModule, InputNumberModule, InputTextModule, MethodLogo],
+  imports: [FormsModule, RouterLink, ButtonModule, DrawerModule, InputNumberModule, InputTextModule, MethodLogo,
+    PaymentOutcome],
   templateUrl: './payment-drawer.html',
   styleUrl: './payment-drawer.scss',
 })
@@ -29,30 +33,42 @@ export class PaymentDrawer {
   /** Moyen choisi ; null = tiroir fermé. */
   readonly method = input<EntitledMethod | null>(null);
   readonly closed = output<void>();
+  /** Émis quand un paiement est terminé (pour rafraîchir l'historique). */
+  readonly completed = output<Transaction>();
 
   protected readonly formatAmount = formatAmount;
   protected readonly busy = signal(false);
+  protected readonly redirecting = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly result = signal<PaymentResult | null>(null);
+  protected readonly tx = signal<Transaction | null>(null);
   protected amount: number | null = null;
   protected phone = '';
   protected description = '';
+  /** Une clé par tentative : renvoyer le formulaire ne crée jamais un second paiement. */
+  private idempotencyKey = '';
+  private watching: Subscription | null = null;
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.watching?.unsubscribe());
     effect(() => {
       if (this.method()) {
         this.amount = null;
         this.phone = '';
         this.description = '';
+        this.idempotencyKey = crypto.randomUUID();
         this.error.set(null);
-        this.result.set(null);
+        this.tx.set(null);
+        this.redirecting.set(false);
       }
     });
   }
 
   protected close(): void {
+    this.watching?.unsubscribe();
     this.closed.emit();
   }
+
+  protected isFinal = isFinal;
 
   protected pay(): void {
     const method = this.method();
@@ -72,16 +88,25 @@ export class PaymentDrawer {
     this.busy.set(true);
     this.error.set(null);
     this.api
-      .pay({
-        method: method.code,
-        amount: this.amount,
-        payerPhone: method.category === 'WALLET' ? this.phone : null,
-        description: this.description.trim() || null,
-      })
+      .pay(
+        {
+          method: method.code,
+          amount: this.amount,
+          payerPhone: method.category === 'WALLET' ? this.phone : null,
+          description: this.description.trim() || null,
+        },
+        this.idempotencyKey,
+      )
       .subscribe({
-        next: (result) => {
+        next: (tx) => {
           this.busy.set(false);
-          this.result.set(result);
+          if (tx.redirectUrl) {
+            // Carte : la saisie se fait sur la page de la passerelle, qui ramène ensuite sur le portail.
+            this.redirecting.set(true);
+            window.location.assign(tx.redirectUrl);
+            return;
+          }
+          this.show(tx);
         },
         error: (error: unknown) => {
           this.busy.set(false);
@@ -90,5 +115,20 @@ export class PaymentDrawer {
           this.error.set(fields.length ? fields.join(' ') : (problem?.detail ?? 'Paiement impossible pour le moment.'));
         },
       });
+  }
+
+  private show(tx: Transaction): void {
+    this.tx.set(tx);
+    if (isFinal(tx.status)) {
+      this.completed.emit(tx);
+      return;
+    }
+    this.watching?.unsubscribe();
+    this.watching = watchPayment(this.api, tx.reference).subscribe((latest) => {
+      this.tx.set(latest);
+      if (isFinal(latest.status)) {
+        this.completed.emit(latest);
+      }
+    });
   }
 }

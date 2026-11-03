@@ -15,44 +15,30 @@
   </ng-template>
 
   @if (method(); as m) {
+    @let t = tx();
     <div class="progress">
-      <span class="filled" [class.done]="result()?.status === 'SUCCEEDED'"></span>
-      <span [class.filled]="busy() || result()" [class.done]="result()?.status === 'SUCCEEDED'"></span>
-      <span [class.filled]="result()" [class.done]="result()?.status === 'SUCCEEDED'"></span>
+      <span class="filled" [class.done]="t?.status === 'SUCCEEDED'"></span>
+      <span [class.filled]="busy() || t || redirecting()" [class.done]="t?.status === 'SUCCEEDED'"></span>
+      <span [class.filled]="t && isFinal(t.status)" [class.done]="t?.status === 'SUCCEEDED'"></span>
     </div>
 
-    @if (result(); as r) {
-      <div class="outcome" [class]="'outcome ' + r.status">
-        <span class="icon">
-          <i [class]="r.status === 'SUCCEEDED' ? 'pi pi-check' : r.status === 'PENDING' ? 'pi pi-clock' : 'pi pi-times'"></i>
-        </span>
-        <h3>
-          @switch (r.status) {
-            @case ('SUCCEEDED') { Paiement réussi }
-            @case ('PENDING') { Paiement en attente }
-            @default { Paiement échoué }
-          }
-        </h3>
-        <p class="amount">{{ formatAmount(r.amount, '') }}<span>{{ r.currency }}</span></p>
-        @if (r.status !== 'SUCCEEDED') {
-          <p class="muted">{{ r.message }}</p>
-        }
+    @if (redirecting()) {
+      <div class="redirect">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p><strong>Redirection vers la page sécurisée de la passerelle bancaire…</strong></p>
+        <p class="muted">Vous y saisirez votre carte ; le portail ne voit jamais son numéro.</p>
       </div>
-      <dl class="card details">
-        <dt>Référence</dt>
-        <dd>{{ r.reference }}</dd>
-        <dt>Date</dt>
-        <dd>{{ r.occurredAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
-        <dt>Moyen</dt>
-        <dd>{{ r.methodName }}</dd>
-        @if (r.description) {
-          <dt>Motif</dt>
-          <dd>{{ r.description }}</dd>
-        }
-        <dt>Statut fournisseur</dt>
-        <dd>{{ r.providerStatus }}</dd>
-      </dl>
-      <p class="muted note">Paiement simulé : l'historique et les reçus PDF arrivent avec les transactions.</p>
+    } @else if (t) {
+      <app-payment-outcome [tx]="t" />
+      @if (!isFinal(t.status)) {
+        <p class="muted note">
+          @if (t.category === 'WALLET') {
+            Validez le paiement dans votre application {{ m.name }}. Cet écran se met à jour automatiquement.
+          } @else {
+            Confirmation en cours auprès de la passerelle bancaire…
+          }
+        </p>
+      }
     } @else {
       <p class="muted">
         Plafond par transaction : <strong>{{ formatAmount(m.perTransactionLimit, m.currency) }}</strong> ·
@@ -86,7 +72,13 @@
       @if (m.instructions) {
         <p class="info"><i class="pi pi-info-circle"></i> {{ m.instructions }}</p>
       }
-      <p class="muted hint">Démo : un montant en ,13 est refusé, en ,51 « solde insuffisant », en ,99 « en attente ».</p>
+      <p class="muted hint">
+        @if (m.category === 'WALLET') {
+          Démo : un montant en ,13 est refusé, en ,51 « solde insuffisant », en ,99 confirmé après 60 s.
+        } @else {
+          Démo : carte 4111 1111 1111 1111 acceptée, 4000 0000 0000 0002 refusée.
+        }
+      </p>
     }
 
     @if (error(); as message) {
@@ -96,11 +88,16 @@
 
   <ng-template #footer>
     <div class="footer">
-      @if (result()) {
+      @if (tx()) {
         <p-button label="Télécharger le reçu" icon="pi pi-download" styleClass="w-full" [disabled]="true" />
         <p-button label="Retour à l'accueil" severity="secondary" [outlined]="true" styleClass="w-full" routerLink="/abonne" (onClick)="close()" />
-      } @else {
-        <p-button [label]="'Payer' + (amount ? ' ' + formatAmount(amount, method()?.currency) : '')" styleClass="w-full" [loading]="busy()" (onClick)="pay()" />
+      } @else if (!redirecting()) {
+        <p-button
+          [label]="(method()?.category === 'CARD' ? 'Continuer vers le paiement' : 'Payer') + (amount ? ' ' + formatAmount(amount, method()?.currency) : '')"
+          styleClass="w-full"
+          [loading]="busy()"
+          (onClick)="pay()"
+        />
         <p-button label="Annuler" severity="secondary" [outlined]="true" styleClass="w-full" (onClick)="close()" [disabled]="busy()" />
       }
     </div>

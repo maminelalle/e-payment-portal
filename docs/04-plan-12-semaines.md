@@ -82,18 +82,20 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 ## Mois 3 — Paiements et mise en ligne
 
 ### Semaine 9 (28 déc.–1er janv.) — Adaptateurs
-- [ ] Adaptateurs Bankily et Masrvi (WebClient)
-- [ ] Adaptateur Visa : page hébergée, retour, webhook
-- [ ] Aucun PAN / CVV ne transite par le portail
-- [ ] URL et clés en configuration
-- [ ] Tests WireMock des 3 adaptateurs
+- [x] Adaptateurs Bankily et Masrvi (RestClient, délais 5 s / 15 s, Idempotency-Key = TRX)
+- [x] Adaptateur Visa : session, redirection vers la page hébergée, page de retour, webhook
+- [x] Aucun PAN / CVV ne transite par le portail — vérifié le 03/11 (base, webhooks, audit, journaux : 0 occurrence)
+- [x] URL et clés en configuration (`epayment.providers.*`, mode `simulator` / `mock`)
+- [x] Tests WireMock des 3 adaptateurs (`HttpPaymentProvidersTests`)
+- [x] Logos des moyens dans le catalogue (envoi admin) ; Sedad et Mastercard au catalogue, désactivés
 
 ### Semaine 10 (4–8 janv.) — Paiements et transactions
-- [ ] payment_transaction : statut interne / statut fournisseur
-- [ ] Clé d'idempotence
-- [ ] Écran abonné : payer et voir le résultat
+- [x] payment_transaction (V9) : statut interne / statut fournisseur — avancé en semaine 9
+- [x] Clé d'idempotence (en-tête `Idempotency-Key`, unique par abonné) — avancé en semaine 9
+- [x] Écran abonné : payer et voir le résultat (suivi wallet, retour carte) — recette du 03/11 : Bankily et Visa réussis via le simulateur
+- [x] Plafond mensuel cumulé (paiements réussis + en cours du mois)
 - [ ] Reçu PDF
-- [ ] Historique (abonné et admin) avec filtres
+- [ ] Historique abonné avec filtres (liste simple faite) ; historique admin
 - [ ] Job de rapprochement
 - [ ] **Jalon : un paiement réussi et un échoué sur chacun des 3 moyens**
 

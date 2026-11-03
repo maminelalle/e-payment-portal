@@ -157,19 +157,44 @@ export interface EntitledMethod {
   unavailableReason: string | null;
 }
 
-export interface PaymentResult {
+export type TransactionStatus = 'CREATED' | 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
+
+/** Paiement (résultat, historique). Statut interne du portail ; le statut brut du fournisseur est à côté. */
+export interface Transaction {
   reference: string;
-  status: 'SUCCEEDED' | 'FAILED' | 'PENDING';
-  providerStatus: string;
-  failureCode: string | null;
-  message: string;
+  status: TransactionStatus;
+  providerStatus: string | null;
   methodCode: string;
   methodName: string;
+  category: 'WALLET' | 'CARD';
+  shortLabel: string;
+  color: string;
+  logoUrl: string | null;
   amount: number;
   currency: string;
   description: string | null;
+  payerPhone: string | null;
+  cardMaskedPan: string | null;
+  failureCode: string | null;
+  failureMessage: string | null;
+  /** Carte en cours : page hébergée de la passerelle où saisir la carte. */
+  redirectUrl: string | null;
   contractId: string;
-  occurredAt: string;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
+  CREATED: 'Créée',
+  PENDING: 'En attente',
+  SUCCEEDED: 'Réussie',
+  FAILED: 'Échouée',
+  CANCELLED: 'Annulée',
+  REFUNDED: 'Remboursée',
+};
+
+export function isFinal(status: TransactionStatus): boolean {
+  return status === 'SUCCEEDED' || status === 'FAILED' || status === 'CANCELLED' || status === 'REFUNDED';
 }
 
 export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {

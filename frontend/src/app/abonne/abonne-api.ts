@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { Contract, EntitledMethod, PaymentResult } from '../core/api.models';
+import { Contract, EntitledMethod, PageResponse, Transaction } from '../core/api.models';
 
 /** Réponse à une demande de code de signature (le code n'est jamais renvoyé par l'API). */
 export interface OtpChallenge {
@@ -43,7 +43,31 @@ export class AbonneApi {
     return this.http.get<EntitledMethod[]>('/api/abonne/moyens');
   }
 
-  pay(body: { method: string; amount: number; payerPhone: string | null; description: string | null }) {
-    return this.http.post<PaymentResult>('/api/abonne/paiements', body);
+  /**
+   * Paiement. La clé d'idempotence est générée une fois par tentative : un double clic ou un nouvel envoi
+   * après une coupure réseau renvoie la même transaction, jamais un second débit.
+   */
+  pay(
+    body: { method: string; amount: number; payerPhone: string | null; description: string | null },
+    idempotencyKey: string,
+  ): Observable<Transaction> {
+    return this.http.post<Transaction>('/api/abonne/paiements', body, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
+  }
+
+  /** Avec refresh, le serveur redemande le statut au fournisseur (retour de la page carte). */
+  payment(reference: string, refresh = false): Observable<Transaction> {
+    return this.http.get<Transaction>(`/api/abonne/paiements/${reference}`, {
+      params: refresh ? { actualiser: true } : {},
+    });
+  }
+
+  cancelPayment(reference: string): Observable<Transaction> {
+    return this.http.post<Transaction>(`/api/abonne/paiements/${reference}/annuler`, null);
+  }
+
+  payments(page: number, size: number): Observable<PageResponse<Transaction>> {
+    return this.http.get<PageResponse<Transaction>>('/api/abonne/paiements', { params: { page, size } });
   }
 }
