@@ -106,6 +106,12 @@ class SignatureTests {
             assertThat(seal.getSubFilter()).isEqualTo("ETSI.CAdES.detached");
             assertThat(seal.getReason()).contains("Société Signature", "code à usage unique vérifié");
             assertThat(new PDFTextStripper().getText(pdf)).contains("Société Signature", "Bankily");
+            // Cachet visible posé dans le cadre de signature, en dernière page.
+            var widget = pdf.getSignatureFields().getFirst().getWidgets().getFirst();
+            assertThat(widget.getRectangle().getHeight()).isEqualTo(SignatureStampPosition.HEIGHT);
+            assertThat(widget.getPage()).isEqualTo(pdf.getPage(pdf.getNumberOfPages() - 1));
+            assertThat(widget.getAppearance().getNormalAppearance().getAppearanceStream().getCOSObject().getLength())
+                    .isPositive();
         }
 
         Map<String, Object> proof = jdbc.queryForMap(

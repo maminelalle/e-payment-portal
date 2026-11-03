@@ -22,9 +22,13 @@ Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case 
 | 11 | Notifications et tableaux de bord | **À faire** |
 | 12 | Recette et mise en ligne | **À faire** |
 
-Tests automatisés : 54 backend, 8 simulateur, 11 frontend, tous au vert.
+Tests automatisés : 55 backend, 8 simulateur, 11 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
+
+### 03/11/2026 — Signature visible
+- Le contrat signé affiche un cachet dans le cadre de signature (dernière page) : signataire, email, date et heure,
+  code vérifié, référence du contrat (décision D25). S'applique aux nouvelles signatures.
 
 ### 03/11/2026 — Semaine 10
 - Reçu PDF des paiements réussis, téléchargeable par l'abonné et l'admin.
@@ -76,7 +80,7 @@ Tests automatisés : 54 backend, 8 simulateur, 11 frontend, tous au vert.
 ## Limites connues
 
 ### Signature « Inconnu » dans le lecteur PDF
-En ouvrant un contrat signé, Edge ou Acrobat affiche « Identité du signataire : Inconnu » mais
+Le cachet visible (D25) montre qui a signé, mais le panneau « Signature numérique » d'Edge ou Acrobat affiche « Identité du signataire : Inconnu » mais
 « Document modifié : Non ». C'est le comportement attendu en développement :
 - **le sceau est valide** : il garantit que le PDF n'a pas été modifié depuis la signature ;
 - **l'identité est inconnue** parce que le certificat du portail est auto-signé et généré au démarrage

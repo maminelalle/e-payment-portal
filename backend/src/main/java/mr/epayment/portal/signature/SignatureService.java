@@ -131,8 +131,13 @@ public class SignatureService {
 
         String reason = "Contrat %s signé électroniquement par %s (%s) le %s, code à usage unique vérifié."
                 .formatted(document.reference(), subscriber.displayName(), subscriber.email(), PROOF_TIME.format(now));
+        String stamp = """
+                Signé électroniquement par %s (%s)
+                le %s (heure de Nouakchott), code à usage unique vérifié
+                Sceau du Portail E-Payment · contrat %s"""
+                .formatted(subscriber.displayName(), subscriber.email(), PROOF_TIME.format(now), document.reference());
         byte[] sealed = sealer.seal(document.pdf(), document.reference() + ".pdf", reason, subscriber.email(),
-                Date.from(now));
+                Date.from(now), stamp);
         ContractView signed = contracts.recordSignature(document.contractId(), sealed);
         signature.markSigned(signed.signedPdfSha256(), now, ipAddress, truncate(userAgent, 300));
         audit(authentication, "SIGNATURE_COMPLETED", signature, Outcome.SUCCESS, Map.of(
