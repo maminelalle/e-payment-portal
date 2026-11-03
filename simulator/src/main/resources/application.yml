@@ -1,0 +1,37 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: epayment-simulator
+
+# Simulateur des fournisseurs de paiement (docs/03-api-fournisseurs-simules.md).
+# Les clés ci-dessous sont des clés de démonstration : le portail doit utiliser les mêmes.
+simulator:
+  # Adresse publique du simulateur (lien de la page de paiement carte renvoyé au portail).
+  public-url: ${SIMULATOR_PUBLIC_URL:http://localhost:8090}
+  # Délai avant confirmation d'un paiement « normal », et d'un paiement « différé » (montant en ,99).
+  confirm-delay: ${SIMULATOR_CONFIRM_DELAY:3s}
+  delayed-confirm-delay: ${SIMULATOR_DELAYED_CONFIRM_DELAY:60s}
+  # Réessais d'un webhook refusé ou injoignable.
+  webhook-retry-delays: 10s,30s,60s
+  checkout-session-validity: 30m
+  providers:
+    bankily:
+      api-key: ${BANKILY_API_KEY:bankily-dev-api-key}
+      webhook-secret: ${BANKILY_WEBHOOK_SECRET:bankily-dev-webhook-secret}
+      webhook-url: ${PORTAL_WEBHOOK_BASE:http://localhost:8080/api/webhooks}/bankily
+    masrvi:
+      api-key: ${MASRVI_API_KEY:masrvi-dev-api-key}
+      webhook-secret: ${MASRVI_WEBHOOK_SECRET:masrvi-dev-webhook-secret}
+      webhook-url: ${PORTAL_WEBHOOK_BASE:http://localhost:8080/api/webhooks}/masrvi
+    visa:
+      api-key: ${VISA_API_KEY:visa-dev-api-key}
+      webhook-secret: ${VISA_WEBHOOK_SECRET:visa-dev-webhook-secret}
+      webhook-url: ${PORTAL_WEBHOOK_BASE:http://localhost:8080/api/webhooks}/visa
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
