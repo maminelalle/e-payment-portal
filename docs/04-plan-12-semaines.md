@@ -53,12 +53,12 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [ ] Pied de page du PDF dans la police du document — à faire dans une version 2 du modèle (cosmétique)
 
 ### Semaine 6 (7–11 déc.) — Signature électronique
-- [ ] « Mon contrat » : aperçu et téléchargement
-- [ ] OTP par email (Mailpit), 5 min, 3 essais ; interface `OtpSender`
-- [ ] Validation OTP et scellement PAdES (EU DSS)
-- [ ] Table signature : horodatage, IP, SHA-256, statut
-- [ ] Archivage de la version signée dans MinIO
-- [ ] Statut « signé / en attente d'activation »
+- [x] « Mon contrat » : aperçu et téléchargement (maquette B2)
+- [x] OTP par email (Mailpit), 5 min, 3 essais, renvoi après 60 s (5 envois max) ; interface `OtpSender`
+- [x] Validation OTP et scellement PAdES BASELINE-B (EU DSS 6.5.1)
+- [x] Table signature (V5) : horodatage, IP, navigateur, SHA-256 avant/après, statut
+- [x] Archivage de la version signée dans le stockage S3 (l'original est conservé)
+- [x] Statut « signé / en attente d'activation » — recette le 03/11 : CTR-2026-0002 signé, sceau vérifié (portée totale, signature cryptographique valide)
 
 ### Semaine 7 (14–18 déc.) — Moteur des droits et Espace Abonné
 - [ ] subscriber_entitlement ; activation automatique après signature

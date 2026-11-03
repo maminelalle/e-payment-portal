@@ -108,6 +108,12 @@ Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `aud
 | `GET/POST /api/admin/contrats`, `GET/PUT/DELETE /api/admin/contrats/{id}` | Contrats : liste (`statut`, `abonne`, `q`), brouillon, modification et suppression du brouillon |
 | `GET /api/admin/contrats/modeles`, `GET /api/admin/contrats/{id}/pdf`, `POST /api/admin/contrats/{id}/envoyer` | Modèles, PDF (aperçu « BROUILLON » ou document envoyé), envoi pour signature |
 
+| API de l'espace abonné | Rôle |
+|------------------------|------|
+| `GET /api/abonne/contrat`, `GET /api/abonne/contrat/pdf` | Mon contrat (204 si aucun) et son PDF (version scellée une fois signé) |
+| `POST /api/abonne/contrat/signature` | Envoie le code de signature par email (5 min, renvoi après 60 s) |
+| `POST /api/abonne/contrat/signature/{id}/confirmation` | Vérifie le code (3 essais), scelle le PDF (PAdES) et passe le contrat « signé » |
+
 Les erreurs suivent le format ProblemDetail (RFC 9457) ; les erreurs de validation listent les champs dans `errors`.
 
 ### 2. Backend

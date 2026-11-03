@@ -46,6 +46,10 @@
           <dt>Envoyé le</dt>
           <dd>{{ c.sentAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
         }
+        @if (c.signedAt) {
+          <dt>Signé le</dt>
+          <dd>{{ c.signedAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
+        }
       </dl>
 
       <h3>Moyens inclus</h3>
@@ -64,8 +68,11 @@
 
       @if (c.pdfSha256) {
         <h3>Intégrité</h3>
-        <p class="muted hash" [title]="c.pdfSha256">SHA-256 : {{ c.pdfSha256 }}</p>
-        <p class="muted">Le document envoyé est figé ; son empreinte est revérifiée à chaque consultation.</p>
+        <p class="muted hash" [title]="c.pdfSha256">Document envoyé — SHA-256 : {{ c.pdfSha256 }}</p>
+        @if (c.signedPdfSha256) {
+          <p class="muted hash" [title]="c.signedPdfSha256">Version scellée (PAdES) — SHA-256 : {{ c.signedPdfSha256 }}</p>
+        }
+        <p class="muted">Les documents sont figés ; leur empreinte est revérifiée à chaque consultation.</p>
       } @else {
         <p class="info">Brouillon : l'aperçu porte la mention « BROUILLON » et peut encore changer.</p>
       }

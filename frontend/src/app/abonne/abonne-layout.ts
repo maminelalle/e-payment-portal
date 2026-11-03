@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ToastModule } from 'primeng/toast';
 
 import { Session } from '../core/session';
 
 @Component({
   selector: 'app-abonne-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastModule],
   templateUrl: './abonne-layout.html',
   styleUrl: './abonne-layout.scss',
 })

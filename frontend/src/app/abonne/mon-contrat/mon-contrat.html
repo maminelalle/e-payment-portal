@@ -1,0 +1,158 @@
+@if (contract() === undefined) {
+  <p class="muted">Chargement…</p>
+} @else if (contract() === null) {
+  <h1 class="page-title">Mon contrat</h1>
+  <div class="card empty">
+    <i class="pi pi-file"></i>
+    <p><strong>Aucun contrat pour l'instant.</strong></p>
+    <p class="muted">Vous recevrez un email dès que votre contrat sera prêt à être signé.</p>
+  </div>
+} @else {
+  @let c = contract()!;
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mon contrat</h1>
+      <p class="page-subtitle">
+        @switch (c.status) {
+          @case ('PENDING_SIGNATURE') { Lisez votre contrat puis signez-le pour activer vos moyens de paiement. }
+          @case ('SIGNED') { Contrat signé : vos moyens de paiement seront ouverts dès son activation. }
+          @case ('ACTIVE') { Votre contrat est actif. }
+          @default { Consultez votre contrat. }
+        }
+      </p>
+    </div>
+    <app-contract-status-tag [status]="c.status" />
+  </div>
+
+  <div class="layout">
+    <section class="card document">
+      <header>
+        <span><i class="pi pi-file-pdf"></i> {{ c.reference }}{{ c.signedAt ? '-signe' : '' }}.pdf</span>
+        <p-button label="Télécharger" icon="pi pi-download" severity="secondary" [outlined]="true" size="small" (onClick)="download()" [disabled]="!pdfUrl()" />
+      </header>
+      @if (pdfUrl(); as url) {
+        <iframe [src]="url" [title]="'Contrat ' + c.reference"></iframe>
+      } @else {
+        <p class="muted loading">Chargement du document…</p>
+      }
+    </section>
+
+    <aside class="card summary">
+      <h2>Résumé du contrat</h2>
+      <dl>
+        <dt>Référence</dt>
+        <dd>{{ c.reference }}</dd>
+        <dt>Début</dt>
+        <dd>{{ formatDate(c.startDate) }}</dd>
+        <dt>Fin</dt>
+        <dd>{{ formatDate(c.endDate) }}</dd>
+        <dt>Moyens inclus</dt>
+        <dd class="badges">
+          @for (m of c.methods; track m.code) {
+            <span class="method-badge" [style.background]="m.color" [title]="m.name">{{ m.shortLabel }}</span>
+          }
+        </dd>
+      </dl>
+
+      @if (c.status === 'PENDING_SIGNATURE') {
+        <p-button label="Signer électroniquement" icon="pi pi-pen-to-square" styleClass="w-full" (onClick)="openSigning()" />
+      } @else if (c.signedAt) {
+        <p class="signed"><i class="pi pi-verified"></i> Signé le {{ c.signedAt | date: "dd/MM/yyyy 'à' HH:mm" }}</p>
+        @if (c.status === 'SIGNED') {
+          <p class="info">En attente d'activation : vos moyens de paiement seront disponibles dès l'activation du contrat.</p>
+        }
+      }
+
+      <h3>Plafonds</h3>
+      @for (m of c.methods; track m.code) {
+        <div class="limit">
+          <span>{{ m.name }}</span>
+          <span class="muted">{{ formatAmount(m.perTransactionLimit) }} / op. · {{ formatAmount(m.monthlyLimit) }} / mois</span>
+        </div>
+      }
+    </aside>
+  </div>
+}
+
+<p-dialog
+  [visible]="dialogOpen()"
+  (visibleChange)="!$event && closeSigning()"
+  [modal]="true"
+  [closable]="!busy()"
+  [style]="{ width: 'min(480px, 94vw)' }"
+  [showHeader]="true"
+  styleClass="signing-dialog"
+>
+  <ng-template #header>
+    <div class="dialog-head">
+      <div class="progress">
+        @for (i of [1, 2, 3]; track i) {
+          <span [class.filled]="stepIndex() >= i" [class.done]="step() === 'done'"></span>
+        }
+      </div>
+      @if (step() !== 'done') {
+        <small class="muted">Étape {{ stepIndex() }} sur 3</small>
+      }
+    </div>
+  </ng-template>
+
+  @switch (step()) {
+    @case ('consent') {
+      <h3>Signer le contrat {{ contract()?.reference }}</h3>
+      <p class="muted">
+        Un code à 6 chiffres va vous être envoyé par email. Il confirme que c'est bien vous qui signez.
+      </p>
+      <label class="consent">
+        <p-checkbox [(ngModel)]="accepted" [binary]="true" inputId="consent" />
+        <span>J'ai lu le contrat et j'en accepte les conditions.</span>
+      </label>
+    }
+    @case ('code') {
+      <h3>Saisissez votre code de signature</h3>
+      <p class="muted">
+        Un code à 6 chiffres a été envoyé à <strong>{{ challenge()?.sentTo }}</strong>. Il expire dans 5 minutes.
+      </p>
+      <div class="otp">
+        <p-inputotp [(ngModel)]="code" [length]="6" [integerOnly]="true" (keydown.enter)="confirm()" />
+      </div>
+      <p class="resend muted">
+        Vous n'avez rien reçu ?
+        @if (secondsBeforeResend() > 0) {
+          Renvoyer le code dans <strong>{{ resendLabel() }}</strong>
+        } @else {
+          <button type="button" class="link" (click)="requestCode()" [disabled]="busy()">Renvoyer le code</button>
+        }
+      </p>
+    }
+    @case ('done') {
+      <div class="success">
+        <span class="check"><i class="pi pi-check"></i></span>
+        <h3>Contrat signé</h3>
+        <p class="muted">
+          Votre contrat {{ contract()?.reference }} a été signé et scellé électroniquement. Vos moyens de paiement
+          seront disponibles dès son activation.
+        </p>
+      </div>
+    }
+  }
+
+  @if (error(); as message) {
+    <p class="form-error" role="alert">{{ message }}</p>
+  }
+
+  <ng-template #footer>
+    @switch (step()) {
+      @case ('consent') {
+        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="closeSigning()" />
+        <p-button label="Recevoir mon code" icon="pi pi-envelope" [disabled]="!accepted" [loading]="busy()" (onClick)="requestCode()" />
+      }
+      @case ('code') {
+        <p-button label="Retour" severity="secondary" [outlined]="true" (onClick)="step.set('consent')" [disabled]="busy()" />
+        <p-button label="Signer le contrat" [loading]="busy()" [disabled]="code.length !== 6" (onClick)="confirm()" />
+      }
+      @case ('done') {
+        <p-button label="Fermer" (onClick)="closeSigning()" />
+      }
+    }
+  </ng-template>
+</p-dialog>

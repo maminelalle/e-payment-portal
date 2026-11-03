@@ -113,6 +113,9 @@ export interface Contract {
   methods: ContractMethod[];
   pdfSha256: string | null;
   sentAt: string | null;
+  /** Empreinte du PDF scellé après signature. */
+  signedPdfSha256: string | null;
+  signedAt: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

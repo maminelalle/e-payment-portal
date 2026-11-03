@@ -163,8 +163,9 @@ Contrainte : `(type = 'PHYSIQUE' AND nni IS NOT NULL) OR (type = 'MORALE' AND ni
 | method | varchar(20) | `OTP_EMAIL` (puis `OTP_SMS`, `EXTERNAL`) |
 | otp_hash | varchar(100) | hash du code (jamais le code en clair) |
 | otp_expires_at | timestamptz | création + 5 min |
-| otp_attempts | smallint | ≤ 3 |
-| status | varchar(20) | `PENDING`, `SIGNED`, `FAILED`, `EXPIRED` |
+| otp_attempts | smallint | ≤ 3 (remis à zéro à chaque nouveau code) |
+| otp_sent_count / otp_last_sent_at | smallint / timestamptz | renvoi après 60 s, 5 envois au maximum |
+| status | varchar(20) | `PENDING`, `SIGNED`, `FAILED`, `EXPIRED`, `CANCELLED` ; une seule `PENDING` et une seule `SIGNED` par contrat |
 | document_sha256 | char(64) | empreinte du PDF présenté |
 | signed_document_sha256 | char(64) | empreinte du PDF scellé |
 | signed_at | timestamptz | |

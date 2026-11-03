@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { MessageService } from 'primeng/api';
 
 import { AVenir } from '../shared/a-venir';
 import { AbonneLayout } from './abonne-layout';
@@ -7,6 +8,7 @@ export const ABONNE_ROUTES: Routes = [
   {
     path: '',
     component: AbonneLayout,
+    providers: [MessageService],
     children: [
       {
         path: '',
@@ -17,8 +19,7 @@ export const ABONNE_ROUTES: Routes = [
       {
         path: 'contrat',
         title: 'Mon contrat · E-Payment',
-        component: AVenir,
-        data: { titre: 'Mon contrat', semaine: 'semaine 6' },
+        loadComponent: () => import('./mon-contrat/mon-contrat').then((m) => m.MonContrat),
       },
       {
         path: 'moyens',
