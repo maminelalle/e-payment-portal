@@ -284,3 +284,71 @@ export interface ContractToProcess {
   sentAt: string | null;
   signedAt: string | null;
 }
+
+/** Ligne du journal d'audit. `details` est un objet JSON sérialisé. */
+export interface AuditEntry {
+  id: number;
+  occurredAt: string;
+  actorSubject: string | null;
+  actorLabel: string | null;
+  action: string;
+  resourceType: string | null;
+  resourceId: string | null;
+  outcome: 'SUCCESS' | 'FAILURE';
+  ipAddress: string | null;
+  details: string | null;
+}
+
+export interface AuditFilter {
+  action?: string | null;
+  acteur?: string | null;
+  ressource?: string | null;
+  resultat?: 'SUCCESS' | 'FAILURE' | null;
+  du?: string | null;
+  au?: string | null;
+}
+
+/** Libellés des actions journalisées ; une action inconnue s'affiche avec son code. */
+export const AUDIT_ACTION_LABELS: Record<string, string> = {
+  LOGIN: 'Connexion',
+  ACCESS_DENIED: 'Accès refusé',
+  ADMIN_REQUEST: 'Requête administrateur',
+  SUBSCRIBER_CREATED: 'Abonné créé',
+  SUBSCRIBER_UPDATED: 'Abonné modifié',
+  SUBSCRIBER_ACTIVATED: 'Abonné activé',
+  SUBSCRIBER_SUSPENDED: 'Abonné suspendu',
+  SUBSCRIBER_DISABLED: 'Abonné désactivé',
+  SUBSCRIBER_INVITATION_SENT: 'Invitation envoyée',
+  PAYMENT_METHOD_STATUS_CHANGED: 'Moyen de paiement activé / désactivé',
+  PAYMENT_METHOD_LOGO_CHANGED: 'Logo de moyen modifié',
+  PAYMENT_METHOD_LOGO_REMOVED: 'Logo de moyen retiré',
+  CONTRACT_DRAFT_CREATED: 'Brouillon de contrat créé',
+  CONTRACT_DRAFT_UPDATED: 'Brouillon de contrat modifié',
+  CONTRACT_DRAFT_DELETED: 'Brouillon de contrat supprimé',
+  CONTRACT_SENT: 'Contrat envoyé pour signature',
+  CONTRACT_SIGNED: 'Contrat signé',
+  CONTRACT_ACTIVATED: 'Contrat activé',
+  CONTRACT_SUSPENDED: 'Contrat suspendu',
+  CONTRACT_RESUMED: 'Contrat repris',
+  CONTRACT_TERMINATED: 'Contrat résilié',
+  CONTRACT_EXPIRED: 'Contrat expiré',
+  SIGNATURE_CODE_SENT: 'Code de signature envoyé',
+  SIGNATURE_CODE_REJECTED: 'Code de signature erroné',
+  SIGNATURE_CODE_EXPIRED: 'Code de signature expiré',
+  SIGNATURE_COMPLETED: 'Signature terminée',
+  ENTITLEMENTS_OPENED: 'Droits ouverts',
+  ENTITLEMENTS_SUSPENDED: 'Droits suspendus',
+  ENTITLEMENTS_RESUMED: 'Droits rouverts',
+  ENTITLEMENTS_REVOKED: 'Droits révoqués',
+  ENTITLEMENTS_EXPIRED: 'Droits expirés',
+  PAYMENT_INITIATED: 'Paiement initié',
+  PAYMENT_REFUSED: 'Paiement refusé par le portail',
+  PAYMENT_UPDATED: 'Paiement mis à jour',
+  PAYMENT_CANCELLED: 'Paiement abandonné',
+  WEBHOOK_RECEIVED: 'Webhook reçu',
+  WEBHOOK_REJECTED: 'Webhook rejeté (signature)',
+  WEBHOOK_UNMATCHED: 'Webhook sans transaction',
+  WEBHOOK_ANOMALY: 'Webhook incohérent',
+  WEBHOOK_CONFLICT: 'Webhook contradictoire',
+  WEBHOOK_EVENT_ID_REUSED: 'Identifiant de webhook réutilisé',
+};

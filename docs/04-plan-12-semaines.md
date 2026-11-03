@@ -104,7 +104,7 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] Tableau de bord admin (graphiques PrimeNG / Chart.js, maquette A1) : 4 indicateurs du mois comparés à la même durée du mois précédent, volume par jour (7/30/90 jours), répartition par moyen, contrats à traiter, dernières transactions
 - [ ] Tableau de bord abonné
 - [ ] Profil abonné (Keycloak)
-- [ ] Journal d'audit consultable
+- [x] Journal d'audit consultable (écran A6) : filtres acteur, ressource, action, résultat, période ; détail de chaque événement
 
 ### Semaine 12 (18–22 janv.) — Recette et mise en ligne
 - [ ] Tests E2E Playwright

@@ -1,0 +1,72 @@
+.toolbar .search {
+  flex: 1;
+  min-width: 200px;
+}
+
+.table-card {
+  overflow-x: auto;
+}
+
+.ellipsis {
+  display: block;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expander {
+  width: 44px;
+}
+
+.icon-button.small {
+  width: 28px;
+  height: 28px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.action {
+  display: block;
+}
+
+.code {
+  display: block;
+  color: var(--ep-text-muted);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.72rem;
+}
+
+.mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.details-row td {
+  background: #f8fafc;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 0.85rem;
+
+  dt {
+    color: var(--ep-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    word-break: break-all;
+  }
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+}

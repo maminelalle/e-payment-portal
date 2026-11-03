@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
-import { AVenir } from '../shared/a-venir';
 import { AdminLayout } from './admin-layout';
 
 export const ADMIN_ROUTES: Routes = [
@@ -57,9 +56,8 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'audit',
-        title: 'Paramètres et audit · E-Payment',
-        component: AVenir,
-        data: { titre: 'Paramètres et audit', semaine: 'semaine 11' },
+        title: "Journal d'audit · E-Payment",
+        loadComponent: () => import('./audit/audit').then((m) => m.Audit),
       },
     ],
   },

@@ -1,6 +1,10 @@
 package mr.epayment.portal.audit;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 import mr.epayment.portal.shared.PageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +22,7 @@ public class AuditService {
 
     private static final Logger log = LoggerFactory.getLogger(AuditService.class);
     private static final int MAX_PAGE_SIZE = 100;
+    private static final ZoneId ZONE = ZoneId.of("Africa/Nouakchott");
 
     private final AuditLogRepository repository;
     private final JsonMapper jsonMapper;
@@ -42,9 +47,22 @@ public class AuditService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<AuditEntry> search(String action, String actor, int page, int size) {
+    public PageResponse<AuditEntry> search(Filter filter, int page, int size) {
         var pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
-        return PageResponse.of(repository.search(blankToNull(action), blankToNull(actor), pageable), AuditLog::toEntry);
+        Instant from = filter.from() == null ? null : filter.from().atStartOfDay(ZONE).toInstant();
+        Instant to = filter.to() == null ? null : filter.to().plusDays(1).atStartOfDay(ZONE).toInstant();
+        return PageResponse.of(repository.search(blankToNull(filter.action()), blankToNull(filter.actor()),
+                blankToNull(filter.resource()), blankToNull(filter.outcome()), from, to, pageable), AuditLog::toEntry);
+    }
+
+    /** Actions déjà journalisées (liste du filtre de l'écran d'audit). */
+    @Transactional(readOnly = true)
+    public List<String> actions() {
+        return repository.findDistinctActions();
+    }
+
+    /** Critères de recherche, tous facultatifs ; dates incluses, jours de Nouakchott. */
+    public record Filter(String action, String actor, String resource, String outcome, LocalDate from, LocalDate to) {
     }
 
     private static String currentClientIp() {

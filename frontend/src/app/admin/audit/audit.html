@@ -1,0 +1,107 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Journal d'audit</h1>
+    <p class="page-subtitle">
+      {{ total() }} événement{{ total() > 1 ? 's' : '' }} · connexions, actions des administrateurs, signatures,
+      paiements et webhooks
+    </p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <p-iconfield class="search">
+    <p-inputicon class="pi pi-user" />
+    <input pInputText type="search" class="w-full" placeholder="Acteur (email)" [(ngModel)]="actor"
+           (ngModelChange)="onFilterChange()" aria-label="Filtrer par acteur" />
+  </p-iconfield>
+  <p-iconfield class="search">
+    <p-inputicon class="pi pi-search" />
+    <input pInputText type="search" class="w-full" placeholder="Ressource (TRX-000001, CTR-2026-0001…)"
+           [(ngModel)]="resource" (ngModelChange)="onFilterChange()" aria-label="Filtrer par ressource" />
+  </p-iconfield>
+  <p-select [options]="actions()" optionLabel="label" optionValue="value" [(ngModel)]="action"
+            (onChange)="onFilterChange()" placeholder="Toutes les actions" [showClear]="true" [filter]="true"
+            filterBy="label" ariaLabel="Filtrer par action" />
+  <p-select [options]="outcomes" optionLabel="label" optionValue="value" [(ngModel)]="outcome"
+            (onChange)="onFilterChange()" placeholder="Tous les résultats" [showClear]="true"
+            ariaLabel="Filtrer par résultat" />
+  <p-datepicker [(ngModel)]="period" selectionMode="range" [readonlyInput]="true" dateFormat="dd/mm/yy"
+                placeholder="Période" [showIcon]="true" [showButtonBar]="true" (onSelect)="onPeriodSelect()"
+                (onClearClick)="onFilterChange()" ariaLabel="Filtrer par période" />
+</div>
+
+<div class="card table-card">
+  <p-table [value]="rows()" [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [paginator]="true" [rows]="pageSize"
+           [totalRecords]="total()" [loading]="loading()" [showCurrentPageReport]="true"
+           currentPageReportTemplate="{first}–{last} sur {totalRecords}" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th class="expander"></th>
+        <th>Date</th>
+        <th>Acteur</th>
+        <th>Action</th>
+        <th>Ressource</th>
+        <th>Résultat</th>
+        <th>Adresse IP</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-entry let-expanded="expanded">
+      <tr>
+        <td class="expander">
+          @if (entry.details) {
+            <button type="button" class="icon-button small" [pRowToggler]="entry"
+                    [attr.aria-label]="expanded ? 'Masquer le détail' : 'Voir le détail'">
+              <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+            </button>
+          }
+        </td>
+        <td class="nowrap">{{ entry.occurredAt | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+        <td>
+          @if (entry.actorLabel) {
+            {{ entry.actorLabel }}
+          } @else {
+            <span class="muted">Système</span>
+          }
+        </td>
+        <td>
+          <span class="action">{{ actionLabel(entry.action) }}</span>
+          <span class="code">{{ entry.action }}</span>
+        </td>
+        <td>
+          @if (entry.resourceId) {
+            <span class="mono ellipsis" [title]="entry.resourceId">{{ entry.resourceId }}</span>
+          }
+          @if (entry.resourceType) {
+            <span class="code">{{ entry.resourceType }}</span>
+          }
+        </td>
+        <td>
+          <span [class]="'status-pill ' + (entry.outcome === 'SUCCESS' ? 'success' : 'danger')">
+            {{ entry.outcome === 'SUCCESS' ? 'Réussite' : 'Échec' }}
+          </span>
+        </td>
+        <td class="mono muted">{{ entry.ipAddress ?? '—' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template #expandedrow let-entry>
+      <tr class="details-row">
+        <td></td>
+        <td colspan="6">
+          <dl class="details">
+            @for (line of detailLines(entry.details); track $index) {
+              @if (line.key) {
+                <dt>{{ line.key }}</dt>
+              }
+              <dd>{{ line.value }}</dd>
+            }
+          </dl>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7" class="muted empty">Aucun événement ne correspond à ces critères.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

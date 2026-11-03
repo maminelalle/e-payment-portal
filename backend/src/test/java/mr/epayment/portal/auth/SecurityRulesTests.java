@@ -50,9 +50,25 @@ class SecurityRulesTests {
 
     @Test
     void adminCanReadAuditLog() throws Exception {
-        mvc.perform(get("/api/admin/audit").with(user(UUID.randomUUID().toString(), "admin@epayment.mr", Roles.ADMIN)))
+        var admin = user(UUID.randomUUID().toString(), "admin@epayment.mr", Roles.ADMIN);
+        mvc.perform(get("/api/admin/audit").with(admin))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
+
+        // Un refus d'accès tracé, retrouvé par action, résultat, période et acteur.
+        String subject = UUID.randomUUID().toString();
+        mvc.perform(get("/api/admin/abonnes").with(user(subject, "curieux@exemple.mr", Roles.ABONNE)));
+        String today = java.time.LocalDate.now(java.time.ZoneId.of("Africa/Nouakchott")).toString();
+        mvc.perform(get("/api/admin/audit").with(admin)
+                        .param("action", SecurityConfig.ACCESS_DENIED).param("resultat", "FAILURE")
+                        .param("du", today).param("au", today).param("acteur", "curieux@exemple"))
+                .andExpect(jsonPath("$.content[0].actorSubject").value(subject))
+                .andExpect(jsonPath("$.content[0].resourceId").value("/api/admin/abonnes"));
+        mvc.perform(get("/api/admin/audit").with(admin).param("ressource", "/api/admin/abonnes")
+                        .param("du", "2020-01-01").param("au", "2020-01-31"))
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/admin/audit/actions").with(admin))
+                .andExpect(jsonPath("$").value(org.hamcrest.Matchers.hasItem(SecurityConfig.ACCESS_DENIED)));
     }
 
     @Test

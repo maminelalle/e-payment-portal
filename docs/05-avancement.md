@@ -19,12 +19,16 @@ Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case 
 | 8 | Simulateur Bankily / Masrvi / Visa, webhooks | Terminée |
 | 9 | Adaptateurs HTTP, logos des moyens | Terminée |
 | 10 | Paiements, reçus, historiques, rapprochement | Terminée — jalon S10 atteint |
-| 11 | Notifications et tableaux de bord | **En cours** (emails et tableau de bord admin faits) |
+| 11 | Notifications et tableaux de bord | **En cours** (emails, tableau de bord admin et journal d'audit faits) |
 | 12 | Recette et mise en ligne | **À faire** |
 
 Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
+
+### 03/11/2026 — Semaine 11 : journal d'audit
+- Écran « Paramètres et audit » : journal filtrable par acteur, ressource (TRX-…, CTR-…), action (libellés en français),
+  résultat et période ; détail JSON de chaque événement. API `GET /api/admin/audit` enrichie + `GET /api/admin/audit/actions`.
 
 ### 03/11/2026 — Semaine 11 : tableau de bord admin
 - Écran d'accueil admin (maquette A1) : abonnés actifs, contrats en attente, transactions et montant encaissé du mois
@@ -72,7 +76,7 @@ Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 - [x] Tableau de bord admin avec graphiques (maquette A1)
 - [ ] Tableau de bord abonné
 - [ ] Profil abonné (données Keycloak)
-- [ ] Écran du journal d'audit (l'API `GET /api/admin/audit` existe déjà)
+- [x] Écran du journal d'audit
 
 ### Semaine 12 — Recette et mise en ligne
 - [ ] Tests de bout en bout Playwright

@@ -97,7 +97,7 @@ Le realm n'est importé qu'au premier démarrage. Après modification de `infra/
 | `/api/abonne/**` | Rôle `ABONNE` |
 | Tout autre chemin `/api/**` | Refusé |
 
-Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `audit_log` (consultable via `GET /api/admin/audit`).
+Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `audit_log` (écran « Paramètres et audit », API `GET /api/admin/audit?action=&acteur=&ressource=&resultat=SUCCESS|FAILURE&du=&au=` et `GET /api/admin/audit/actions`).
 
 | API d'administration | Rôle |
 |----------------------|------|

@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 
 import {
   AdminDashboard,
+  AuditEntry,
+  AuditFilter,
   Contract,
   ContractStatus,
   ContractTemplate,
@@ -46,6 +48,18 @@ export class AdminApi {
 
   dashboard(days: number): Observable<AdminDashboard> {
     return this.http.get<AdminDashboard>('/api/admin/tableau-de-bord', { params: { jours: days } });
+  }
+
+  audit(page: number, size: number, filter: AuditFilter): Observable<PageResponse<AuditEntry>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    for (const [key, value] of Object.entries(filter)) {
+      if (value) params = params.set(key, value);
+    }
+    return this.http.get<PageResponse<AuditEntry>>('/api/admin/audit', { params });
+  }
+
+  auditActions(): Observable<string[]> {
+    return this.http.get<string[]>('/api/admin/audit/actions');
   }
 
   subscriberSummary(): Observable<Record<SubscriberStatus, number>> {
