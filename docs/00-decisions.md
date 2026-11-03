@@ -2,13 +2,13 @@
 
 Registre des décisions de cadrage. Une ligne par décision ; on ajoute, on ne réécrit pas.
 
-## Hypothèses métier (à faire confirmer par l'organisation)
+## Hypothèses métier
 
 | # | Sujet | Hypothèse retenue | Statut |
 |---|-------|-------------------|--------|
-| H1 | Rôle du portail | L'abonné **paie** (pas d'encaissement pour ses clients) | À confirmer |
-| H2 | Modèle des moyens | Compte propre à chaque abonné (son wallet, sa carte) | À confirmer |
-| H3 | Contrats multiples | Un seul contrat actif par abonné ; un avenant remplace le contrat | À confirmer |
+| H1 | Rôle du portail | L'abonné **paie** (pas d'encaissement pour ses clients) | Retenu (D12) |
+| H2 | Modèle des moyens | Compte propre à chaque abonné (son wallet, sa carte) | Retenu (D12) |
+| H3 | Contrats multiples | Un seul contrat actif par abonné ; un avenant remplace le contrat | Retenu (D12) |
 | H4 | Fuseau horaire | `Africa/Nouakchott` (UTC+0) | Retenu |
 | H5 | Devise | MRU ; devises carte selon la passerelle | Retenu |
 | H6 | Signature | Intégrée : OTP (email via Mailpit pour la démo, SMS ensuite) + scellement PAdES (EU DSS) | Retenu |
@@ -30,8 +30,5 @@ Registre des décisions de cadrage. Une ligne par décision ; on ajoute, on ne r
 | D10 | 2026-11-02 | Stockage objet local : **SeaweedFS** (API S3) au lieu de MinIO ; le backend utilise un client S3 standard | MinIO ne publie plus d'images Docker communautaires ; l'API S3 garde le choix interchangeable (MinIO, Garage, S3 cloud) |
 | D11 | 2026-11-02 | Une seule instance PostgreSQL en dev, avec deux bases : `epayment` et `keycloak` | Moins de conteneurs sur le poste |
 
-## Actions externes à lancer dès la semaine 1
-
-- [ ] Demander les accès sandbox Bankily, Masrvi et passerelle Visa (délai hors de notre contrôle).
-- [ ] Identifier un opérateur SMS local pour l'OTP (après les 3 mois).
-- [ ] Faire relire les hypothèses H1–H3 par l'organisation.
+| D12 | 2026-11-03 | **Projet de stage, non officiel** : pas de demande d'accès aux vraies APIs Bankily / Masrvi / Visa ni d'opérateur SMS. Le simulateur (`simulator/`) est la cible finale ; les hypothèses H1–H3 sont retenues telles quelles | Aucune organisation réelle derrière le projet ; l'architecture par adaptateurs reste prête pour de vraies APIs |
+| D13 | 2026-11-03 | Comptes abonnés créés par le backend via l'API d'administration Keycloak (client confidentiel `epayment-backend`, compte de service limité à la gestion des utilisateurs) ; l'invitation est l'email Keycloak « définir votre mot de passe » | Aucun mot de passe ne transite par le portail ; Keycloak gère le lien et son expiration |

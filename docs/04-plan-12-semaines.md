@@ -12,7 +12,7 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] Schéma de la base (13 entités) → [02-modele-donnees.md](02-modele-donnees.md)
 - [x] Contrat d'API simulé de chaque fournisseur → [03-api-fournisseurs-simules.md](03-api-fournisseurs-simules.md)
 - [x] Dépôt GitHub initialisé
-- [ ] Tableau des tâches (GitHub Projects / issues)
+- [x] Tableau des tâches : la checklist de ce fichier en tient lieu (projet de stage, voir D12)
 
 ### Semaine 2 (9–13 nov.) — Socle technique
 - [x] Projet Spring Boot 4.1 / Java 21 avec modules Spring Modulith (voir D9)

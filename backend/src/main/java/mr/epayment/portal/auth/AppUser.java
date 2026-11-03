@@ -75,6 +75,20 @@ class AppUser {
         this.lastLoginAt = Instant.now();
     }
 
+    void changePhone(String phone) {
+        this.phone = phone;
+        this.updatedAt = Instant.now();
+    }
+
+    void changeEnabled(boolean enabled) {
+        this.status = enabled ? "ACTIVE" : "DISABLED";
+        this.updatedAt = Instant.now();
+    }
+
+    String getKeycloakId() {
+        return keycloakId;
+    }
+
     UUID getId() {
         return id;
     }

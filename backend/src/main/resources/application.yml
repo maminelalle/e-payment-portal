@@ -20,6 +20,20 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/epayment}
+      # Compte de service du backend pour l'API d'administration Keycloak (création des comptes abonnés)
+      client:
+        registration:
+          keycloak-admin:
+            provider: keycloak
+            client-id: epayment-backend
+            client-secret: ${KEYCLOAK_BACKEND_SECRET:epayment-backend-dev-secret}
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            token-uri: ${KEYCLOAK_URL:http://localhost:8180}/realms/epayment/protocol/openid-connect/token
+  mvc:
+    problemdetails:
+      enabled: true
   jackson:
     time-zone: Africa/Nouakchott
 
@@ -42,3 +56,9 @@ management:
 epayment:
   time-zone: Africa/Nouakchott
   default-currency: MRU
+  keycloak:
+    url: ${KEYCLOAK_URL:http://localhost:8180}
+    realm: epayment
+    # Le lien d'invitation (définir son mot de passe) ramène l'abonné sur le portail.
+    invitation-client-id: epayment-frontend
+    invitation-redirect-uri: ${PORTAL_URL:http://localhost}/
