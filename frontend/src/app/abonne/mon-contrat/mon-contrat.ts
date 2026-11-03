@@ -13,12 +13,13 @@ import { ApiProblem, Contract } from '../../core/api.models';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatAmount, formatIsoDate } from '../../shared/formatting';
 import { AbonneApi, OtpChallenge } from '../abonne-api';
+import { MethodLogo } from '../../shared/method-logo';
 
 type SigningStep = 'consent' | 'code' | 'done';
 
 @Component({
   selector: 'app-mon-contrat',
-  imports: [DatePipe, FormsModule, ButtonModule, CheckboxModule, DialogModule, InputOtpModule, ContractStatusTag],
+  imports: [DatePipe, FormsModule, ButtonModule, CheckboxModule, DialogModule, InputOtpModule, ContractStatusTag, MethodLogo],
   templateUrl: './mon-contrat.html',
   styleUrl: './mon-contrat.scss',
 })

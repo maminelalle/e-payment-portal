@@ -3,17 +3,18 @@ import { ButtonModule } from 'primeng/button';
 
 import { EntitledMethod } from '../../core/api.models';
 import { formatAmount } from '../../shared/formatting';
+import { MethodLogo } from '../../shared/method-logo';
 
 /** Cartes « Bankily / Masrvi / Visa » de la maquette B1 : uniquement les moyens ouverts par le contrat. */
 @Component({
   selector: 'app-method-cards',
-  imports: [ButtonModule],
+  imports: [ButtonModule, MethodLogo],
   template: `
     <div class="cards">
       @for (m of methods(); track m.code; let first = $first) {
         <article class="card method" [class.unavailable]="!m.available">
           <header>
-            <span class="method-badge" [style.background]="m.color">{{ m.shortLabel }}</span>
+            <app-method-logo [method]="m" />
             @if (m.available) {
               <span class="status-pill success">Disponible</span>
             } @else {

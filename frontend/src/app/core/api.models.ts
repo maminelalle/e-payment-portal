@@ -61,6 +61,8 @@ export interface PaymentMethod {
   category: 'WALLET' | 'CARD';
   shortLabel: string;
   color: string;
+  /** Logo envoyé dans le catalogue (adresse publique), sinon null : pastille colorée. */
+  logoUrl: string | null;
   description: string | null;
   instructions: string | null;
   currency: string;
@@ -95,6 +97,7 @@ export interface ContractMethod {
   name: string;
   shortLabel: string;
   color: string;
+  logoUrl: string | null;
   category: 'WALLET' | 'CARD';
   perTransactionLimit: number;
   monthlyLimit: number;
@@ -141,6 +144,7 @@ export interface EntitledMethod {
   category: 'WALLET' | 'CARD';
   shortLabel: string;
   color: string;
+  logoUrl: string | null;
   description: string | null;
   instructions: string | null;
   currency: string;

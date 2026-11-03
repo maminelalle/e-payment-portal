@@ -32,7 +32,7 @@ public record ContractView(
     public record Party(UUID id, String reference, String displayName, String email, String status) {
     }
 
-    public record Method(String code, String name, String shortLabel, String color, String category,
+    public record Method(String code, String name, String shortLabel, String color, String logoUrl, String category,
             BigDecimal perTransactionLimit, BigDecimal monthlyLimit) {
     }
 }

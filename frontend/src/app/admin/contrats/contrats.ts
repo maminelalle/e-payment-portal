@@ -15,6 +15,7 @@ import { Contract, CONTRACT_STATUS_LABELS, ContractStatus } from '../../core/api
 import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatIsoDate } from '../../shared/formatting';
 import { AdminApi } from '../admin-api';
+import { MethodLogo } from '../../shared/method-logo';
 
 const PAGE_SIZE = 10;
 
@@ -31,12 +32,12 @@ const PAGE_SIZE = 10;
     SelectModule,
     TableModule,
     ContractStatusTag,
+    MethodLogo,
   ],
   templateUrl: './contrats.html',
   styles: `
     .clickable { cursor: pointer; }
     .badges { display: flex; gap: 4px; }
-    .badges .method-badge { width: 26px; height: 26px; font-size: 0.65rem; border-radius: 6px; }
     .empty { padding: 32px; text-align: center; color: var(--ep-text-muted); }
     .name { font-weight: 500; }
   `,

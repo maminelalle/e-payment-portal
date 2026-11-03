@@ -13,6 +13,7 @@ import { forkJoin, Observable } from 'rxjs';
 import { ApiProblem, Contract, ContractTemplate, PaymentMethod, Subscriber } from '../../core/api.models';
 import { formatAmount, formatIsoDate, fromIsoDate, toIsoDate } from '../../shared/formatting';
 import { AdminApi } from '../admin-api';
+import { MethodLogo } from '../../shared/method-logo';
 
 interface MethodChoice {
   method: PaymentMethod;
@@ -29,7 +30,7 @@ const DEFAULT_LIMITS: Record<'WALLET' | 'CARD', [number, number]> = {
 
 @Component({
   selector: 'app-contrat-assistant',
-  imports: [FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, InputNumberModule, SelectModule],
+  imports: [FormsModule, RouterLink, ButtonModule, CheckboxModule, DatePickerModule, InputNumberModule, SelectModule, MethodLogo],
   templateUrl: './contrat-assistant.html',
   styleUrl: './contrat-assistant.scss',
 })

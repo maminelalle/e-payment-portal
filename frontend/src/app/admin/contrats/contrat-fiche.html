@@ -77,7 +77,7 @@
       <h3>Moyens inclus</h3>
       @for (m of c.methods; track m.code) {
         <div class="method">
-          <span class="method-badge" [style.background]="m.color">{{ m.shortLabel }}</span>
+          <app-method-logo [method]="m" />
           <div>
             <strong>{{ m.name }}</strong>
             <div class="muted">{{ formatAmount(m.perTransactionLimit) }} / transaction</div>
@@ -92,7 +92,7 @@
         <h3>Droits ouverts</h3>
         @for (e of entitlements(); track e.entitlementId) {
           <div class="right">
-            <span class="method-badge tiny" [style.background]="e.color">{{ e.shortLabel }}</span>
+            <app-method-logo [method]="e" [size]="26" />
             <span>{{ e.name }}</span>
             <span [class]="'status-pill ' + (e.status === 'ACTIVE' ? 'success' : e.status === 'SUSPENDED' ? 'warning' : 'neutral')">
               {{ { ACTIVE: 'Actif', SUSPENDED: 'Suspendu', REVOKED: 'Révoqué', EXPIRED: 'Expiré' }[e.status] }}

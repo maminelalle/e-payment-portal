@@ -11,6 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ApiProblem, EntitledMethod, PaymentResult } from '../../core/api.models';
 import { formatAmount } from '../../shared/formatting';
 import { AbonneApi } from '../abonne-api';
+import { MethodLogo } from '../../shared/method-logo';
 
 /**
  * Paiement avec un moyen autorisé (maquette B3). Le serveur revérifie le droit et les plafonds :
@@ -18,7 +19,7 @@ import { AbonneApi } from '../abonne-api';
  */
 @Component({
   selector: 'app-payment-drawer',
-  imports: [DatePipe, FormsModule, RouterLink, ButtonModule, DrawerModule, InputNumberModule, InputTextModule],
+  imports: [DatePipe, FormsModule, RouterLink, ButtonModule, DrawerModule, InputNumberModule, InputTextModule, MethodLogo],
   templateUrl: './payment-drawer.html',
   styleUrl: './payment-drawer.scss',
 })

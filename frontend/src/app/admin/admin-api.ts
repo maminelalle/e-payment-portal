@@ -120,6 +120,17 @@ export class AdminApi {
     return this.http.get<PaymentMethod[]>('/api/admin/moyens');
   }
 
+  /** Logo du moyen : PNG, JPEG ou WebP, 256 Ko au plus (contrôlé par le serveur). */
+  uploadPaymentMethodLogo(code: string, file: File): Observable<PaymentMethod> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.put<PaymentMethod>(`/api/admin/moyens/${code}/logo`, form);
+  }
+
+  removePaymentMethodLogo(code: string): Observable<PaymentMethod> {
+    return this.http.delete<PaymentMethod>(`/api/admin/moyens/${code}/logo`);
+  }
+
   changePaymentMethodStatus(code: string, status: PaymentMethodStatus): Observable<PaymentMethod> {
     return this.http.patch<PaymentMethod>(`/api/admin/moyens/${code}/statut`, { status });
   }

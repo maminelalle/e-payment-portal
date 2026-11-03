@@ -11,6 +11,8 @@ public record PaymentMethodView(
         String category,
         String shortLabel,
         String color,
+        /** Adresse publique du logo, ou null : l'interface affiche alors la pastille (shortLabel + color). */
+        String logoUrl,
         String description,
         String instructions,
         String currency,

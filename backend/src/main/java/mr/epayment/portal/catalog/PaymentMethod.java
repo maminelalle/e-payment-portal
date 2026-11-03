@@ -41,6 +41,12 @@ class PaymentMethod {
     @Column(name = "logo_object_key")
     private String logoObjectKey;
 
+    @Column(name = "logo_content_type")
+    private String logoContentType;
+
+    @Column(name = "logo_updated_at")
+    private Instant logoUpdatedAt;
+
     private String description;
 
     private String instructions;
@@ -74,8 +80,33 @@ class PaymentMethod {
         this.updatedAt = Instant.now();
     }
 
+    void changeLogo(String objectKey, String contentType) {
+        this.logoObjectKey = objectKey;
+        this.logoContentType = contentType;
+        this.logoUpdatedAt = Instant.now();
+        this.updatedAt = logoUpdatedAt;
+    }
+
+    void removeLogo() {
+        this.logoObjectKey = null;
+        this.logoContentType = null;
+        this.logoUpdatedAt = Instant.now();
+        this.updatedAt = logoUpdatedAt;
+    }
+
+    String getLogoObjectKey() {
+        return logoObjectKey;
+    }
+
+    String getLogoContentType() {
+        return logoContentType;
+    }
+
     PaymentMethodView toView() {
-        return new PaymentMethodView(id, code, name, category, shortLabel, color, description, instructions,
+        // Adresse publique et versionnée : le navigateur garde le logo en cache jusqu'au prochain changement.
+        String logoUrl = logoObjectKey == null ? null
+                : "/api/public/moyens/" + code + "/logo?v=" + logoUpdatedAt.toEpochMilli();
+        return new PaymentMethodView(id, code, name, category, shortLabel, color, logoUrl, description, instructions,
                 currency, status, provider.toView());
     }
 }

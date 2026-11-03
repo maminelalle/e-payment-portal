@@ -49,7 +49,7 @@
         <dt>Moyens inclus</dt>
         <dd class="badges">
           @for (m of c.methods; track m.code) {
-            <span class="method-badge" [style.background]="m.color" [title]="m.name">{{ m.shortLabel }}</span>
+            <app-method-logo [method]="m" [size]="26" />
           }
         </dd>
       </dl>

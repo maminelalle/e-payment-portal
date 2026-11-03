@@ -35,6 +35,8 @@ class SecurityConfig {
                         .requestMatchers("/actuator/health/**", "/actuator/info", "/error").permitAll()
                         // Fournisseurs de paiement : sans jeton, authentifiés par la signature HMAC du webhook.
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/*").permitAll()
+                        // Ressources publiques (logos des moyens de paiement, affichés par <img>).
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole(Roles.ADMIN)
                         .requestMatchers("/api/abonne/**").hasRole(Roles.ABONNE)
                         .requestMatchers("/api/me/**", "/api/me").authenticated()

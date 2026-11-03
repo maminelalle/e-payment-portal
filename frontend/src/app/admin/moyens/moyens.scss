@@ -58,3 +58,17 @@ dd {
   font-size: 0.85rem;
   line-height: 1.4;
 }
+
+.logo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--ep-border);
+
+  small {
+    width: 100%;
+  }
+}

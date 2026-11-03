@@ -104,7 +104,7 @@ Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `aud
 | `GET/POST /api/admin/abonnes`, `GET/PUT /api/admin/abonnes/{id}` | Liste filtrable (`q`, `statut`, `type`), création, fiche, modification |
 | `POST /api/admin/abonnes/{id}/activer` · `/suspendre` · `/desactiver` · `/invitation` | Cycle de vie et renvoi de l'invitation |
 | `GET /api/admin/abonnes/resume` | Compteurs par statut |
-| `GET /api/admin/moyens`, `PATCH /api/admin/moyens/{code}/statut` | Catalogue des moyens de paiement |
+| `GET /api/admin/moyens`, `PATCH /api/admin/moyens/{code}/statut`, `PUT/DELETE /api/admin/moyens/{code}/logo` | Catalogue des moyens de paiement, activation, logo (PNG/JPEG/WebP, 256 Ko) |
 | `GET/POST /api/admin/contrats`, `GET/PUT/DELETE /api/admin/contrats/{id}` | Contrats : liste (`statut`, `abonne`, `q`), brouillon, modification et suppression du brouillon |
 | `GET /api/admin/contrats/modeles`, `GET /api/admin/contrats/{id}/pdf`, `POST /api/admin/contrats/{id}/envoyer` | Modèles, PDF (aperçu « BROUILLON » ou document envoyé), envoi pour signature |
 

@@ -210,7 +210,8 @@ public class EntitlementEngine {
             reason = "Momentanément indisponible";
         }
         return new EntitledMethod(e.getId(), e.getContractId(), method.code(), method.name(), method.category(),
-                method.shortLabel(), method.color(), method.description(), method.instructions(), method.currency(),
+                method.shortLabel(), method.color(), method.logoUrl(), method.description(), method.instructions(),
+                method.currency(),
                 e.getPerTransactionLimit(), e.getMonthlyLimit(), e.getValidFrom(), e.getValidTo(),
                 e.getStatus().name(), reason == null, reason);
     }

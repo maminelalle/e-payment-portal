@@ -18,6 +18,7 @@ public record EntitledMethod(
         String category,
         String shortLabel,
         String color,
+        String logoUrl,
         String description,
         String instructions,
         String currency,

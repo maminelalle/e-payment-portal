@@ -9,10 +9,11 @@ import { ApiProblem, Contract, EntitledMethod } from '../../core/api.models';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatAmount, formatIsoDate } from '../../shared/formatting';
 import { AdminApi } from '../admin-api';
+import { MethodLogo } from '../../shared/method-logo';
 
 @Component({
   selector: 'app-contrat-fiche',
-  imports: [DatePipe, RouterLink, ButtonModule, ContractStatusTag],
+  imports: [DatePipe, RouterLink, ButtonModule, ContractStatusTag, MethodLogo],
   templateUrl: './contrat-fiche.html',
   styleUrl: './contrat-fiche.scss',
 })

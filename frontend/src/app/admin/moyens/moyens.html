@@ -10,7 +10,7 @@
     @for (m of list; track m.code + revision()) {
       <article class="card method" [class.inactive]="m.status === 'INACTIVE'">
         <header>
-          <span class="method-badge" [style.background]="m.color">{{ m.shortLabel }}</span>
+          <app-method-logo [method]="m" [size]="48" />
           <div class="title">
             <h2>{{ m.name }}</h2>
             <span class="muted">{{ m.category === 'WALLET' ? 'Wallet mobile' : 'Carte bancaire' }}</span>
@@ -55,6 +55,29 @@
         @if (m.instructions) {
           <p class="instructions"><i class="pi pi-info-circle"></i> {{ m.instructions }}</p>
         }
+
+        <div class="logo-actions">
+          <input
+            #logoInput
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+            (change)="uploadLogo(m, logoInput)"
+          />
+          <p-button
+            [label]="m.logoUrl ? 'Changer le logo' : 'Ajouter un logo'"
+            icon="pi pi-image"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="pending() === m.code"
+            (onClick)="logoInput.click()"
+          />
+          @if (m.logoUrl) {
+            <p-button label="Retirer" size="small" severity="danger" [text]="true" [disabled]="pending() === m.code" (onClick)="removeLogo(m)" />
+          }
+          <small class="muted">PNG, JPEG ou WebP · 256 Ko max · format carré conseillé</small>
+        </div>
       </article>
     }
   </div>

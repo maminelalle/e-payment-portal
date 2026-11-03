@@ -8,7 +8,7 @@
   <ng-template #header>
     @if (method(); as m) {
       <div class="head">
-        <span class="method-badge small" [style.background]="m.color">{{ m.shortLabel }}</span>
+        <app-method-logo [method]="m" [size]="32" />
         <strong>Payer avec {{ m.name }}</strong>
       </div>
     }

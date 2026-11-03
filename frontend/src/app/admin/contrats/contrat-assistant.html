@@ -75,7 +75,7 @@
           <div class="card method" [class.selected]="c.selected">
             <label class="method-head">
               <p-checkbox [(ngModel)]="c.selected" [binary]="true" [inputId]="'m-' + c.method.code" />
-              <span class="method-badge" [style.background]="c.method.color">{{ c.method.shortLabel }}</span>
+              <app-method-logo [method]="c.method" />
               <span>
                 <strong>{{ c.method.name }}</strong>
                 <span class="muted block">{{ c.method.description }}</span>
@@ -234,7 +234,7 @@
       <dt>Moyens</dt>
       <dd class="badges">
         @for (c of selectedChoices(); track c.method.code) {
-          <span class="method-badge" [style.background]="c.method.color" [title]="c.method.name">{{ c.method.shortLabel }}</span>
+          <app-method-logo [method]="c.method" [size]="26" />
         } @empty {
           —
         }

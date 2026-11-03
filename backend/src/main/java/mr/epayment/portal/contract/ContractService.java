@@ -394,7 +394,7 @@ public class ContractService {
         var included = c.getMethods().stream().map(m -> {
             PaymentMethodView method = methods.get(m.paymentMethodId());
             return new ContractView.Method(method.code(), method.name(), method.shortLabel(), method.color(),
-                    method.category(), m.perTransactionLimit(), m.monthlyLimit());
+                    method.logoUrl(), method.category(), m.perTransactionLimit(), m.monthlyLimit());
         }).toList();
         return new ContractView(c.getId(), c.getReference(), c.getStatus(), party, templateViews.get(c.getTemplateId()),
                 c.getStartDate(), c.getEndDate(), c.getCommissionRate(), included, c.getPdfSha256(), c.getSentAt(),
