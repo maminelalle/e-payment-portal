@@ -35,41 +35,23 @@ class WebhookParsers {
     }
 
     private static ProviderWebhook bankily(BankilyEvent e) {
-        Outcome outcome = switch (required(e.status(), "status")) {
-            case "SUCCESS" -> Outcome.SUCCEEDED;
-            case "FAILED" -> Outcome.FAILED;
-            default -> Outcome.PENDING;
-        };
+        Outcome outcome = HttpPaymentProviders.Bankily.outcome(required(e.status(), "status"));
         return new ProviderWebhook("BANKILY", required(e.eventId(), "eventId"), e.paymentId(), e.merchantReference(),
                 outcome, e.status(), e.failureCode(), e.amount(), e.currency(), instant(e.occurredAt()), null, null);
     }
 
     /** Masrvi : états EN_COURS / SUCCES / ECHEC, codes 00 (ok), 51 (solde), 05 (refus), 91 (délai). */
     private static ProviderWebhook masrvi(MasrviEvent e) {
-        Outcome outcome = switch (required(e.etat(), "etat")) {
-            case "SUCCES" -> Outcome.SUCCEEDED;
-            case "ECHEC" -> Outcome.FAILED;
-            default -> Outcome.PENDING;
-        };
-        String failure = outcome != Outcome.FAILED ? null : switch (String.valueOf(e.code())) {
-            case "51" -> "INSUFFICIENT_FUNDS";
-            case "91" -> "TIMEOUT";
-            default -> "DECLINED";
-        };
+        Outcome outcome = HttpPaymentProviders.Masrvi.outcome(required(e.etat(), "etat"));
+        String failure = HttpPaymentProviders.Masrvi.failure(outcome, e.code());
         return new ProviderWebhook("MASRVI", required(e.evenementId(), "evenementId"), e.idTransaction(),
                 e.reference(), outcome, e.etat() + "/" + e.code(), failure,
                 e.montant() == null ? null : new BigDecimal(e.montant()), "MRU", instant(e.dateHeure()), null, null);
     }
 
     private static ProviderWebhook visa(VisaEvent e) {
-        Outcome outcome = switch (required(e.status(), "status")) {
-            case "AUTHORIZED" -> Outcome.SUCCEEDED;
-            case "DECLINED" -> Outcome.FAILED;
-            case "EXPIRED" -> Outcome.CANCELLED;
-            default -> Outcome.PENDING;
-        };
-        String failure = e.declineReason() == null ? null
-                : "insufficient_funds".equals(e.declineReason()) ? "INSUFFICIENT_FUNDS" : "DECLINED";
+        Outcome outcome = HttpPaymentProviders.Visa.outcome(required(e.status(), "status"));
+        String failure = HttpPaymentProviders.Visa.failure(e.declineReason());
         return new ProviderWebhook("VISA_GATEWAY", required(e.id(), "id"), e.sessionId(), e.orderReference(), outcome,
                 e.status(), failure, e.amount(), e.currency(),
                 e.created() == null ? null : Instant.ofEpochSecond(e.created()),

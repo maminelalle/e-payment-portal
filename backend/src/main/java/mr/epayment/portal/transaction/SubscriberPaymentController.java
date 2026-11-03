@@ -8,17 +8,24 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
-import mr.epayment.portal.transaction.PaymentService.PaymentResult;
+import java.util.Map;
+import mr.epayment.portal.shared.FieldValidationException;
+import mr.epayment.portal.shared.PageResponse;
+import mr.epayment.portal.transaction.PaymentService.PayCommand;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Paiement depuis l'espace abonné (maquette B3). */
+/** Paiements depuis l'espace abonné (maquette B3) et historique. */
 @RestController
 @RequestMapping("/api/abonne/paiements")
 class SubscriberPaymentController {
@@ -29,10 +36,33 @@ class SubscriberPaymentController {
         this.payments = payments;
     }
 
+    /** {@code Idempotency-Key} obligatoire : renvoyer la même demande ne débite jamais deux fois. */
     @PostMapping
-    PaymentResult pay(Authentication authentication, @Valid @RequestBody PaymentForm form) {
-        return payments.pay(authentication, form.method(), form.amount(), normalizePhone(form.payerPhone()),
-                form.description());
+    TransactionView pay(Authentication authentication, @Valid @RequestBody PaymentForm form,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        if (idempotencyKey == null || !idempotencyKey.matches("[A-Za-z0-9-]{8,100}")) {
+            throw new FieldValidationException(Map.of("idempotencyKey",
+                    "En-tête Idempotency-Key obligatoire (8 à 100 caractères)."));
+        }
+        return payments.pay(authentication, new PayCommand(form.method(), form.amount(),
+                normalizePhone(form.payerPhone()), blankToNull(form.description()), idempotencyKey));
+    }
+
+    @GetMapping
+    PageResponse<TransactionView> history(Authentication authentication,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        return payments.history(authentication, page, size);
+    }
+
+    @GetMapping("/{reference}")
+    TransactionView get(Authentication authentication, @PathVariable String reference,
+            @RequestParam(defaultValue = "false") boolean actualiser) {
+        return payments.get(authentication, reference, actualiser);
+    }
+
+    @PostMapping("/{reference}/annuler")
+    TransactionView cancel(Authentication authentication, @PathVariable String reference) {
+        return payments.cancel(authentication, reference);
     }
 
     @ExceptionHandler(PaymentRefusedException.class)
@@ -52,6 +82,10 @@ class SubscriberPaymentController {
             return "+222" + digits;
         }
         return digits.startsWith("00222") ? "+" + digits.substring(2) : digits;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     record PaymentForm(

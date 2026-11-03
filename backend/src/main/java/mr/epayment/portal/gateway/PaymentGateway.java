@@ -19,10 +19,18 @@ public class PaymentGateway {
     }
 
     public ProviderResult initiate(String providerCode, PaymentRequest request) {
+        return provider(providerCode).initiate(request);
+    }
+
+    public ProviderResult fetchStatus(String providerCode, String providerReference) {
+        return provider(providerCode).fetchStatus(providerReference);
+    }
+
+    private PaymentProvider provider(String providerCode) {
         PaymentProvider provider = providers.get(providerCode);
         if (provider == null) {
             throw new IllegalStateException("Aucun adaptateur pour le fournisseur " + providerCode);
         }
-        return provider.initiate(request);
+        return provider;
     }
 }

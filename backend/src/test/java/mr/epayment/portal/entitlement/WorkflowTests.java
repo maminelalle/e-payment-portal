@@ -192,6 +192,7 @@ class WorkflowTests {
     private ResultActions pay(String method, String amount, String phone) throws Exception {
         String phoneJson = phone == null ? "null" : "\"" + phone + "\"";
         return mvc.perform(post("/api/abonne/paiements").with(subscriber()).contentType(MediaType.APPLICATION_JSON)
+                .header("Idempotency-Key", UUID.randomUUID().toString())
                 .content("{\"method\":\"%s\",\"amount\":%s,\"payerPhone\":%s,\"description\":\"Facture\"}"
                         .formatted(method, amount, phoneJson)));
     }
