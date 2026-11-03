@@ -8,12 +8,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
 import mr.epayment.portal.shared.FieldValidationException;
 import mr.epayment.portal.shared.PageResponse;
+import mr.epayment.portal.transaction.PaymentService.Filter;
 import mr.epayment.portal.transaction.PaymentService.PayCommand;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,8 +54,19 @@ class SubscriberPaymentController {
 
     @GetMapping
     PageResponse<TransactionView> history(Authentication authentication,
+            @RequestParam(required = false) TransactionStatus statut,
+            @RequestParam(required = false) String moyen,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate du,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate au,
+            @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-        return payments.history(authentication, page, size);
+        return payments.history(authentication, new Filter(null, statut, moyen, du, au, q), page, size);
+    }
+
+    /** Reçu PDF (paiement réussi uniquement). */
+    @GetMapping("/{reference}/recu")
+    ResponseEntity<byte[]> receipt(Authentication authentication, @PathVariable String reference) {
+        return Receipts.pdf(payments.receipt(authentication, reference));
     }
 
     @GetMapping("/{reference}")

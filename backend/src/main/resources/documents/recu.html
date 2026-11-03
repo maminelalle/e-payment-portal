@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title th:text="'Reçu ' + ${tx.reference}">Reçu</title>
+<style>
+  @page { size: A5; margin: 14mm 12mm; }
+  body { font-family: sans-serif; font-size: 9.5pt; color: #0f172a; }
+  .brand { font-size: 8pt; color: #2563eb; font-weight: bold; letter-spacing: 1px; }
+  h1 { font-size: 14pt; margin: 4px 0 14px; }
+  .status { text-align: center; margin: 10px 0 14px; padding: 10px; border-radius: 6px; background: #dcfce7; color: #15803d; }
+  .amount { font-size: 20pt; font-weight: bold; margin: 2px 0 0; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 6px 4px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  td:first-child { color: #64748b; width: 42%; }
+  td:last-child { text-align: right; }
+  .footer { margin-top: 16px; font-size: 7.5pt; color: #64748b; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="brand">PORTAIL E-PAYMENT</div>
+<h1>Reçu de paiement</h1>
+
+<div class="status">
+  <div>Paiement réussi</div>
+  <div class="amount" th:text="${tx.amount}">12 500,00 MRU</div>
+</div>
+
+<table>
+  <tr><td>Référence</td><td th:text="${tx.reference}">TRX-000001</td></tr>
+  <tr><td>Date</td><td th:text="${tx.date}">02/11/2026 à 11:42</td></tr>
+  <tr><td>Payeur</td><td th:text="${tx.payer}">Société ABC (ABN-0001)</td></tr>
+  <tr><td>Moyen de paiement</td><td th:text="${tx.method}">Bankily</td></tr>
+  <tr th:if="${tx.instrument != null}"><td th:text="${tx.instrumentLabel}">Wallet</td><td th:text="${tx.instrument}">+222 ******01</td></tr>
+  <tr th:if="${tx.description != null}"><td>Motif</td><td th:text="${tx.description}">Facture octobre</td></tr>
+  <tr><td>Référence fournisseur</td><td th:text="${tx.providerReference}">BKL-1</td></tr>
+  <tr><td>Contrat</td><td th:text="${tx.contract}">CTR-2026-0001</td></tr>
+</table>
+
+<div class="footer">
+  Reçu émis le <span th:text="${issuedAt}">03/11/2026</span> (heure de Nouakchott).
+  Ce document atteste un paiement confirmé par le fournisseur ; il ne contient aucune donnée de carte complète.
+</div>
+</body>
+</html>

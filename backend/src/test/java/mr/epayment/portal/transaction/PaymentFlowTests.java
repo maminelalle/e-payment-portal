@@ -55,6 +55,9 @@ class PaymentFlowTests {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private PaymentService payments;
+
     @MockitoBean
     private KeycloakAdminClient keycloak;
 
@@ -127,7 +130,7 @@ class PaymentFlowTests {
         mvc.perform(get("/api/abonne/paiements/{ref}", reference).with(subscriber(subject)))
                 .andExpect(jsonPath("$.status").value("SUCCEEDED"));
         assertThat(jdbc.queryForList("select action from audit_log where resource_id = ? order by id", String.class,
-                reference)).contains("PAYMENT_INITIATED", "WEBHOOK_ANOMALY", "PAYMENT_UPDATED");
+                reference)).contains("PAYMENT_INITIATED", "WEBHOOK_ANOMALY", "PAYMENT_UPDATED", "WEBHOOK_CONFLICT");
     }
 
     @Test
@@ -144,6 +147,73 @@ class PaymentFlowTests {
                 .andExpect(status().isNotFound());
         mvc.perform(get("/api/abonne/paiements").with(subscriber(other)))
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void receiptExistsOnlyForSuccessfulPaymentsAndIsKept() throws Exception {
+        String ok = reference(pay(subject, "BANKILY", "2500.00", UUID.randomUUID().toString()));
+        String ko = reference(pay(subject, "BANKILY", "2500.13", UUID.randomUUID().toString()));
+
+        byte[] pdf = mvc.perform(get("/api/abonne/paiements/{ref}/recu", ok).with(subscriber(subject)))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_PDF))
+                .andReturn().getResponse().getContentAsByteArray();
+        try (var doc = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(doc))
+                    .contains("Reçu de paiement", ok, "2 500,00 MRU", "Société Paiement", "Bankily", "+222 ******01");
+        }
+        // Conservé : le même document est resservi (aussi à l'admin)
+        byte[] again = mvc.perform(get("/api/admin/transactions/{ref}/recu", ok).with(admin()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        assertThat(again).isEqualTo(pdf);
+        mvc.perform(get("/api/abonne/paiements/{ref}/recu", ko).with(subscriber(subject)))
+                .andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void historyCanBeFilteredAndAdminSeesEveryone() throws Exception {
+        String ok = reference(pay(subject, "BANKILY", "300.00", UUID.randomUUID().toString()));
+        String ko = reference(pay(subject, "BANKILY", "300.51", UUID.randomUUID().toString()));
+
+        mvc.perform(get("/api/abonne/paiements").param("statut", "FAILED").with(subscriber(subject)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].reference").value(ko));
+        mvc.perform(get("/api/abonne/paiements").param("moyen", "VISA").with(subscriber(subject)))
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/abonne/paiements").param("du", LocalDate.now().plusDays(1).toString())
+                        .with(subscriber(subject)))
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/abonne/paiements").param("du", LocalDate.now().toString())
+                        .param("au", LocalDate.now().toString()).with(subscriber(subject)))
+                .andExpect(jsonPath("$.totalElements").value(2));
+
+        mvc.perform(get("/api/admin/transactions").param("q", ok).with(admin()))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].subscriberName").value("Société Paiement"))
+                .andExpect(jsonPath("$.content[0].providerReference").isNotEmpty());
+        mvc.perform(get("/api/admin/transactions").with(subscriber(subject))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void reconciliationFinishesPaymentsLeftPending() throws Exception {
+        String pending = reference(pay(subject, "BANKILY", "700.99", UUID.randomUUID().toString()));
+        String stuck = reference(pay(subject, "BANKILY", "800.00", UUID.randomUUID().toString()));
+        // Paiement dont l'envoi au fournisseur n'a jamais abouti, depuis plus de 10 minutes
+        jdbc.update("update payment_transaction set status = 'CREATED', provider_reference = null, completed_at = null, "
+                + "created_at = now() - interval '15 minutes' where reference = ?", stuck);
+
+        assertThat(payments.reconcileUnfinished(Instant.now().plusSeconds(1))).isGreaterThanOrEqualTo(2);
+
+        mvc.perform(get("/api/abonne/paiements/{ref}", pending).with(subscriber(subject)))
+                .andExpect(jsonPath("$.status").value("SUCCEEDED"));
+        mvc.perform(get("/api/abonne/paiements/{ref}", stuck).with(subscriber(subject)))
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.failureCode").value("PROVIDER_UNAVAILABLE"));
+    }
+
+    private static String reference(ResultActions result) throws Exception {
+        return JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.reference");
     }
 
     private ResultActions pay(String who, String method, String amount, String key) throws Exception {

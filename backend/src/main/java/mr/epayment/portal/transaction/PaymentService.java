@@ -1,9 +1,12 @@
 package mr.epayment.portal.transaction;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +21,7 @@ import mr.epayment.portal.catalog.PaymentMethodView;
 import mr.epayment.portal.entitlement.EntitlementEngine;
 import mr.epayment.portal.entitlement.PaymentAuthorization;
 import mr.epayment.portal.gateway.PaymentGateway;
+import mr.epayment.portal.gateway.PaymentProvider;
 import mr.epayment.portal.gateway.PaymentProvider.PaymentRequest;
 import mr.epayment.portal.gateway.PaymentProvider.ProviderResult;
 import mr.epayment.portal.gateway.PaymentProvider.ProviderUnavailableException;
@@ -26,6 +30,7 @@ import mr.epayment.portal.shared.FieldValidationException;
 import mr.epayment.portal.shared.NotFoundException;
 import mr.epayment.portal.shared.PageResponse;
 import mr.epayment.portal.subscriber.CurrentSubscriber;
+import mr.epayment.portal.subscriber.SubscriberService;
 import mr.epayment.portal.subscriber.SubscriberView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +63,8 @@ public class PaymentService {
 
     private final TransactionRepository transactions;
     private final CurrentSubscriber currentSubscriber;
+    private final SubscriberService subscribers;
+    private final ReceiptService receipts;
     private final EntitlementEngine entitlements;
     private final PaymentCatalog catalog;
     private final PaymentGateway gateway;
@@ -66,10 +73,13 @@ public class PaymentService {
     private final String portalUrl;
 
     PaymentService(TransactionRepository transactions, CurrentSubscriber currentSubscriber,
-            EntitlementEngine entitlements, PaymentCatalog catalog, PaymentGateway gateway, AuditService auditService,
+            SubscriberService subscribers, ReceiptService receipts, EntitlementEngine entitlements,
+            PaymentCatalog catalog, PaymentGateway gateway, AuditService auditService,
             PlatformTransactionManager transactionManager, @Value("${epayment.portal-url}") String portalUrl) {
         this.transactions = transactions;
         this.currentSubscriber = currentSubscriber;
+        this.subscribers = subscribers;
+        this.receipts = receipts;
         this.entitlements = entitlements;
         this.catalog = catalog;
         this.gateway = gateway;
@@ -172,12 +182,54 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<TransactionView> history(Authentication authentication, int page, int size) {
+    public PageResponse<TransactionView> history(Authentication authentication, Filter filter, int page, int size) {
         SubscriberView subscriber = currentSubscriber.require(authentication);
+        return search(filter.withSubscriber(subscriber.id()), page, size);
+    }
+
+    /** Historique de toutes les transactions (administrateur), filtrable par abonné. */
+    @Transactional(readOnly = true)
+    public PageResponse<TransactionView> search(Filter filter, int page, int size) {
         var pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, 100));
+        // Moyen inconnu : identifiant impossible, donc aucun résultat (plutôt que tout afficher).
+        UUID methodId = filter.methodCode() == null ? null
+                : Optional.ofNullable(catalogByCode().get(filter.methodCode())).map(PaymentMethodView::id)
+                        .orElse(new UUID(0, 0));
+        String reference = filter.reference() == null || filter.reference().isBlank() ? null
+                : "%" + filter.reference().trim().toLowerCase(Locale.ROOT) + "%";
+        var result = transactions.search(filter.subscriberId(), filter.status(), methodId,
+                filter.from() == null ? null : filter.from().atStartOfDay(ZONE).toInstant(),
+                filter.to() == null ? null : filter.to().plusDays(1).atStartOfDay(ZONE).toInstant(), reference,
+                pageable);
         Map<UUID, PaymentMethodView> methods = catalogById();
-        return PageResponse.of(transactions.findBySubscriberIdOrderByCreatedAtDesc(subscriber.id(), pageable),
-                tx -> view(tx, methods));
+        Map<UUID, SubscriberView> parties = subscribers.findAllById(
+                result.getContent().stream().map(PaymentTransaction::getSubscriberId).collect(Collectors.toSet()));
+        return PageResponse.of(result, tx -> view(tx, methods, parties.get(tx.getSubscriberId())));
+    }
+
+    /** Reçu PDF d'un paiement réussi de l'abonné connecté. */
+    public Receipt receipt(Authentication authentication, String reference) {
+        return receiptOf(own(authentication, reference));
+    }
+
+    /** Reçu PDF de n'importe quel paiement réussi (administrateur). */
+    public Receipt adminReceipt(String reference) {
+        return receiptOf(find(reference));
+    }
+
+    @Transactional(readOnly = true)
+    public TransactionView adminGet(String reference) {
+        return view(find(reference));
+    }
+
+    private Receipt receiptOf(PaymentTransaction tx) {
+        byte[] pdf = receipts.receipt(tx, catalogById().get(tx.getPaymentMethodId()));
+        return new Receipt("recu-" + tx.getReference() + ".pdf", pdf);
+    }
+
+    private PaymentTransaction find(String reference) {
+        return transactions.findByReference(reference)
+                .orElseThrow(() -> new NotFoundException("Transaction introuvable."));
     }
 
     /**
@@ -203,11 +255,55 @@ public class PaymentService {
                     "receivedAmount", String.valueOf(webhook.amount())));
             return;
         }
+        TransactionStatus before = tx.getStatus();
         if (tx.applyProviderUpdate(webhook.outcome(), webhook.providerReference(), webhook.providerStatus(),
                 webhook.failureCode(), webhook.maskedPan(), null)) {
             audit(null, "PAYMENT_UPDATED", tx.getReference(), Outcome.SUCCESS, Map.of(
                     "source", "WEBHOOK", "status", tx.getStatus().name(), "providerStatus", webhook.providerStatus()));
+        } else if (before.isFinal() && !sameOutcome(before, webhook.outcome())) {
+            // Ex. succès annoncé après la clôture : la transaction ne change pas, mais un humain doit vérifier.
+            audit(null, "WEBHOOK_CONFLICT", tx.getReference(), Outcome.FAILURE, Map.of(
+                    "status", before.name(), "providerOutcome", webhook.outcome().name(),
+                    "providerStatus", webhook.providerStatus()));
         }
+    }
+
+    /**
+     * Rapprochement : paiements toujours en cours (webhook perdu, abonné parti avant la fin).
+     * Avec une référence fournisseur, le statut est redemandé ; sans référence au bout de 10 minutes,
+     * l'envoi au fournisseur n'a jamais abouti et la transaction est close.
+     *
+     * @return nombre de transactions mises à jour
+     */
+    public int reconcileUnfinished(Instant startedBefore) {
+        int updated = 0;
+        for (PaymentTransaction tx : transactions.findUnfinishedCreatedBefore(startedBefore)) {
+            TransactionStatus before = tx.getStatus();
+            PaymentTransaction after;
+            if (tx.getProviderReference() != null) {
+                after = refreshFromProvider(tx);
+            } else if (tx.getCreatedAt().isBefore(Instant.now().minus(Duration.ofMinutes(10)))) {
+                after = update(tx.getId(), PaymentTransaction::markProviderUnavailable);
+            } else {
+                continue;
+            }
+            if (after.getStatus() != before) {
+                updated++;
+                audit(null, "PAYMENT_UPDATED", tx.getReference(), Outcome.SUCCESS, Map.of(
+                        "source", "RECONCILIATION", "status", after.getStatus().name(),
+                        "providerStatus", String.valueOf(after.getProviderStatus())));
+            }
+        }
+        return updated;
+    }
+
+    private static boolean sameOutcome(TransactionStatus status, PaymentProvider.Outcome outcome) {
+        return switch (outcome) {
+            case SUCCEEDED -> status == TransactionStatus.SUCCEEDED;
+            case FAILED -> status == TransactionStatus.FAILED;
+            case CANCELLED -> status == TransactionStatus.CANCELLED;
+            case PENDING -> false;
+        };
     }
 
     private PaymentTransaction refreshFromProvider(PaymentTransaction tx) {
@@ -243,15 +339,17 @@ public class PaymentService {
     }
 
     private TransactionView view(PaymentTransaction tx) {
-        return view(tx, catalogById());
+        return view(tx, catalogById(), subscribers.get(tx.getSubscriberId()));
     }
 
-    private static TransactionView view(PaymentTransaction tx, Map<UUID, PaymentMethodView> methods) {
+    private static TransactionView view(PaymentTransaction tx, Map<UUID, PaymentMethodView> methods,
+            SubscriberView subscriber) {
         PaymentMethodView m = methods.get(tx.getPaymentMethodId());
-        return new TransactionView(tx.getReference(), tx.getStatus(), tx.getProviderStatus(), m.code(), m.name(),
-                m.category(), m.shortLabel(), m.color(), m.logoUrl(), tx.getAmount(), tx.getCurrency(),
-                tx.getDescription(), tx.getPayerPhone(), tx.getCardMaskedPan(), tx.getFailureCode(),
-                tx.getFailureMessage(), tx.getRedirectUrl(), tx.getContractId(), tx.getCreatedAt(),
+        return new TransactionView(tx.getReference(), tx.getStatus(), tx.getProviderStatus(),
+                tx.getProviderReference(), m.code(), m.name(), m.category(), m.shortLabel(), m.color(), m.logoUrl(),
+                tx.getAmount(), tx.getCurrency(), tx.getDescription(), tx.getPayerPhone(), tx.getCardMaskedPan(),
+                tx.getFailureCode(), tx.getFailureMessage(), tx.getRedirectUrl(), tx.getContractId(),
+                tx.getSubscriberId(), subscriber.reference(), subscriber.displayName(), tx.getCreatedAt(),
                 tx.getCompletedAt());
     }
 
@@ -279,6 +377,18 @@ public class PaymentService {
     private void audit(Authentication authentication, String action, String reference, Outcome outcome,
             Map<String, Object> details) {
         auditService.record(AuditEvent.of(authentication, action, "TRANSACTION", reference, outcome, details));
+    }
+
+    /** Filtres de l'historique ; tous facultatifs (dates incluses, heure de Nouakchott). */
+    public record Filter(UUID subscriberId, TransactionStatus status, String methodCode, LocalDate from, LocalDate to,
+            String reference) {
+
+        Filter withSubscriber(UUID id) {
+            return new Filter(id, status, methodCode, from, to, reference);
+        }
+    }
+
+    public record Receipt(String fileName, byte[] content) {
     }
 
     /** Demande de paiement de l'abonné ; la clé d'idempotence est générée par le navigateur pour chaque tentative. */

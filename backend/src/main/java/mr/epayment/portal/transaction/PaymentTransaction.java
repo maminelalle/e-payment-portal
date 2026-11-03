@@ -172,6 +172,12 @@ class PaymentTransaction {
         return true;
     }
 
+    void attachReceipt(String objectKey) {
+        this.receiptObjectKey = objectKey;
+        this.updatedAt = Instant.now();
+    }
+
+    String getReceiptObjectKey() { return receiptObjectKey; }
     UUID getId() { return id; }
     String getReference() { return reference; }
     UUID getSubscriberId() { return subscriberId; }
