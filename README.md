@@ -24,7 +24,7 @@ Portail web où **le contrat signé est la seule source des droits** : chaque ab
 backend/     API Spring Boot (modules : auth, subscriber, catalog, contract, signature,
              entitlement, gateway, transaction, notification, audit)
 frontend/    Application Angular (espaces /admin et /abonne)
-simulator/   Simulateur des fournisseurs de paiement (semaine 8)
+simulator/   Simulateur des fournisseurs Bankily, Masrvi, passerelle Visa (port 8090)
 infra/       Docker Compose, realm Keycloak, Nginx, stockage S3
 docs/        Cadrage, modèle de données, contrats d'API, maquettes
 ```
@@ -130,7 +130,25 @@ cd backend
 ./mvnw verify                   # tests (Testcontainers : Docker doit tourner)
 ```
 
-### 3. Frontend
+### 3. Simulateur des fournisseurs de paiement
+
+```bash
+cd simulator
+./mvnw spring-boot:run          # http://localhost:8090 — webhooks envoyés à http://localhost:8080/api/webhooks/*
+./mvnw verify
+```
+
+| API simulée | Base | Clé d'API (dev) |
+|-------------|------|-----------------|
+| Bankily | `/bankily/api/v1/payments` | `bankily-dev-api-key` |
+| Masrvi | `/masrvi/v2/transactions` | `masrvi-dev-api-key` |
+| Passerelle Visa | `/visa-gateway/api/v1/checkout-sessions`, page `/visa-gateway/pay/{id}` | `visa-dev-api-key` |
+
+Scénarios : montant en ,13 refusé · ,51 solde insuffisant · ,99 confirmé après 60 s · ,98 sans webhook. Cartes de test : `4111 1111 1111 1111` acceptée, `4000 0000 0000 0002` refusée, `4000 0000 0000 9995` fonds insuffisants, `4000 0000 0000 3220` 3-D Secure (différé). Les paiements sont en mémoire : un redémarrage les efface.
+
+Le portail reçoit les webhooks sur `POST /api/webhooks/{bankily|masrvi|visa}` (sans jeton : signature HMAC, horodatage ±5 min, anti-rejeu) et les enregistre dans `webhook_event`.
+
+### 4. Frontend
 
 ```bash
 cd frontend

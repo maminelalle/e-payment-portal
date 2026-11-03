@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -129,7 +131,7 @@ class VisaController {
     }
 
     private static String form(SimPayment s, String error) {
-        String amount = HtmlUtils.htmlEscape(s.amount().toPlainString() + " " + s.currency());
+        String amount = HtmlUtils.htmlEscape(formatAmount(s.amount()) + " " + s.currency());
         String reference = HtmlUtils.htmlEscape(s.merchantReference());
         return page("Paiement par carte", """
                 <p class="amount">%s</p>
@@ -150,6 +152,14 @@ class VisaController {
                   4000 0000 0000 9995 : fonds insuffisants · 4000 0000 0000 3220 : 3-D Secure (confirmation différée)</p>
                 </details>""".formatted(amount, reference,
                 error == null ? "" : "<p class=\"error\">" + HtmlUtils.htmlEscape(error) + "</p>", amount, s.id()));
+    }
+
+    /** 48000 → « 48 000,00 » (format de la charte du portail). */
+    private static String formatAmount(BigDecimal amount) {
+        var symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator(' ');
+        symbols.setDecimalSeparator(',');
+        return new DecimalFormat("#,##0.00", symbols).format(amount);
     }
 
     private static String closed(SimPayment s) {

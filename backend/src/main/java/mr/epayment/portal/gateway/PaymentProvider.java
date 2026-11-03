@@ -29,5 +29,6 @@ public interface PaymentProvider {
             String message) {
     }
 
-    enum Outcome { SUCCEEDED, FAILED, PENDING }
+    /** Statut normalisé : le statut brut du fournisseur est toujours conservé à côté. */
+    enum Outcome { SUCCEEDED, FAILED, PENDING, CANCELLED }
 }

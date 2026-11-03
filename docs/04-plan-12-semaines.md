@@ -73,11 +73,11 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [ ] Plafond mensuel cumulé : le contrôle existe, le cumul réel arrive avec la table des transactions (semaine 10)
 
 ### Semaine 8 (21–25 déc.) — Simulateur des fournisseurs
-- [ ] Interface `PaymentProvider`
-- [ ] Application `simulator/` imitant Bankily, Masrvi, Visa
-- [ ] Scénarios : succès, échec, solde insuffisant, délai
-- [ ] Webhooks signés HMAC
-- [ ] Endpoint webhook du portail : signature + anti-rejeu
+- [x] Interface `PaymentProvider` (initiation) + modèle commun `ProviderWebhook` ; un traducteur par fournisseur
+- [x] Application `simulator/` (port 8090) imitant Bankily, Masrvi (format français) et la passerelle Visa (page hébergée)
+- [x] Scénarios : succès, échec (,13), solde insuffisant (,51), délai (,99), sans webhook (,98) ; cartes de test Visa
+- [x] Webhooks signés HMAC-SHA256, réessais 10 s / 30 s / 60 s ; clé d'API et `Idempotency-Key` côté simulateur
+- [x] Endpoint webhook du portail (`POST /api/webhooks/{bankily|masrvi|visa}`) : signature, fenêtre de 5 min, anti-rejeu (V7 `webhook_event`) — recette du 03/11 : 3 paiements simulés, 3 webhooks vérifiés et enregistrés
 
 ## Mois 3 — Paiements et mise en ligne
 

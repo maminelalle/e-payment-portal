@@ -71,6 +71,22 @@ epayment:
   default-currency: MRU
   portal-url: ${PORTAL_URL:http://localhost}
   mail-from: ${MAIL_FROM:Portail E-Payment <no-reply@epayment.mr>}
+  # Fournisseurs de paiement : en développement, le simulateur (simulator/, port 8090).
+  # Passer aux vraies API = changer ces adresses et ces clés (docs/03-api-fournisseurs-simules.md).
+  providers:
+    webhook-tolerance: 300s
+    bankily:
+      base-url: ${BANKILY_BASE_URL:http://localhost:8090/bankily/api/v1}
+      api-key: ${BANKILY_API_KEY:bankily-dev-api-key}
+      webhook-secret: ${BANKILY_WEBHOOK_SECRET:bankily-dev-webhook-secret}
+    masrvi:
+      base-url: ${MASRVI_BASE_URL:http://localhost:8090/masrvi/v2}
+      api-key: ${MASRVI_API_KEY:masrvi-dev-api-key}
+      webhook-secret: ${MASRVI_WEBHOOK_SECRET:masrvi-dev-webhook-secret}
+    visa:
+      base-url: ${VISA_BASE_URL:http://localhost:8090/visa-gateway/api/v1}
+      api-key: ${VISA_API_KEY:visa-dev-api-key}
+      webhook-secret: ${VISA_WEBHOOK_SECRET:visa-dev-webhook-secret}
   signature:
     # Clé HMAC des codes de signature : à remplacer hors développement.
     otp-secret: ${SIGNATURE_OTP_SECRET:dev-otp-secret-a-remplacer}
