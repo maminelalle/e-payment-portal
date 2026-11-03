@@ -8,7 +8,9 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 
-import { Subscriber, SUBSCRIBER_TYPE_LABELS } from '../../core/api.models';
+import { Contract, Subscriber, SUBSCRIBER_TYPE_LABELS } from '../../core/api.models';
+import { ContractStatusTag } from '../../shared/contract-status-tag';
+import { formatIsoDate } from '../../shared/formatting';
 import { applyServerErrors, fieldError } from '../../shared/form-errors';
 import { StatusTag } from '../../shared/status-tag';
 import { AdminApi } from '../admin-api';
@@ -27,6 +29,7 @@ type StatusAction = 'activer' | 'suspendre' | 'desactiver';
     InputTextModule,
     TextareaModule,
     StatusTag,
+    ContractStatusTag,
   ],
   templateUrl: './abonne-fiche.html',
   styleUrl: './abonne-fiche.scss',
@@ -42,6 +45,8 @@ export class AbonneFiche {
 
   protected readonly typeLabels = SUBSCRIBER_TYPE_LABELS;
   protected readonly subscriber = signal<Subscriber | null>(null);
+  protected readonly contracts = signal<Contract[]>([]);
+  protected readonly formatDate = formatIsoDate;
   protected readonly notFound = signal(false);
   protected readonly busy = signal(false);
 
@@ -192,6 +197,7 @@ export class AbonneFiche {
       next: (s) => this.subscriber.set(s),
       error: () => this.notFound.set(true),
     });
+    this.api.searchContracts({ abonne: id, page: 0, size: 20 }).subscribe((page) => this.contracts.set(page.content));
   }
 
   private fail(error: { error?: { detail?: string } }): void {

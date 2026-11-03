@@ -34,8 +34,22 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'contrats',
         title: 'Contrats · E-Payment',
-        component: AVenir,
-        data: { titre: 'Contrats', semaine: 'semaine 5' },
+        loadComponent: () => import('./contrats/contrats').then((m) => m.Contrats),
+      },
+      {
+        path: 'contrats/nouveau',
+        title: 'Nouveau contrat · E-Payment',
+        loadComponent: () => import('./contrats/contrat-assistant').then((m) => m.ContratAssistant),
+      },
+      {
+        path: 'contrats/:id/modifier',
+        title: 'Modifier le contrat · E-Payment',
+        loadComponent: () => import('./contrats/contrat-assistant').then((m) => m.ContratAssistant),
+      },
+      {
+        path: 'contrats/:id',
+        title: 'Contrat · E-Payment',
+        loadComponent: () => import('./contrats/contrat-fiche').then((m) => m.ContratFiche),
       },
       {
         path: 'transactions',

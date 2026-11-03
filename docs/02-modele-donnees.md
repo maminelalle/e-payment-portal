@@ -138,7 +138,7 @@ Contrainte : `(type = 'PHYSIQUE' AND nni IS NOT NULL) OR (type = 'MORALE' AND ni
 | signed_pdf_object_key / signed_pdf_sha256 | varchar | PDF scellé PAdES |
 | sent_at, signed_at, activated_at, terminated_at | timestamptz | |
 | termination_reason | varchar(300) | |
-| created_by | uuid | → app_user |
+| created_by | varchar(254) | email de l’administrateur (libellé d’audit) |
 | created_at / updated_at / version | | |
 
 **Un seul contrat actif par abonné** (hypothèse retenue) : index unique partiel

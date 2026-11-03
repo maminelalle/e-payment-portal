@@ -39,6 +39,37 @@
   }
 }
 
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.contract-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ep-border);
+  color: var(--ep-text);
+  text-decoration: none;
+
+  &:hover strong {
+    color: var(--ep-primary);
+  }
+}
+
+.block {
+  display: block;
+}
+
 dl {
   display: grid;
   grid-template-columns: max-content 1fr;

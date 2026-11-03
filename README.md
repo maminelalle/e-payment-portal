@@ -100,6 +100,8 @@ Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `aud
 | `POST /api/admin/abonnes/{id}/activer` · `/suspendre` · `/desactiver` · `/invitation` | Cycle de vie et renvoi de l'invitation |
 | `GET /api/admin/abonnes/resume` | Compteurs par statut |
 | `GET /api/admin/moyens`, `PATCH /api/admin/moyens/{code}/statut` | Catalogue des moyens de paiement |
+| `GET/POST /api/admin/contrats`, `GET/PUT/DELETE /api/admin/contrats/{id}` | Contrats : liste (`statut`, `abonne`, `q`), brouillon, modification et suppression du brouillon |
+| `GET /api/admin/contrats/modeles`, `GET /api/admin/contrats/{id}/pdf`, `POST /api/admin/contrats/{id}/envoyer` | Modèles, PDF (aperçu « BROUILLON » ou document envoyé), envoi pour signature |
 
 Les erreurs suivent le format ProblemDetail (RFC 9457) ; les erreurs de validation listent les champs dans `errors`.
 

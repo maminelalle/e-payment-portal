@@ -1,0 +1,84 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Contrats</h1>
+    <p class="page-subtitle">Le contrat signé et actif est la seule source des droits de l'abonné</p>
+  </div>
+  <p-button label="Nouveau contrat" icon="pi pi-plus" routerLink="/admin/contrats/nouveau" />
+</div>
+
+<div class="toolbar">
+  <p-iconfield class="search">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="w-full"
+      placeholder="Référence (CTR-2026-0001)"
+      [(ngModel)]="search"
+      (ngModelChange)="onFilterChange()"
+      aria-label="Rechercher un contrat"
+    />
+  </p-iconfield>
+  <p-select
+    [options]="statusOptions"
+    optionLabel="label"
+    optionValue="value"
+    [(ngModel)]="statusFilter"
+    (onChange)="onFilterChange()"
+    placeholder="Tous les statuts"
+    [showClear]="true"
+    ariaLabel="Filtrer par statut"
+  />
+</div>
+
+<div class="card" style="overflow: hidden">
+  <p-table
+    [value]="rows()"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="total()"
+    [loading]="loading()"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="{first}–{last} sur {totalRecords}"
+    dataKey="id"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Référence</th>
+        <th>Abonné</th>
+        <th>Moyens</th>
+        <th>Validité</th>
+        <th>Statut</th>
+        <th>Créé le</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-c>
+      <tr class="clickable" tabindex="0" (click)="open(c)" (keydown.enter)="open(c)">
+        <td class="muted">{{ c.reference }}</td>
+        <td>
+          <div class="name">{{ c.subscriber.displayName }}</div>
+          <div class="muted">{{ c.subscriber.reference }}</div>
+        </td>
+        <td>
+          <div class="badges">
+            @for (m of c.methods; track m.code) {
+              <span class="method-badge" [style.background]="m.color" [title]="m.name">{{ m.shortLabel }}</span>
+            } @empty {
+              <span class="muted">—</span>
+            }
+          </div>
+        </td>
+        <td>{{ formatDate(c.startDate) }} → {{ formatDate(c.endDate) }}</td>
+        <td><app-contract-status-tag [status]="c.status" /></td>
+        <td class="muted">{{ c.createdAt | date: 'dd/MM/yyyy' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6" class="empty">Aucun contrat ne correspond à ces critères.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

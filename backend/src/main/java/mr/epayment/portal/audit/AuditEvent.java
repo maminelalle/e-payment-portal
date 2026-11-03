@@ -27,16 +27,24 @@ public record AuditEvent(
         details = details == null ? Map.of() : Map.copyOf(details);
     }
 
+    /** Email de l'utilisateur authentifié (ou son identifiant), {@code SYSTEM} hors requête utilisateur. */
+    public static String actorLabelOf(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return SYSTEM;
+        }
+        if (authentication.getPrincipal() instanceof Jwt jwt && jwt.hasClaim("email")) {
+            return jwt.getClaimAsString("email");
+        }
+        return authentication.getName();
+    }
+
     /** Événement dont l'acteur est l'utilisateur authentifié (jeton Keycloak), ou le système. */
     public static AuditEvent of(Authentication authentication, String action, String resourceType,
             String resourceId, Outcome outcome, Map<String, Object> details) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return new AuditEvent(null, SYSTEM, action, resourceType, resourceId, outcome, details);
         }
-        String label = authentication.getName();
-        if (authentication.getPrincipal() instanceof Jwt jwt && jwt.hasClaim("email")) {
-            label = jwt.getClaimAsString("email");
-        }
-        return new AuditEvent(authentication.getName(), label, action, resourceType, resourceId, outcome, details);
+        return new AuditEvent(authentication.getName(), actorLabelOf(authentication), action, resourceType,
+                resourceId, outcome, details);
     }
 }

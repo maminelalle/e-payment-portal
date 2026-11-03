@@ -1,0 +1,74 @@
+<a routerLink="/admin/contrats" class="back-link"><i class="pi pi-arrow-left"></i> Contrats</a>
+
+@if (notFound()) {
+  <p class="page-subtitle">Ce contrat est introuvable.</p>
+} @else if (contract(); as c) {
+  <div class="page-header">
+    <div>
+      <div class="title-line">
+        <h1 class="page-title">{{ c.reference }}</h1>
+        <app-contract-status-tag [status]="c.status" />
+      </div>
+      <p class="page-subtitle">
+        <a [routerLink]="['/admin/abonnes', c.subscriber.id]">{{ c.subscriber.displayName }}</a> ·
+        {{ c.template.name }} v{{ c.template.version }} · créé le {{ c.createdAt | date: 'dd/MM/yyyy' }} par {{ c.createdBy }}
+      </p>
+    </div>
+    <div class="actions">
+      @if (c.status === 'DRAFT') {
+        <p-button label="Supprimer" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="remove()" [disabled]="busy()" />
+        <p-button label="Modifier" icon="pi pi-pencil" severity="secondary" [outlined]="true" [routerLink]="['/admin/contrats', c.id, 'modifier']" />
+        <p-button label="Envoyer pour signature" icon="pi pi-send" (onClick)="send()" [loading]="busy()" />
+      }
+      <p-button label="Télécharger" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="download()" [disabled]="!pdfUrl()" />
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="card pdf">
+      @if (pdfUrl(); as url) {
+        <iframe [src]="url" [title]="'Contrat ' + c.reference"></iframe>
+      } @else {
+        <p class="muted">Chargement du document…</p>
+      }
+    </section>
+
+    <aside class="card summary">
+      <h2>Résumé du contrat</h2>
+      <dl>
+        <dt>Début</dt>
+        <dd>{{ formatDate(c.startDate) }}</dd>
+        <dt>Fin</dt>
+        <dd>{{ formatDate(c.endDate) }}</dd>
+        <dt>Commission</dt>
+        <dd>{{ c.commissionRate != null ? c.commissionRate + ' %' : 'Aucune' }}</dd>
+        @if (c.sentAt) {
+          <dt>Envoyé le</dt>
+          <dd>{{ c.sentAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
+        }
+      </dl>
+
+      <h3>Moyens inclus</h3>
+      @for (m of c.methods; track m.code) {
+        <div class="method">
+          <span class="method-badge" [style.background]="m.color">{{ m.shortLabel }}</span>
+          <div>
+            <strong>{{ m.name }}</strong>
+            <div class="muted">{{ formatAmount(m.perTransactionLimit) }} / transaction</div>
+            <div class="muted">{{ formatAmount(m.monthlyLimit) }} / mois</div>
+          </div>
+        </div>
+      } @empty {
+        <p class="muted">Aucun moyen sélectionné.</p>
+      }
+
+      @if (c.pdfSha256) {
+        <h3>Intégrité</h3>
+        <p class="muted hash" [title]="c.pdfSha256">SHA-256 : {{ c.pdfSha256 }}</p>
+        <p class="muted">Le document envoyé est figé ; son empreinte est revérifiée à chaque consultation.</p>
+      } @else {
+        <p class="info">Brouillon : l'aperçu porte la mention « BROUILLON » et peut encore changer.</p>
+      }
+    </aside>
+  </div>
+}

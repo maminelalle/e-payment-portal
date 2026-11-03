@@ -74,6 +74,68 @@ export interface PaymentMethod {
   };
 }
 
+export type ContractStatus =
+  | 'DRAFT'
+  | 'PENDING_SIGNATURE'
+  | 'SIGNED'
+  | 'ACTIVE'
+  | 'SUSPENDED'
+  | 'EXPIRED'
+  | 'TERMINATED';
+
+export interface ContractTemplate {
+  id: string;
+  code: string;
+  name: string;
+  version: number;
+}
+
+export interface ContractMethod {
+  code: string;
+  name: string;
+  shortLabel: string;
+  color: string;
+  category: 'WALLET' | 'CARD';
+  perTransactionLimit: number;
+  monthlyLimit: number;
+}
+
+export interface Contract {
+  id: string;
+  reference: string;
+  status: ContractStatus;
+  subscriber: { id: string; reference: string; displayName: string; email: string; status: SubscriberStatus };
+  template: ContractTemplate;
+  /** Dates au format ISO yyyy-MM-dd. */
+  startDate: string | null;
+  endDate: string | null;
+  commissionRate: number | null;
+  methods: ContractMethod[];
+  pdfSha256: string | null;
+  sentAt: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DraftChanges {
+  templateId: string;
+  startDate: string | null;
+  endDate: string | null;
+  commissionRate: number | null;
+  methods: { code: string; perTransactionLimit: number; monthlyLimit: number }[];
+}
+
+export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
+  DRAFT: 'Brouillon',
+  PENDING_SIGNATURE: 'En attente de signature',
+  SIGNED: 'Signé · à activer',
+  ACTIVE: 'Actif',
+  SUSPENDED: 'Suspendu',
+  EXPIRED: 'Expiré',
+  TERMINATED: 'Résilié',
+};
+
 export const SUBSCRIBER_STATUS_LABELS: Record<SubscriberStatus, string> = {
   PENDING: 'En attente',
   ACTIVE: 'Actif',

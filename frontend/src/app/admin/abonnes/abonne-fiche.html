@@ -61,8 +61,24 @@
     </section>
 
     <section class="card section">
-      <h2>Contrats</h2>
-      <p class="muted">Les contrats de l'abonné apparaîtront ici (semaine 5).</p>
+      <div class="section-head">
+        <h2>Contrats</h2>
+        @if (s.status === 'PENDING' || s.status === 'ACTIVE') {
+          <p-button label="Nouveau contrat" icon="pi pi-plus" size="small" [outlined]="true"
+            routerLink="/admin/contrats/nouveau" [queryParams]="{ abonne: s.id }" />
+        }
+      </div>
+      @for (c of contracts(); track c.id) {
+        <a class="contract-row" [routerLink]="['/admin/contrats', c.id]">
+          <span>
+            <strong>{{ c.reference }}</strong>
+            <span class="muted block">{{ formatDate(c.startDate) }} → {{ formatDate(c.endDate) }}</span>
+          </span>
+          <app-contract-status-tag [status]="c.status" />
+        </a>
+      } @empty {
+        <p class="muted">Aucun contrat pour l'instant.</p>
+      }
     </section>
 
     <section class="card section">

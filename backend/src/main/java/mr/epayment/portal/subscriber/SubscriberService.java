@@ -1,6 +1,8 @@
 package mr.epayment.portal.subscriber;
 
+import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -95,6 +97,14 @@ public class SubscriberService {
     @Transactional(readOnly = true)
     public SubscriberView get(UUID id) {
         return find(id).toView();
+    }
+
+    /** Abonnés par identifiant, pour afficher les noms dans les listes des autres modules. */
+    @Transactional(readOnly = true)
+    public Map<UUID, SubscriberView> findAllById(Collection<UUID> ids) {
+        Map<UUID, SubscriberView> views = new HashMap<>();
+        subscribers.findAllById(ids).forEach(subscriber -> views.put(subscriber.getId(), subscriber.toView()));
+        return views;
     }
 
     @Transactional(readOnly = true)

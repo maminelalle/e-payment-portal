@@ -3,7 +3,11 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  Contract,
+  ContractStatus,
+  ContractTemplate,
   CreatedSubscriber,
+  DraftChanges,
   NewSubscriber,
   PageResponse,
   PaymentMethod,
@@ -57,6 +61,49 @@ export class AdminApi {
 
   resendInvitation(id: string): Observable<{ invitationSent: boolean }> {
     return this.http.post<{ invitationSent: boolean }>(`/api/admin/abonnes/${id}/invitation`, null);
+  }
+
+  searchContracts(query: {
+    statut?: ContractStatus | null;
+    abonne?: string;
+    q?: string;
+    page: number;
+    size: number;
+  }): Observable<PageResponse<Contract>> {
+    let params = new HttpParams().set('page', query.page).set('size', query.size);
+    if (query.statut) params = params.set('statut', query.statut);
+    if (query.abonne) params = params.set('abonne', query.abonne);
+    if (query.q?.trim()) params = params.set('q', query.q.trim());
+    return this.http.get<PageResponse<Contract>>('/api/admin/contrats', { params });
+  }
+
+  contractTemplates(): Observable<ContractTemplate[]> {
+    return this.http.get<ContractTemplate[]>('/api/admin/contrats/modeles');
+  }
+
+  getContract(id: string): Observable<Contract> {
+    return this.http.get<Contract>(`/api/admin/contrats/${id}`);
+  }
+
+  createContractDraft(subscriberId: string, templateId: string): Observable<Contract> {
+    return this.http.post<Contract>('/api/admin/contrats', { subscriberId, templateId });
+  }
+
+  updateContractDraft(id: string, changes: DraftChanges): Observable<Contract> {
+    return this.http.put<Contract>(`/api/admin/contrats/${id}`, changes);
+  }
+
+  deleteContractDraft(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/admin/contrats/${id}`);
+  }
+
+  sendContract(id: string): Observable<Contract> {
+    return this.http.post<Contract>(`/api/admin/contrats/${id}/envoyer`, null);
+  }
+
+  /** PDF du contrat (aperçu « brouillon » ou document envoyé). */
+  contractPdf(id: string): Observable<Blob> {
+    return this.http.get(`/api/admin/contrats/${id}/pdf`, { responseType: 'blob' });
   }
 
   paymentMethods(): Observable<PaymentMethod[]> {

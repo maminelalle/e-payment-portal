@@ -44,12 +44,13 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 ## Mois 2 — Signature, droits et démo
 
 ### Semaine 5 (30 nov.–4 déc.) — Contrats et PDF
-- [ ] Tables contract_template, contract, contract_payment_method
-- [ ] Modèle de contrat Thymeleaf
-- [ ] Écran admin : créer un contrat (assistant 4 étapes)
-- [ ] Génération PDF (OpenHTMLtoPDF) et stockage MinIO
-- [ ] Statuts brouillon → en attente de signature
-- [ ] « Envoyer pour signature » + email
+- [x] Tables contract_template, contract, contract_payment_method (migration V4)
+- [x] Modèle de contrat Thymeleaf « Contrat standard v1 » (7 articles, moyens et plafonds, filigrane BROUILLON)
+- [x] Écran admin : créer un contrat (assistant 4 étapes de la maquette A4) + liste et fiche contrat avec aperçu PDF
+- [x] Génération PDF (OpenHTMLtoPDF) et stockage S3 (SeaweedFS), empreinte SHA-256 revérifiée à chaque lecture
+- [x] Statuts brouillon → en attente de signature ; contrat figé après envoi ; un seul contrat en cours par abonné
+- [x] « Envoyer pour signature » + email « contrat disponible » (Mailpit) — recette de bout en bout le 03/11 (CTR-2026-0001)
+- [ ] Pied de page du PDF dans la police du document — à faire dans une version 2 du modèle (cosmétique)
 
 ### Semaine 6 (7–11 déc.) — Signature électronique
 - [ ] « Mon contrat » : aperçu et téléchargement

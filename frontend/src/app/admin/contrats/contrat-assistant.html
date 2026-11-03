@@ -1,0 +1,247 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ contract() ? 'Contrat ' + contract()!.reference : 'Nouveau contrat' }}</h1>
+    <p class="page-subtitle">Les moyens cochés seront les seuls accessibles à l'abonné après signature.</p>
+  </div>
+</div>
+
+<ol class="stepper" aria-label="Étapes">
+  @for (label of steps; track label; let i = $index) {
+    <li [class.done]="step() > i + 1" [class.current]="step() === i + 1" [attr.aria-current]="step() === i + 1 ? 'step' : null">
+      <span class="dot">
+        @if (step() > i + 1) {
+          <i class="pi pi-check"></i>
+        } @else {
+          {{ i + 1 }}
+        }
+      </span>
+      <span class="label">{{ label }}</span>
+    </li>
+  }
+</ol>
+
+<div class="layout">
+  <section class="main">
+    @switch (step()) {
+      @case (1) {
+        <h2>Abonné et modèle</h2>
+        <div class="card panel">
+          <div class="field">
+            <label for="subscriber">Abonné</label>
+            <p-select
+              inputId="subscriber"
+              [options]="subscribers()"
+              optionLabel="displayName"
+              optionValue="id"
+              [(ngModel)]="subscriberId"
+              [filter]="true"
+              filterBy="displayName,reference,email"
+              placeholder="Choisir un abonné"
+              [disabled]="!!contract()"
+              styleClass="w-full"
+            >
+              <ng-template #item let-s>
+                <div>
+                  <div>{{ s.displayName }}</div>
+                  <small class="muted">{{ s.reference }} · {{ s.email }}</small>
+                </div>
+              </ng-template>
+            </p-select>
+            @if (contract()) {
+              <small class="muted">L'abonné d'un brouillon ne peut plus changer : créez un autre contrat si besoin.</small>
+            } @else {
+              <small class="muted">Seuls les abonnés en attente ou actifs sont proposés.</small>
+            }
+          </div>
+          <div class="field">
+            <label for="template">Modèle de contrat</label>
+            <p-select
+              inputId="template"
+              [options]="templates()"
+              optionValue="id"
+              [(ngModel)]="templateId"
+              styleClass="w-full"
+            >
+              <ng-template #selectedItem let-t>{{ t.name }} v{{ t.version }}</ng-template>
+              <ng-template #item let-t>{{ t.name }} v{{ t.version }}</ng-template>
+            </p-select>
+          </div>
+        </div>
+      }
+
+      @case (2) {
+        <h2>Moyens de paiement inclus</h2>
+        @for (c of choices; track c.method.code) {
+          <div class="card method" [class.selected]="c.selected">
+            <label class="method-head">
+              <p-checkbox [(ngModel)]="c.selected" [binary]="true" [inputId]="'m-' + c.method.code" />
+              <span class="method-badge" [style.background]="c.method.color">{{ c.method.shortLabel }}</span>
+              <span>
+                <strong>{{ c.method.name }}</strong>
+                <span class="muted block">{{ c.method.description }}</span>
+              </span>
+            </label>
+            @if (c.selected) {
+              <div class="field-row limits">
+                <div class="field">
+                  <label [for]="'per-' + c.method.code">Plafond par transaction</label>
+                  <p-inputnumber
+                    [inputId]="'per-' + c.method.code"
+                    [(ngModel)]="c.perTransactionLimit"
+                    locale="fr-FR"
+                    [min]="1"
+                    [maxFractionDigits]="2"
+                    suffix=" MRU"
+                    styleClass="w-full"
+                  />
+                </div>
+                <div class="field">
+                  <label [for]="'month-' + c.method.code">Plafond mensuel</label>
+                  <p-inputnumber
+                    [inputId]="'month-' + c.method.code"
+                    [(ngModel)]="c.monthlyLimit"
+                    locale="fr-FR"
+                    [min]="1"
+                    [maxFractionDigits]="2"
+                    suffix=" MRU"
+                    styleClass="w-full"
+                  />
+                </div>
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="muted">Aucun moyen de paiement actif dans le catalogue.</p>
+        }
+      }
+
+      @case (3) {
+        <h2>Conditions</h2>
+        <div class="card panel">
+          <div class="field-row">
+            <div class="field">
+              <label for="start">Date de début</label>
+              <p-datepicker
+                inputId="start"
+                [ngModel]="startDate"
+                (ngModelChange)="onStartDateChange($event)"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                styleClass="w-full"
+              />
+              @if (fieldErrors()['startDate']; as m) {
+                <small class="error">{{ m }}</small>
+              }
+            </div>
+            <div class="field">
+              <label for="end">Date de fin</label>
+              <p-datepicker
+                inputId="end"
+                [(ngModel)]="endDate"
+                [minDate]="startDate"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                styleClass="w-full"
+              />
+              @if (fieldErrors()['endDate']; as m) {
+                <small class="error">{{ m }}</small>
+              }
+            </div>
+          </div>
+          <div class="field commission">
+            <label for="commission">Commission sur chaque paiement (facultatif)</label>
+            <p-inputnumber
+              inputId="commission"
+              [(ngModel)]="commissionRate"
+              locale="fr-FR"
+              [min]="0"
+              [max]="100"
+              [maxFractionDigits]="2"
+              suffix=" %"
+            />
+          </div>
+          <p class="muted">Dates interprétées à l'heure de Nouakchott ; le contrat est valable jusqu'à la date de fin incluse.</p>
+        </div>
+      }
+
+      @case (4) {
+        <h2>Vérification</h2>
+        <div class="card panel">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Moyen</th>
+                <th class="amount">Par transaction</th>
+                <th class="amount">Mensuel</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of selectedChoices(); track c.method.code) {
+                <tr>
+                  <td>{{ c.method.name }}</td>
+                  <td class="amount">{{ formatAmount(c.perTransactionLimit) }}</td>
+                  <td class="amount">{{ formatAmount(c.monthlyLimit) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <p>
+            Validité : <strong>{{ validity() }}</strong> · Commission :
+            <strong>{{ commissionRate != null ? commissionRate + ' %' : 'aucune' }}</strong>
+          </p>
+        </div>
+        <div class="card pdf">
+          @if (pdfUrl(); as url) {
+            <iframe [src]="url" title="Aperçu du contrat"></iframe>
+          } @else {
+            <p class="muted">Génération de l'aperçu…</p>
+          }
+        </div>
+      }
+    }
+
+    @if (error(); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="footer">
+      @if (step() === 1) {
+        <p-button label="Annuler" icon="pi pi-times" severity="secondary" [outlined]="true" routerLink="/admin/contrats" />
+      } @else {
+        <p-button label="Retour" icon="pi pi-chevron-left" severity="secondary" [outlined]="true" (onClick)="back()" [disabled]="busy()" />
+      }
+      <span class="spacer"></span>
+      @if (contract()) {
+        <p-button label="Enregistrer le brouillon" severity="secondary" [outlined]="true" (onClick)="saveDraftAndLeave()" [disabled]="busy()" />
+      }
+      @if (step() < 4) {
+        <p-button label="Continuer" icon="pi pi-chevron-right" iconPos="right" (onClick)="next()" [loading]="busy()" />
+      } @else {
+        <p-button label="Envoyer pour signature" icon="pi pi-send" (onClick)="send()" [loading]="busy()" />
+      }
+    </div>
+  </section>
+
+  <aside class="card recap">
+    <h3>Récapitulatif</h3>
+    <dl>
+      <dt>Abonné</dt>
+      <dd>{{ selectedSubscriber() ?? '—' }}</dd>
+      <dt>Modèle</dt>
+      <dd>{{ templateLabel() }}</dd>
+      <dt>Référence</dt>
+      <dd>{{ contract()?.reference ?? 'à la création du brouillon' }}</dd>
+      <dt>Moyens</dt>
+      <dd class="badges">
+        @for (c of selectedChoices(); track c.method.code) {
+          <span class="method-badge" [style.background]="c.method.color" [title]="c.method.name">{{ c.method.shortLabel }}</span>
+        } @empty {
+          —
+        }
+      </dd>
+      <dt>Validité</dt>
+      <dd>{{ step() >= 3 ? validity() : 'Étape 3' }}</dd>
+    </dl>
+    <p class="info"><i class="pi pi-info-circle"></i> Les droits seront ouverts automatiquement après signature et activation.</p>
+  </aside>
+</div>
