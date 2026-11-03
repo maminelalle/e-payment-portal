@@ -280,6 +280,19 @@ public class ContractService {
         return contracts.findSignedIds();
     }
 
+    @Transactional(readOnly = true)
+    public long countByStatus(ContractStatus status) {
+        return contracts.countByStatus(status);
+    }
+
+    /** Contrats qui attendent une action (brouillon à envoyer, signature attendue, contrat signé à activer). */
+    @Transactional(readOnly = true)
+    public List<ContractView> toProcess() {
+        return contracts.findTop5ByStatusInOrderByUpdatedAtDesc(
+                        Set.of(ContractStatus.DRAFT, ContractStatus.PENDING_SIGNATURE, ContractStatus.SIGNED))
+                .stream().map(this::toView).toList();
+    }
+
     private static Map<String, Object> reasonDetails(String reason) {
         return reason == null || reason.isBlank() ? Map.of() : Map.of("reason", reason.trim());
     }

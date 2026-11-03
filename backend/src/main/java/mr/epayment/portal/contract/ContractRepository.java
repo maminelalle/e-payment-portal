@@ -26,6 +26,10 @@ interface ContractRepository extends JpaRepository<Contract, UUID> {
     Optional<Contract> findFirstBySubscriberIdAndStatusInOrderByCreatedAtDesc(UUID subscriberId,
             Collection<ContractStatus> statuses);
 
+    long countByStatus(ContractStatus status);
+
+    List<Contract> findTop5ByStatusInOrderByUpdatedAtDesc(Collection<ContractStatus> statuses);
+
     /** Contrats en vigueur dont la date de fin est dépassée (job quotidien d'expiration). */
     @Query("select c.id from Contract c where c.status in ('ACTIVE', 'SUSPENDED') and c.endDate < :today")
     List<UUID> findIdsInForceEndedBefore(LocalDate today);

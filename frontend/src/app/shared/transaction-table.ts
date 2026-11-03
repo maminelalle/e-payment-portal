@@ -6,7 +6,7 @@ import { Transaction, TRANSACTION_STATUS_LABELS, TransactionStatus } from '../co
 import { formatAmount } from './formatting';
 import { MethodLogo } from './method-logo';
 
-const TONES: Record<TransactionStatus, string> = {
+export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
   CREATED: 'warning',
   PENDING: 'warning',
   SUCCEEDED: 'success',
@@ -96,6 +96,6 @@ export class TransactionTable {
   /** Demande de téléchargement du reçu d'un paiement réussi. */
   readonly receipt = output<Transaction>();
   protected readonly labels = TRANSACTION_STATUS_LABELS;
-  protected readonly tones = TONES;
+  protected readonly tones = TRANSACTION_STATUS_TONES;
   protected readonly formatAmount = formatAmount;
 }

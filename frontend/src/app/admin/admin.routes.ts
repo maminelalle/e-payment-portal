@@ -13,8 +13,7 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: '',
         title: 'Tableau de bord · E-Payment',
-        component: AVenir,
-        data: { titre: 'Tableau de bord', semaine: 'semaine 11' },
+        loadComponent: () => import('./tableau-de-bord/tableau-de-bord').then((m) => m.TableauDeBord),
       },
       {
         path: 'abonnes',

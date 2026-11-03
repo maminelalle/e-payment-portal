@@ -46,7 +46,7 @@ Après connexion, l'utilisateur est redirigé vers `/admin` ou `/abonne` selon s
 | Primaire | Bleu `#2563EB` (boutons, liens, état actif) ; bleu foncé `#1E3A8A` (panneau de connexion) |
 | Fond | `#F8FAFC` ; cartes blanches, bordure `#E2E8F0`, rayon 12 px |
 | Bankily | Pastille « BK » bleue `#2563EB` |
-| Masrvi | Pastille « MS » verte `#0F766E` |
+| Masrvi | Pastille « MS » verte `#0D9488` (V11 ; `#0F766E` paraissait gris dans les graphiques) |
 | Visa | Pastille « VI » violette `#7C3AED` |
 | Statuts | Réussie (vert), En attente (ambre), Échouée (rouge), Brouillon (gris), À activer (bleu) |
 | Montants | Format `12 500,00 MRU`, dates `02/11/2026 à 11:42` (locale `fr`, fuseau `Africa/Nouakchott`) |

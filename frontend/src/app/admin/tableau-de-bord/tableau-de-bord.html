@@ -1,0 +1,133 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Tableau de bord</h1>
+    <p class="page-subtitle">Vue d'ensemble de l'activité de la plateforme</p>
+  </div>
+  <p-select [options]="periods" optionLabel="label" optionValue="value" [ngModel]="days()"
+            (ngModelChange)="days.set($event)" ariaLabel="Période des graphiques" />
+</div>
+
+@if (error()) {
+  <p class="card empty muted">Le tableau de bord n'a pas pu être chargé. Réessayez dans un instant.</p>
+} @else if (data(); as d) {
+  <section class="kpis">
+    <a class="card kpi" routerLink="/admin/abonnes">
+      <span class="kpi-label">Abonnés actifs</span>
+      <span class="kpi-value">{{ count(d.activeSubscribers) }}</span>
+      <span class="kpi-note"><strong class="up">+{{ count(d.newSubscribersThisMonth) }}</strong> ce mois</span>
+    </a>
+    <div class="card kpi">
+      <span class="kpi-label">Contrats en attente de signature</span>
+      <span class="kpi-value">{{ count(d.contractsPendingSignature) }}</span>
+      <a class="kpi-note link" routerLink="/admin/contrats">Voir les contrats</a>
+    </div>
+    <a class="card kpi" routerLink="/admin/transactions">
+      <span class="kpi-label">Transactions ce mois</span>
+      <span class="kpi-value">{{ count(d.transactionsThisMonth.current) }}</span>
+      <ng-container *ngTemplateOutlet="trendNote; context: { $implicit: trend(d.transactionsThisMonth) }" />
+    </a>
+    <div class="card kpi">
+      <span class="kpi-label">Montant encaissé ce mois</span>
+      <span class="kpi-value" [title]="amount(d.collectedThisMonth.current)">{{ count(roundAmount(d.collectedThisMonth.current)) }}<small>MRU</small></span>
+      <ng-container *ngTemplateOutlet="trendNote; context: { $implicit: trend(d.collectedThisMonth) }" />
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Volume des transactions</h2>
+        <span class="muted">Nombre par jour</span>
+      </div>
+      <div class="line-chart">
+        <p-chart type="line" [data]="volumeChart()" [options]="volumeOptions()" height="100%"
+                 ariaLabel="Nombre de transactions par jour" />
+      </div>
+    </div>
+
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Répartition par moyen</h2>
+      </div>
+      @if (periodTotal() === 0) {
+        <p class="muted empty">Aucune transaction sur la période.</p>
+      } @else {
+        <div class="donut-wrap">
+          <div class="donut">
+            <p-chart type="doughnut" [data]="methodChart()" [options]="methodOptions" height="100%"
+                     ariaLabel="Répartition des transactions par moyen de paiement" />
+            <div class="donut-center">
+              <strong>{{ count(periodTotal()) }}</strong>
+              <span>transaction{{ periodTotal() > 1 ? 's' : '' }}</span>
+            </div>
+          </div>
+          <table class="shares">
+            <caption class="sr-only">Transactions par moyen sur {{ d.days }} jours</caption>
+            <tbody>
+              @for (s of shares(); track s.code) {
+                <tr>
+                  <td><span class="swatch" [style.background]="s.color"></span>{{ s.name }}</td>
+                  <td class="num muted">{{ count(s.count) }}</td>
+                  <td class="num"><strong>{{ s.percent }} %</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="lists">
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Contrats à traiter</h2>
+        <a routerLink="/admin/contrats">Voir tout</a>
+      </div>
+      @for (c of d.contractsToProcess; track c.id) {
+        <a class="row" [routerLink]="['/admin/contrats', c.id]">
+          <span class="main">
+            <span class="title">{{ c.subscriberName }}</span>
+            <span class="muted">{{ c.reference }} · {{ contractStep(c).label }} {{ contractStep(c).date | date: 'dd/MM/yyyy' }}</span>
+          </span>
+          <app-contract-status-tag [status]="c.status" />
+        </a>
+      } @empty {
+        <p class="muted empty">Aucun contrat en attente d'action.</p>
+      }
+    </div>
+
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Dernières transactions</h2>
+        <a routerLink="/admin/transactions">Voir tout</a>
+      </div>
+      @for (t of d.latestTransactions; track t.reference) {
+        <a class="row" routerLink="/admin/transactions" [queryParams]="{ q: t.reference }">
+          <app-method-logo [method]="{ name: t.methodName, shortLabel: t.shortLabel, color: t.color, logoUrl: t.logoUrl }" [size]="32" />
+          <span class="main">
+            <span class="title">{{ t.subscriberName }}</span>
+            <span class="muted">{{ t.reference }} · {{ t.createdAt | date: "dd/MM/yyyy 'à' HH:mm" }}</span>
+          </span>
+          <span class="end">
+            <strong>{{ amount(t.amount, t.currency) }}</strong>
+            <span [class]="'status-pill ' + tones[t.status]">{{ labels[t.status] }}</span>
+          </span>
+        </a>
+      } @empty {
+        <p class="muted empty">Aucune transaction pour l'instant.</p>
+      }
+    </div>
+  </section>
+} @else {
+  <p class="muted">Chargement…</p>
+}
+
+<ng-template #trendNote let-value>
+  @if (value === null) {
+    <span class="kpi-note">aucune donnée le mois dernier</span>
+  } @else {
+    <span class="kpi-note"><strong [class.up]="value >= 0" [class.down]="value < 0">{{ formatTrend(value) }}</strong>
+      vs mois dernier</span>
+  }
+</ng-template>

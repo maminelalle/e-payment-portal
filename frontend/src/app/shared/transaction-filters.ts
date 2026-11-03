@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, OnInit, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -30,9 +30,11 @@ import { toIsoDate } from './formatting';
     </div>
   `,
 })
-export class TransactionFilters {
+export class TransactionFilters implements OnInit {
   /** Moyens proposés dans le filtre. */
   readonly methods = input<{ code: string; name: string }[]>([]);
+  /** Référence déjà saisie à l'ouverture (lien « TRX-… » du tableau de bord). */
+  readonly initialReference = input<string | undefined>();
   readonly changed = output<TransactionFilter>();
 
   protected readonly statuses = Object.entries(TRANSACTION_STATUS_LABELS)
@@ -42,6 +44,10 @@ export class TransactionFilters {
   protected status: TransactionStatus | null = null;
   protected method: string | null = null;
   protected period: Date[] | null = null;
+
+  ngOnInit(): void {
+    this.reference = this.initialReference() ?? '';
+  }
 
   protected emitWhenRangeComplete(): void {
     if (this.period?.[0] && this.period?.[1]) {

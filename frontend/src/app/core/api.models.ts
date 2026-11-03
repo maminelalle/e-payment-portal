@@ -240,3 +240,47 @@ export const SUBSCRIBER_TYPE_LABELS: Record<SubscriberType, string> = {
   PHYSIQUE: 'Personne physique',
   MORALE: 'Personne morale',
 };
+
+/** Tableau de bord administrateur (maquette A1). */
+export interface AdminDashboard {
+  activeSubscribers: number;
+  newSubscribersThisMonth: number;
+  contractsPendingSignature: number;
+  /** Mois en cours comparé à la même durée écoulée du mois précédent. */
+  transactionsThisMonth: MonthFigure;
+  collectedThisMonth: MonthFigure;
+  days: number;
+  perDay: DayPoint[];
+  perMethod: MethodShare[];
+  contractsToProcess: ContractToProcess[];
+  latestTransactions: Transaction[];
+}
+
+export interface MonthFigure {
+  current: number;
+  previous: number;
+}
+
+export interface DayPoint {
+  day: string;
+  count: number;
+  collected: number;
+}
+
+export interface MethodShare {
+  code: string;
+  name: string;
+  color: string;
+  count: number;
+  collected: number;
+}
+
+export interface ContractToProcess {
+  id: string;
+  reference: string;
+  status: ContractStatus;
+  subscriberName: string;
+  createdAt: string;
+  sentAt: string | null;
+  signedAt: string | null;
+}

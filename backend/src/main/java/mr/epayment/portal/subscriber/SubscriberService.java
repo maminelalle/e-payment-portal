@@ -1,5 +1,6 @@
 package mr.epayment.portal.subscriber;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -138,6 +139,11 @@ public class SubscriberService {
         }
         subscribers.countByStatus().forEach(row -> counts.put(row.getStatus(), row.getTotal()));
         return counts;
+    }
+
+    @Transactional(readOnly = true)
+    public long createdSince(Instant since) {
+        return subscribers.countByCreatedAtGreaterThanEqual(since);
     }
 
     private SubscriberView changeStatus(UUID id, Consumer<Subscriber> transition, String action, String reason) {

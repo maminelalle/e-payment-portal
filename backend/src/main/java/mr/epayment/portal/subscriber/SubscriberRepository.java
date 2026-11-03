@@ -1,5 +1,6 @@
 package mr.epayment.portal.subscriber;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,6 +39,8 @@ interface SubscriberRepository extends JpaRepository<Subscriber, UUID> {
 
     @Query(value = "select nextval('subscriber_ref_seq')", nativeQuery = true)
     long nextReferenceNumber();
+
+    long countByCreatedAtGreaterThanEqual(Instant since);
 
     @Query("select s.status as status, count(s) as total from Subscriber s group by s.status")
     List<StatusCount> countByStatus();

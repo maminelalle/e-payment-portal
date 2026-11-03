@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  AdminDashboard,
   Contract,
   ContractStatus,
   ContractTemplate,
@@ -41,6 +42,10 @@ export class AdminApi {
     if (query.statut) params = params.set('statut', query.statut);
     if (query.type) params = params.set('type', query.type);
     return this.http.get<PageResponse<Subscriber>>('/api/admin/abonnes', { params });
+  }
+
+  dashboard(days: number): Observable<AdminDashboard> {
+    return this.http.get<AdminDashboard>('/api/admin/tableau-de-bord', { params: { jours: days } });
   }
 
   subscriberSummary(): Observable<Record<SubscriberStatus, number>> {

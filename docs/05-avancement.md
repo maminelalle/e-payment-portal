@@ -19,12 +19,18 @@ Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case 
 | 8 | Simulateur Bankily / Masrvi / Visa, webhooks | Terminée |
 | 9 | Adaptateurs HTTP, logos des moyens | Terminée |
 | 10 | Paiements, reçus, historiques, rapprochement | Terminée — jalon S10 atteint |
-| 11 | Notifications et tableaux de bord | **En cours** (emails faits) |
+| 11 | Notifications et tableaux de bord | **En cours** (emails et tableau de bord admin faits) |
 | 12 | Recette et mise en ligne | **À faire** |
 
-Tests automatisés : 56 backend, 8 simulateur, 11 frontend, tous au vert.
+Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
+
+### 03/11/2026 — Semaine 11 : tableau de bord admin
+- Écran d'accueil admin (maquette A1) : abonnés actifs, contrats en attente, transactions et montant encaissé du mois
+  (comparés à la même durée du mois précédent), courbe du volume par jour, répartition par moyen, contrats à traiter,
+  dernières transactions. API `GET /api/admin/tableau-de-bord?jours=7|30|90`.
+- Couleur Masrvi ajustée (`#0D9488`, V11) pour rester lisible dans les graphiques.
 
 ### 03/11/2026 — Semaine 11 : emails
 - Nouveaux emails à l'abonné : contrat activé, paiement réussi (avec renvoi vers le reçu), paiement échoué (avec le motif).
@@ -63,7 +69,7 @@ Tests automatisés : 56 backend, 8 simulateur, 11 frontend, tous au vert.
 
 ### Semaine 11 — Notifications et tableaux de bord
 - [x] Emails : contrat activé, paiement réussi, paiement échoué
-- [ ] Tableau de bord admin avec graphiques (maquette A1)
+- [x] Tableau de bord admin avec graphiques (maquette A1)
 - [ ] Tableau de bord abonné
 - [ ] Profil abonné (données Keycloak)
 - [ ] Écran du journal d'audit (l'API `GET /api/admin/audit` existe déjà)

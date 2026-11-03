@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { debounceTime, Subject, switchMap } from 'rxjs';
@@ -26,7 +26,7 @@ const PAGE_SIZE = 20;
         </p>
       </div>
     </div>
-    <app-transaction-filters [methods]="methods()" (changed)="applyFilter($event)" />
+    <app-transaction-filters [methods]="methods()" [initialReference]="q()" (changed)="applyFilter($event)" />
     <app-transaction-table [transactions]="rows()" [showSubscriber]="true"
       emptyText="Aucune transaction ne correspond à ces critères." (receipt)="download($event)" />
     @if (rows().length < total()) {
@@ -35,8 +35,10 @@ const PAGE_SIZE = 20;
   `,
   styles: `:host ::ng-deep .more { margin-top: 16px; }`,
 })
-export class AdminTransactions {
+export class AdminTransactions implements OnInit {
   private readonly api = inject(AdminApi);
+  /** ?q=TRX-… : ouverture déjà filtrée sur une référence. */
+  readonly q = input<string>();
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
   protected readonly loading = signal(false);
@@ -63,6 +65,10 @@ export class AdminTransactions {
         this.page = 1;
         this.loading.set(false);
       });
+  }
+
+  ngOnInit(): void {
+    this.filter = { q: this.q() || null };
     this.reload$.next();
   }
 
