@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -168,18 +169,78 @@ public class ContractService {
      */
     @Transactional(readOnly = true)
     public ContractPdf pdf(UUID id) {
-        Contract contract = find(id);
+        return pdfOf(find(id));
+    }
+
+    /**
+     * Contrat que l'abonné voit dans « Mon contrat » : celui en cours (à signer, signé, actif, suspendu),
+     * sinon le dernier terminé. Les brouillons ne lui sont jamais montrés.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ContractView> currentForSubscriber(UUID subscriberId) {
+        return currentOf(subscriberId).map(this::toView);
+    }
+
+    @Transactional(readOnly = true)
+    public ContractPdf currentPdfForSubscriber(UUID subscriberId) {
+        return pdfOf(currentOf(subscriberId).orElseThrow(() -> new NotFoundException("Aucun contrat disponible.")));
+    }
+
+    /** Document que l'abonné s'apprête à signer : le PDF envoyé, dont l'intégrité vient d'être vérifiée. */
+    @Transactional(readOnly = true)
+    public DocumentToSign documentToSign(UUID subscriberId) {
+        Contract contract = currentOf(subscriberId)
+                .filter(c -> c.getStatus() == ContractStatus.PENDING_SIGNATURE)
+                .orElseThrow(() -> new BusinessRuleException("Aucun contrat n'est en attente de votre signature."));
+        byte[] pdf = readVerified(contract.getPdfObjectKey(), contract.getPdfSha256(), contract.getReference());
+        return new DocumentToSign(contract.getId(), contract.getReference(), pdf, contract.getPdfSha256());
+    }
+
+    /**
+     * Enregistre la version scellée après vérification du code : elle est stockée à côté de l'original
+     * (qui reste conservé), le contrat passe « signé · en attente d'activation ».
+     */
+    @Transactional
+    public ContractView recordSignature(UUID contractId, byte[] signedPdf) {
+        Contract contract = find(contractId);
+        String sha256 = sha256(signedPdf);
+        String key = "contrats/%s/%s-signe.pdf".formatted(contract.getReference(), contract.getReference());
+        contract.markSigned(key, sha256);
+        storage.put(key, signedPdf, "application/pdf");
+        contracts.flush();
+        audit("CONTRACT_SIGNED", contract, Map.of("signedPdfSha256", sha256));
+        events.publishEvent(new ContractSigned(contract.getId(), contract.getReference(), contract.getSubscriberId()));
+        return toView(contract);
+    }
+
+    private ContractPdf pdfOf(Contract contract) {
         if (contract.getStatus() == ContractStatus.DRAFT) {
             SubscriberView subscriber = subscribers.get(contract.getSubscriberId());
             return new ContractPdf(contract.getReference() + "-brouillon.pdf",
                     renderPdf(contract, subscriber, true));
         }
-        byte[] stored = storage.get(contract.getPdfObjectKey());
-        if (!sha256(stored).equals(contract.getPdfSha256())) {
-            log.error("Empreinte du PDF du contrat {} invalide : document altéré", contract.getReference());
+        if (contract.isSigned()) {
+            return new ContractPdf(contract.getReference() + "-signe.pdf", readVerified(
+                    contract.getSignedPdfObjectKey(), contract.getSignedPdfSha256(), contract.getReference()));
+        }
+        return new ContractPdf(contract.getReference() + ".pdf",
+                readVerified(contract.getPdfObjectKey(), contract.getPdfSha256(), contract.getReference()));
+    }
+
+    private byte[] readVerified(String key, String expectedSha256, String reference) {
+        byte[] stored = storage.get(key);
+        if (!sha256(stored).equals(expectedSha256)) {
+            log.error("Empreinte du PDF {} du contrat {} invalide : document altéré", key, reference);
             throw new IllegalStateException("Le document stocké ne correspond pas à son empreinte.");
         }
-        return new ContractPdf(contract.getReference() + ".pdf", stored);
+        return stored;
+    }
+
+    private Optional<Contract> currentOf(UUID subscriberId) {
+        return contracts.findFirstBySubscriberIdAndStatusInOrderByCreatedAtDesc(subscriberId,
+                        ContractStatus.IN_PROGRESS)
+                .or(() -> contracts.findFirstBySubscriberIdAndStatusInOrderByCreatedAtDesc(subscriberId,
+                        Set.of(ContractStatus.EXPIRED, ContractStatus.TERMINATED)));
     }
 
     @Transactional(readOnly = true)
@@ -269,6 +330,7 @@ public class ContractService {
         }).toList();
         return new ContractView(c.getId(), c.getReference(), c.getStatus(), party, templateViews.get(c.getTemplateId()),
                 c.getStartDate(), c.getEndDate(), c.getCommissionRate(), included, c.getPdfSha256(), c.getSentAt(),
+                c.getSignedPdfSha256(), c.getSignedAt(),
                 c.getCreatedBy(), c.getCreatedAt(), c.getUpdatedAt());
     }
 
@@ -317,5 +379,8 @@ public class ContractService {
     }
 
     public record ContractPdf(String fileName, byte[] content) {
+    }
+
+    public record DocumentToSign(UUID contractId, String reference, byte[] pdf, String sha256) {
     }
 }

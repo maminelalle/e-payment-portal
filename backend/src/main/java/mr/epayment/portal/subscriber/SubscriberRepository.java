@@ -1,6 +1,7 @@
 package mr.epayment.portal.subscriber;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,8 @@ interface SubscriberRepository extends JpaRepository<Subscriber, UUID> {
             order by s.createdAt desc
             """)
     Page<Subscriber> search(String term, SubscriberStatus status, SubscriberType type, Pageable pageable);
+
+    Optional<Subscriber> findByUserId(UUID userId);
 
     boolean existsByEmailIgnoreCase(String email);
 

@@ -20,6 +20,8 @@ public record ContractView(
         List<Method> methods,
         String pdfSha256,
         Instant sentAt,
+        String signedPdfSha256,
+        Instant signedAt,
         String createdBy,
         Instant createdAt,
         Instant updatedAt) {

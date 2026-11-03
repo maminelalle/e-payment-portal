@@ -138,6 +138,6 @@ class Subscriber {
 
     SubscriberView toView() {
         return new SubscriberView(id, reference, type, displayName, nni, nif, phone, email, address, status,
-                createdAt, updatedAt);
+                createdAt, updatedAt, userId);
     }
 }

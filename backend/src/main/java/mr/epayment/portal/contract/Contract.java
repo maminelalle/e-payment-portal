@@ -62,8 +62,18 @@ class Contract {
     @Column(name = "pdf_sha256", length = 64)
     private String pdfSha256;
 
+    @Column(name = "signed_pdf_object_key")
+    private String signedPdfObjectKey;
+
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "signed_pdf_sha256", length = 64)
+    private String signedPdfSha256;
+
     @Column(name = "sent_at")
     private Instant sentAt;
+
+    @Column(name = "signed_at")
+    private Instant signedAt;
 
     @Column(name = "created_by", updatable = false)
     private String createdBy;
@@ -112,6 +122,22 @@ class Contract {
         this.status = ContractStatus.PENDING_SIGNATURE;
         this.sentAt = Instant.now();
         this.updatedAt = sentAt;
+    }
+
+    /** Signature vérifiée : la version scellée fait foi ; le contrat attend son activation (semaine 7). */
+    void markSigned(String signedPdfObjectKey, String signedPdfSha256) {
+        if (status != ContractStatus.PENDING_SIGNATURE) {
+            throw new BusinessRuleException("Le contrat " + reference + " n'est pas en attente de signature.");
+        }
+        this.signedPdfObjectKey = signedPdfObjectKey;
+        this.signedPdfSha256 = signedPdfSha256;
+        this.status = ContractStatus.SIGNED;
+        this.signedAt = Instant.now();
+        this.updatedAt = signedAt;
+    }
+
+    boolean isSigned() {
+        return signedPdfObjectKey != null;
     }
 
     void requireDraft(String action) {
@@ -167,6 +193,18 @@ class Contract {
 
     Instant getSentAt() {
         return sentAt;
+    }
+
+    String getSignedPdfObjectKey() {
+        return signedPdfObjectKey;
+    }
+
+    String getSignedPdfSha256() {
+        return signedPdfSha256;
+    }
+
+    Instant getSignedAt() {
+        return signedAt;
     }
 
     String getCreatedBy() {

@@ -2,6 +2,7 @@ package mr.epayment.portal.contract;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,9 @@ interface ContractRepository extends JpaRepository<Contract, UUID> {
     Page<Contract> search(ContractStatus status, UUID subscriberId, String reference, Pageable pageable);
 
     List<Contract> findBySubscriberIdAndStatusIn(UUID subscriberId, Collection<ContractStatus> statuses);
+
+    Optional<Contract> findFirstBySubscriberIdAndStatusInOrderByCreatedAtDesc(UUID subscriberId,
+            Collection<ContractStatus> statuses);
 
     @Query(value = "select nextval('contract_ref_seq')", nativeQuery = true)
     long nextReferenceNumber();

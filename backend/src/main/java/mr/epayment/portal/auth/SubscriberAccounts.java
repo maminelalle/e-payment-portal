@@ -1,5 +1,6 @@
 package mr.epayment.portal.auth;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import mr.epayment.portal.shared.NotFoundException;
@@ -73,6 +74,12 @@ public class SubscriberAccounts {
             keycloak.logout(user.getKeycloakId());
         }
         user.changeEnabled(enabled);
+    }
+
+    /** Compte local correspondant à l'identité Keycloak (claim {@code sub}), s'il existe. */
+    @Transactional(readOnly = true)
+    public Optional<UUID> accountIdOf(String keycloakId) {
+        return users.findByKeycloakId(keycloakId).map(AppUser::getId);
     }
 
     private AppUser find(UUID userId) {

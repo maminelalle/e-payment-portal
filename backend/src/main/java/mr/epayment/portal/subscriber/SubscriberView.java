@@ -16,5 +16,6 @@ public record SubscriberView(
         String address,
         SubscriberStatus status,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        UUID accountId) {
 }

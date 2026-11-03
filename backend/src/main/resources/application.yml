@@ -71,6 +71,15 @@ epayment:
   default-currency: MRU
   portal-url: ${PORTAL_URL:http://localhost}
   mail-from: ${MAIL_FROM:Portail E-Payment <no-reply@epayment.mr>}
+  signature:
+    # Clé HMAC des codes de signature : à remplacer hors développement.
+    otp-secret: ${SIGNATURE_OTP_SECRET:dev-otp-secret-a-remplacer}
+    otp-validity: 5m
+    resend-delay: 60s
+    max-sends: 5
+    # Keystore PKCS#12 du certificat de scellement ; vide = certificat auto-signé de développement.
+    seal-keystore: ${SIGNATURE_SEAL_KEYSTORE:}
+    seal-keystore-password: ${SIGNATURE_SEAL_KEYSTORE_PASSWORD:}
   storage:
     endpoint: ${S3_ENDPOINT:http://localhost:8333}
     region: ${S3_REGION:us-east-1}
