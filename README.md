@@ -79,7 +79,12 @@ Comptes de démonstration du realm `epayment` :
 2. L'email d'invitation « Mettre à jour votre compte » arrive dans Mailpit (http://localhost:8025) ; le lien (valable 72 h) permet de définir le mot de passe.
 3. L'abonné se connecte sur http://localhost. L'admin l'**active** depuis sa fiche ; **Suspendre** bloque la connexion et ferme ses sessions.
 
-À la première connexion, l'administrateur doit enregistrer un code TOTP (Google Authenticator, FreeOTP, Microsoft Authenticator…) : le flux de connexion l'exige pour le rôle ADMIN. Pour le réinitialiser en dev : console Keycloak → realm `epayment` → Users → admin → Credentials → supprimer « otp ».
+Le realm livré exige un code TOTP pour le rôle ADMIN (Google Authenticator, FreeOTP, Microsoft Authenticator…). Pour tester plus vite **en local**, on peut le couper puis le remettre (le fichier du realm n'est pas modifié) :
+
+```bash
+bash infra/keycloak/mfa-admin.sh off   # admin : mot de passe seul (TOTP existants retirés)
+bash infra/keycloak/mfa-admin.sh on    # TOTP exigé à nouveau (pour la démo)
+```
 
 Le realm n'est importé qu'au premier démarrage. Après modification de `infra/keycloak/epayment-realm.json`, supprimer le realm `epayment` dans la console puis `docker restart epayment-keycloak-1`.
 
