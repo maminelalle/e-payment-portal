@@ -1,5 +1,6 @@
 package mr.epayment.portal.notification;
 
+import mr.epayment.portal.notification.EmailSender.Email;
 import mr.epayment.portal.signature.OtpSender;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
@@ -35,7 +36,8 @@ class EmailOtpSender implements OtpSender {
                 jamais par téléphone. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>
                 <p>Portail E-Payment</p>""".formatted(HtmlUtils.htmlEscape(message.recipientName()),
                 HtmlUtils.htmlEscape(message.contractReference()), message.code(), minutes);
-        email.send(message.recipientEmail(), "Votre code de signature du contrat " + message.contractReference(),
-                text, html);
+        // Corps non conservé : il contient le code.
+        email.send(new Email(null, "SIGNATURE_CODE", message.recipientEmail(),
+                "Votre code de signature du contrat " + message.contractReference(), text, html), false);
     }
 }

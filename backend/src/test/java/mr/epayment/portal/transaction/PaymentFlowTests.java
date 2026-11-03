@@ -19,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.crypto.Mac;
@@ -69,6 +71,8 @@ class PaymentFlowTests {
 
     private String subject;
 
+    private String subscriberId;
+
     @BeforeEach
     void subscriberWithActiveContract() throws Exception {
         subject = UUID.randomUUID().toString();
@@ -106,6 +110,42 @@ class PaymentFlowTests {
         pay(subject, "BANKILY", "15000.51", UUID.randomUUID().toString()).andExpect(jsonPath("$.status").value("FAILED"))
                 .andExpect(jsonPath("$.failureMessage").value("Solde insuffisant."));
         pay(subject, "BANKILY", "20000.00", UUID.randomUUID().toString()).andExpect(jsonPath("$.status").value("SUCCEEDED"));
+    }
+
+    @Test
+    void subscriberIsEmailedOnActivationAndWhenEachPaymentEnds() throws Exception {
+        String ok = JsonPath.read(pay(subject, "BANKILY", "1500.00", UUID.randomUUID().toString())
+                .andReturn().getResponse().getContentAsString(), "$.reference");
+        String ko = JsonPath.read(pay(subject, "BANKILY", "1500.51", UUID.randomUUID().toString())
+                .andReturn().getResponse().getContentAsString(), "$.reference");
+        // Paiement en attente : pas encore d'email, il partira à l'arrivée du webhook.
+        String pending = JsonPath.read(pay(subject, "BANKILY", "1500.99", UUID.randomUUID().toString())
+                .andReturn().getResponse().getContentAsString(), "$.reference");
+
+        var sent = awaitNotifications(4);
+        assertThat(sent).extracting(n -> n.get("template")).containsExactlyInAnyOrder(
+                "CONTRACT_AVAILABLE", "CONTRACT_ACTIVATED", "PAYMENT_SUCCEEDED", "PAYMENT_FAILED");
+        assertThat(sent).allSatisfy(n -> assertThat(n.get("status")).isEqualTo("SENT"));
+        assertThat(sent).filteredOn(n -> n.get("template").equals("PAYMENT_SUCCEEDED"))
+                .singleElement().satisfies(n -> assertThat((String) n.get("body")).contains(ok, "1 500,00 MRU", "a réussi"));
+        assertThat(sent).filteredOn(n -> n.get("template").equals("PAYMENT_FAILED"))
+                .singleElement().satisfies(n -> assertThat((String) n.get("body")).contains(ko, "Solde insuffisant"));
+
+        webhook(pending, "1500.99", "SUCCESS").andExpect(status().isOk());
+        webhook(pending, "1500.99", "SUCCESS").andExpect(status().isOk());
+        assertThat(awaitNotifications(5)).filteredOn(n -> ((String) n.get("subject")).contains(pending)).hasSize(1);
+    }
+
+    private List<Map<String, Object>> awaitNotifications(int expected) throws InterruptedException {
+        List<Map<String, Object>> rows = List.of();
+        for (int i = 0; i < 50 && rows.size() < expected; i++) {
+            Thread.sleep(100);
+            rows = jdbc.queryForList("select template, status, subject, body from notification "
+                    + "where subscriber_id = ?::uuid and status <> 'QUEUED' order by created_at", subscriberId);
+        }
+        Thread.sleep(300); // aucun email en trop ne doit arriver
+        return jdbc.queryForList("select template, status, subject, body from notification "
+                + "where subscriber_id = ?::uuid order by created_at", subscriberId);
     }
 
     @Test
@@ -225,9 +265,9 @@ class PaymentFlowTests {
     private ResultActions webhook(String reference, String amount, String status) throws Exception {
         String eventId = "evt_" + UUID.randomUUID();
         String body = """
-                {"eventId":"%s","type":"payment","paymentId":"BKL-x","merchantReference":"%s","status":"%s",
+                {"eventId":"%s","type":"payment","paymentId":"BKL-%s","merchantReference":"%s","status":"%s",
                  "amount":%s,"currency":"MRU","failureCode":null,"occurredAt":"2026-11-03T12:00:00Z"}"""
-                .formatted(eventId, reference, status, amount);
+                .formatted(eventId, reference, reference, status, amount);
         long ts = Instant.now().getEpochSecond();
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec("bankily-dev-webhook-secret".getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
@@ -239,7 +279,7 @@ class PaymentFlowTests {
     /** Abonné créé, contrat Bankily envoyé, signé (code simulé) : activé automatiquement. */
     private void activeContract(String who, int perTransaction, int monthly) throws Exception {
         String nif = String.valueOf(ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
-        String subscriberId = JsonPath.read(mvc.perform(post("/api/admin/abonnes").with(admin())
+        subscriberId = JsonPath.read(mvc.perform(post("/api/admin/abonnes").with(admin())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {"type":"MORALE","email":"p%s@exemple.mr","details":{"displayName":"Société Paiement","nif":"%s","phone":"22000001"}}"""
                         .formatted(UUID.randomUUID().toString().substring(0, 8), nif)))

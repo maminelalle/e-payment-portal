@@ -159,7 +159,7 @@ public class ContractService {
 
         audit("CONTRACT_SENT", contract, Map.of("pdfSha256", sha256, "subscriber", subscriber.reference()));
         events.publishEvent(new ContractSentForSignature(contract.getId(), contract.getReference(),
-                subscriber.email(), subscriber.displayName()));
+                subscriber.id(), subscriber.email(), subscriber.displayName()));
         return toView(contract);
     }
 
@@ -228,6 +228,9 @@ public class ContractService {
         }
         if (contract.activate()) {
             audit("CONTRACT_ACTIVATED", contract, Map.of());
+            SubscriberView subscriber = subscribers.get(contract.getSubscriberId());
+            events.publishEvent(new ContractActivated(contract.getId(), contract.getReference(), subscriber.id(),
+                    subscriber.email(), subscriber.displayName()));
         }
         return toView(contract);
     }

@@ -100,7 +100,7 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] **Jalon : un paiement réussi et un échoué sur chacun des 3 moyens** — recette du 03/11 : TRX-000003 Bankily réussi, TRX-000004 Bankily « solde insuffisant », TRX-000005 Masrvi réussi (rattrapé par le rapprochement, voir D24), TRX-000006 Masrvi refusé, TRX-000007 Visa réussi (411111******1111, reçu PDF), TRX-000008 Visa refusé
 
 ### Semaine 11 (11–15 janv.) — Notifications et tableaux de bord
-- [ ] Emails : contrat disponible, activé, paiement réussi / échoué
+- [x] Emails : contrat disponible, activé, paiement réussi / échoué — journalisés dans la table `notification` (V10) ; le corps des emails de code de signature n'est pas conservé
 - [ ] Tableau de bord admin (graphiques PrimeNG)
 - [ ] Tableau de bord abonné
 - [ ] Profil abonné (Keycloak)

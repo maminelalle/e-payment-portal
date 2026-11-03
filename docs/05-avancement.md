@@ -3,7 +3,7 @@
 Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case par case est dans le
 [plan sur 12 semaines](04-plan-12-semaines.md) ; les choix et leurs raisons dans les [décisions](00-decisions.md).
 
-**Dernière mise à jour : 03/11/2026** — semaines 1 à 10 terminées, semaine 11 à commencer.
+**Dernière mise à jour : 03/11/2026** — semaines 1 à 10 terminées, semaine 11 en cours.
 
 ## Vue d'ensemble
 
@@ -19,12 +19,17 @@ Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case 
 | 8 | Simulateur Bankily / Masrvi / Visa, webhooks | Terminée |
 | 9 | Adaptateurs HTTP, logos des moyens | Terminée |
 | 10 | Paiements, reçus, historiques, rapprochement | Terminée — jalon S10 atteint |
-| 11 | Notifications et tableaux de bord | **À faire** |
+| 11 | Notifications et tableaux de bord | **En cours** (emails faits) |
 | 12 | Recette et mise en ligne | **À faire** |
 
-Tests automatisés : 55 backend, 8 simulateur, 11 frontend, tous au vert.
+Tests automatisés : 56 backend, 8 simulateur, 11 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
+
+### 03/11/2026 — Semaine 11 : emails
+- Nouveaux emails à l'abonné : contrat activé, paiement réussi (avec renvoi vers le reçu), paiement échoué (avec le motif).
+  Un seul email par paiement, quel que soit le chemin (réponse immédiate, webhook, consultation, rapprochement).
+- Chaque email est tracé dans la table `notification` (V10) : envoyé ou en échec, avec l'erreur.
 
 ### 03/11/2026 — Signature visible
 - Le contrat signé affiche un cachet dans le cadre de signature (dernière page) : signataire, email, date et heure,
@@ -57,7 +62,7 @@ Tests automatisés : 55 backend, 8 simulateur, 11 frontend, tous au vert.
 ## Reste à faire
 
 ### Semaine 11 — Notifications et tableaux de bord
-- [ ] Emails : contrat activé, paiement réussi, paiement échoué (« contrat disponible » existe déjà)
+- [x] Emails : contrat activé, paiement réussi, paiement échoué
 - [ ] Tableau de bord admin avec graphiques (maquette A1)
 - [ ] Tableau de bord abonné
 - [ ] Profil abonné (données Keycloak)

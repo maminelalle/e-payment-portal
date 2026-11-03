@@ -2,10 +2,7 @@ package mr.epayment.portal.transaction;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -15,6 +12,7 @@ import mr.epayment.portal.catalog.PaymentMethodView;
 import mr.epayment.portal.contract.ContractService;
 import mr.epayment.portal.document.DocumentStorage;
 import mr.epayment.portal.document.PdfRenderer;
+import mr.epayment.portal.shared.Amounts;
 import mr.epayment.portal.shared.BusinessRuleException;
 import mr.epayment.portal.subscriber.SubscriberService;
 import mr.epayment.portal.subscriber.SubscriberView;
@@ -75,7 +73,7 @@ class ReceiptService {
         boolean card = "CARD".equals(method.category());
         Map<String, Object> vars = new HashMap<>();
         vars.put("reference", tx.getReference());
-        vars.put("amount", amount(tx.getAmount()) + " " + tx.getCurrency());
+        vars.put("amount", Amounts.format(tx.getAmount()) + " " + tx.getCurrency());
         vars.put("date", DATE_TIME.format(tx.getCompletedAt() == null ? tx.getCreatedAt() : tx.getCompletedAt()));
         vars.put("payer", subscriber.displayName() + " (" + subscriber.reference() + ")");
         vars.put("method", method.name());
@@ -95,10 +93,4 @@ class ReceiptService {
         return phone.substring(0, 4) + " ******" + phone.substring(phone.length() - 2);
     }
 
-    private static String amount(BigDecimal value) {
-        var symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator(' ');
-        symbols.setDecimalSeparator(',');
-        return new DecimalFormat("#,##0.00", symbols).format(value);
-    }
 }

@@ -35,6 +35,7 @@ import mr.epayment.portal.subscriber.SubscriberView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -69,12 +70,13 @@ public class PaymentService {
     private final PaymentCatalog catalog;
     private final PaymentGateway gateway;
     private final AuditService auditService;
+    private final ApplicationEventPublisher events;
     private final TransactionTemplate inTransaction;
     private final String portalUrl;
 
     PaymentService(TransactionRepository transactions, CurrentSubscriber currentSubscriber,
             SubscriberService subscribers, ReceiptService receipts, EntitlementEngine entitlements,
-            PaymentCatalog catalog, PaymentGateway gateway, AuditService auditService,
+            PaymentCatalog catalog, PaymentGateway gateway, AuditService auditService, ApplicationEventPublisher events,
             PlatformTransactionManager transactionManager, @Value("${epayment.portal-url}") String portalUrl) {
         this.transactions = transactions;
         this.currentSubscriber = currentSubscriber;
@@ -84,6 +86,7 @@ public class PaymentService {
         this.catalog = catalog;
         this.gateway = gateway;
         this.auditService = auditService;
+        this.events = events;
         this.inTransaction = new TransactionTemplate(transactionManager);
         this.portalUrl = portalUrl;
     }
@@ -260,6 +263,7 @@ public class PaymentService {
                 webhook.failureCode(), webhook.maskedPan(), null)) {
             audit(null, "PAYMENT_UPDATED", tx.getReference(), Outcome.SUCCESS, Map.of(
                     "source", "WEBHOOK", "status", tx.getStatus().name(), "providerStatus", webhook.providerStatus()));
+            publishIfCompleted(before, tx, method);
         } else if (before.isFinal() && !sameOutcome(before, webhook.outcome())) {
             // Ex. succès annoncé après la clôture : la transaction ne change pas, mais un humain doit vérifier.
             audit(null, "WEBHOOK_CONFLICT", tx.getReference(), Outcome.FAILURE, Map.of(
@@ -322,13 +326,28 @@ public class PaymentService {
         try {
             return inTransaction.execute(status -> {
                 PaymentTransaction tx = transactions.findById(id).orElseThrow();
+                TransactionStatus before = tx.getStatus();
                 change.accept(tx);
-                return transactions.saveAndFlush(tx);
+                PaymentTransaction saved = transactions.saveAndFlush(tx);
+                publishIfCompleted(before, saved, catalogById().get(saved.getPaymentMethodId()));
+                return saved;
             });
         } catch (OptimisticLockingFailureException e) {
             // Mise à jour concurrente (webhook arrivé au même instant) : on relit l'état qui a gagné.
             return transactions.findById(id).orElseThrow();
         }
+    }
+
+    /** Publie la fin du paiement (dans la transaction en cours : les écouteurs agissent après validation). */
+    private void publishIfCompleted(TransactionStatus before, PaymentTransaction tx, PaymentMethodView method) {
+        boolean completed = tx.getStatus() == TransactionStatus.SUCCEEDED || tx.getStatus() == TransactionStatus.FAILED;
+        if (before.isFinal() || !completed) {
+            return;
+        }
+        SubscriberView subscriber = subscribers.get(tx.getSubscriberId());
+        events.publishEvent(new PaymentCompleted(tx.getReference(), subscriber.id(), subscriber.email(),
+                subscriber.displayName(), tx.getStatus() == TransactionStatus.SUCCEEDED, method.name(),
+                tx.getAmount(), tx.getCurrency(), tx.getFailureMessage(), tx.getCompletedAt()));
     }
 
     private PaymentTransaction own(Authentication authentication, String reference) {
