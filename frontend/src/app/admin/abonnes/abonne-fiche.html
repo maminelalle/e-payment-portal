@@ -1,0 +1,148 @@
+<a routerLink="/admin/abonnes" class="back-link"><i class="pi pi-arrow-left"></i> Abonnés</a>
+
+@if (notFound()) {
+  <p class="page-subtitle">Cet abonné est introuvable.</p>
+} @else if (subscriber(); as s) {
+  <div class="page-header">
+    <div>
+      <div class="title-line">
+        <h1 class="page-title">{{ s.displayName }}</h1>
+        <app-status-tag [status]="s.status" />
+      </div>
+      <p class="page-subtitle">{{ s.reference }} · {{ typeLabels[s.type] }} · créé le {{ s.createdAt | date: 'dd/MM/yyyy' }}</p>
+    </div>
+    <div class="actions">
+      @switch (s.status) {
+        @case ('PENDING') {
+          <p-button label="Renvoyer l'invitation" icon="pi pi-envelope" severity="secondary" [outlined]="true" (onClick)="resendInvitation()" [disabled]="busy()" />
+          <p-button label="Activer" icon="pi pi-check" (onClick)="askStatusChange('activer')" [disabled]="busy()" />
+        }
+        @case ('ACTIVE') {
+          <p-button label="Suspendre" icon="pi pi-pause" severity="warn" [outlined]="true" (onClick)="askStatusChange('suspendre')" [disabled]="busy()" />
+        }
+        @case ('SUSPENDED') {
+          <p-button label="Réactiver" icon="pi pi-play" (onClick)="askStatusChange('activer')" [disabled]="busy()" />
+        }
+      }
+      @if (s.status !== 'DISABLED') {
+        <p-button label="Modifier" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="openEdit()" [disabled]="busy()" />
+        <p-button label="Désactiver" icon="pi pi-ban" severity="danger" [text]="true" (onClick)="askStatusChange('desactiver')" [disabled]="busy()" />
+      }
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="card section">
+      <h2>Coordonnées</h2>
+      <dl>
+        <dt>{{ s.type === 'MORALE' ? 'NIF' : 'NNI' }}</dt>
+        <dd>{{ s.type === 'MORALE' ? s.nif : s.nni }}</dd>
+        <dt>Téléphone</dt>
+        <dd>{{ s.phone }}</dd>
+        <dt>Email</dt>
+        <dd>{{ s.email }}</dd>
+        <dt>Adresse</dt>
+        <dd>{{ s.address || '—' }}</dd>
+        <dt>Dernière modification</dt>
+        <dd>{{ s.updatedAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
+      </dl>
+    </section>
+
+    <section class="card section">
+      <h2>Compte de connexion</h2>
+      <p class="muted">
+        @switch (s.status) {
+          @case ('PENDING') { Invitation envoyée : l'abonné définit son mot de passe via le lien reçu par email (valable 72 h). }
+          @case ('ACTIVE') { L'abonné peut se connecter avec {{ s.email }}. }
+          @case ('SUSPENDED') { Connexion bloquée et sessions fermées. Réactivez l'abonné pour rétablir l'accès. }
+          @case ('DISABLED') { Compte désactivé définitivement. L'historique est conservé. }
+        }
+      </p>
+    </section>
+
+    <section class="card section">
+      <h2>Contrats</h2>
+      <p class="muted">Les contrats de l'abonné apparaîtront ici (semaine 5).</p>
+    </section>
+
+    <section class="card section">
+      <h2>Transactions</h2>
+      <p class="muted">L'historique des paiements apparaîtra ici (semaine 10).</p>
+    </section>
+  </div>
+
+  <p-dialog
+    [visible]="reasonDialog() !== null"
+    (visibleChange)="!$event && reasonDialog.set(null)"
+    [header]="reasonDialog() ? reasonTitle(reasonDialog()!) : ''"
+    [modal]="true"
+    [style]="{ width: 'min(460px, 92vw)' }"
+  >
+    <p>
+      @if (reasonDialog() === 'suspendre') {
+        {{ s.displayName }} ne pourra plus se connecter ; ses sessions en cours seront fermées. Vous pourrez le réactiver.
+      } @else {
+        Cette action est <strong>définitive</strong> : {{ s.displayName }} ne pourra plus se connecter. L'historique est conservé.
+      }
+    </p>
+    <div class="field">
+      <label for="reason">Motif (facultatif)</label>
+      <textarea pTextarea id="reason" rows="3" maxlength="300" [(ngModel)]="reason"></textarea>
+    </div>
+    <ng-template #footer>
+      <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="reasonDialog.set(null)" />
+      <p-button
+        [label]="reasonDialog() === 'suspendre' ? 'Suspendre' : 'Désactiver'"
+        [severity]="reasonDialog() === 'suspendre' ? 'warn' : 'danger'"
+        (onClick)="confirmWithReason()"
+      />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [visible]="editOpen()"
+    (visibleChange)="editOpen.set($event)"
+    header="Modifier l'abonné"
+    [modal]="true"
+    [style]="{ width: 'min(520px, 92vw)' }"
+  >
+    <form [formGroup]="editForm" (ngSubmit)="saveEdit()" id="edit-subscriber" novalidate>
+      <div class="field">
+        <label for="edit-name">{{ s.type === 'MORALE' ? 'Raison sociale' : 'Nom complet' }}</label>
+        <input pInputText id="edit-name" formControlName="displayName" />
+        @if (editFieldError('displayName'); as m) { <small class="error">{{ m }}</small> }
+      </div>
+      @if (s.type === 'MORALE') {
+        <div class="field">
+          <label for="edit-nif">NIF</label>
+          <input pInputText id="edit-nif" formControlName="nif" inputmode="numeric" />
+          @if (editFieldError('nif'); as m) { <small class="error">{{ m }}</small> }
+        </div>
+      } @else {
+        <div class="field">
+          <label for="edit-nni">NNI</label>
+          <input pInputText id="edit-nni" formControlName="nni" inputmode="numeric" />
+          @if (editFieldError('nni'); as m) { <small class="error">{{ m }}</small> }
+        </div>
+      }
+      <div class="field">
+        <label for="edit-phone">Téléphone</label>
+        <input pInputText id="edit-phone" formControlName="phone" inputmode="tel" />
+        @if (editFieldError('phone'); as m) { <small class="error">{{ m }}</small> }
+      </div>
+      <div class="field">
+        <label for="edit-address">Adresse</label>
+        <input pInputText id="edit-address" formControlName="address" />
+        @if (editFieldError('address'); as m) { <small class="error">{{ m }}</small> }
+      </div>
+      <p class="muted">L'email sert d'identifiant de connexion et ne peut pas être modifié ici.</p>
+      @if (editError(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+    </form>
+    <ng-template #footer>
+      <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="editOpen.set(false)" />
+      <p-button label="Enregistrer" type="submit" form="edit-subscriber" [loading]="busy()" />
+    </ng-template>
+  </p-dialog>
+}

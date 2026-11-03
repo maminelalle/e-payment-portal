@@ -98,6 +98,103 @@ body {
   }
 }
 
+/* En-tête de page : titre à gauche, actions à droite */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--ep-surface);
+  border: 1px solid var(--ep-border);
+  border-radius: 12px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .search {
+    flex: 1 1 280px;
+  }
+}
+
+.muted {
+  color: var(--ep-text-muted);
+  font-size: 0.85rem;
+}
+
+/* Pastilles de statut : Réussie / Actif (vert), En attente (ambre), Échouée / Suspendu (rouge), Brouillon (gris) */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &.success { background: #dcfce7; color: #15803d; }
+  &.warning { background: #fef3c7; color: #b45309; }
+  &.danger { background: #fee2e2; color: #b91c1c; }
+  &.info { background: #dbeafe; color: #1d4ed8; }
+  &.neutral { background: #f1f5f9; color: #475569; }
+}
+
+/* Pastille d'un moyen de paiement (BK, MS, VI) */
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+
+  label {
+    font-weight: 500;
+  }
+
+  small.error {
+    color: #b91c1c;
+  }
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .w-full {
   width: 100%;
 }

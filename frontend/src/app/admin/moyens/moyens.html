@@ -1,0 +1,63 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Moyens de paiement</h1>
+    <p class="page-subtitle">Catalogue des wallets et cartes proposés dans les contrats</p>
+  </div>
+</div>
+
+@if (methods(); as list) {
+  <div class="methods">
+    @for (m of list; track m.code + revision()) {
+      <article class="card method" [class.inactive]="m.status === 'INACTIVE'">
+        <header>
+          <span class="method-badge" [style.background]="m.color">{{ m.shortLabel }}</span>
+          <div class="title">
+            <h2>{{ m.name }}</h2>
+            <span class="muted">{{ m.category === 'WALLET' ? 'Wallet mobile' : 'Carte bancaire' }}</span>
+          </div>
+          <p-toggleswitch
+            [ngModel]="m.status === 'ACTIVE'"
+            (ngModelChange)="toggle(m, $event)"
+            [disabled]="pending() === m.code"
+            [ariaLabel]="(m.status === 'ACTIVE' ? 'Désactiver ' : 'Activer ') + m.name"
+          />
+        </header>
+
+        <p class="description">{{ m.description }}</p>
+
+        <dl>
+          <dt>Statut</dt>
+          <dd>
+            <span class="status-pill" [class]="m.status === 'ACTIVE' ? 'status-pill success' : 'status-pill neutral'">
+              {{ m.status === 'ACTIVE' ? 'Actif' : 'Inactif' }}
+            </span>
+          </dd>
+          <dt>Fournisseur</dt>
+          <dd>{{ m.provider.name }}</dd>
+          <dt>Disponibilité</dt>
+          <dd>
+            <span
+              class="status-pill"
+              [class]="
+                m.provider.healthStatus === 'UP'
+                  ? 'status-pill success'
+                  : m.provider.healthStatus === 'DOWN'
+                    ? 'status-pill danger'
+                    : 'status-pill neutral'
+              "
+              >{{ healthLabels[m.provider.healthStatus] }}</span
+            >
+          </dd>
+          <dt>Devise</dt>
+          <dd>{{ m.currency }}</dd>
+        </dl>
+
+        @if (m.instructions) {
+          <p class="instructions"><i class="pi pi-info-circle"></i> {{ m.instructions }}</p>
+        }
+      </article>
+    }
+  </div>
+} @else {
+  <p class="muted">Chargement…</p>
+}

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { AVenir } from '../shared/a-venir';
 import { AdminLayout } from './admin-layout';
@@ -7,6 +8,7 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: '',
     component: AdminLayout,
+    providers: [MessageService, ConfirmationService],
     children: [
       {
         path: '',
@@ -17,14 +19,17 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'abonnes',
         title: 'Abonnés · E-Payment',
-        component: AVenir,
-        data: { titre: 'Abonnés', semaine: 'semaine 4' },
+        loadComponent: () => import('./abonnes/abonnes').then((m) => m.Abonnes),
+      },
+      {
+        path: 'abonnes/:id',
+        title: 'Fiche abonné · E-Payment',
+        loadComponent: () => import('./abonnes/abonne-fiche').then((m) => m.AbonneFiche),
       },
       {
         path: 'moyens',
         title: 'Moyens de paiement · E-Payment',
-        component: AVenir,
-        data: { titre: 'Moyens de paiement', semaine: 'semaine 4' },
+        loadComponent: () => import('./moyens/moyens').then((m) => m.Moyens),
       },
       {
         path: 'contrats',

@@ -69,6 +69,15 @@ Comptes de démonstration du realm `epayment` :
 |------|-------|--------------|
 | ADMIN | `admin@epayment.mr` | `Admin#Demo2026` |
 | ABONNE | `contact@exemple.mr` | `Abonne#Demo2026` |
+| ABONNE | `atlas@exemple.mr` (Société Atlas, ABN-0001, créée via le portail) | `Atlas#Demo2026` |
+
+`contact@exemple.mr` n'existe que dans Keycloak (compte de test de la connexion) ; les vrais abonnés se créent depuis l'écran **Abonnés** de l'admin.
+
+### Créer un abonné (parcours complet)
+
+1. Admin → **Abonnés** → **Nouvel abonné** : le portail crée la fiche (statut « en attente ») et le compte Keycloak (rôle ABONNE).
+2. L'email d'invitation « Mettre à jour votre compte » arrive dans Mailpit (http://localhost:8025) ; le lien (valable 72 h) permet de définir le mot de passe.
+3. L'abonné se connecte sur http://localhost. L'admin l'**active** depuis sa fiche ; **Suspendre** bloque la connexion et ferme ses sessions.
 
 À la première connexion, l'administrateur doit enregistrer un code TOTP (Google Authenticator, FreeOTP, Microsoft Authenticator…) : le flux de connexion l'exige pour le rôle ADMIN. Pour le réinitialiser en dev : console Keycloak → realm `epayment` → Users → admin → Credentials → supprimer « otp ».
 
@@ -84,6 +93,15 @@ Le realm n'est importé qu'au premier démarrage. Après modification de `infra/
 | Tout autre chemin `/api/**` | Refusé |
 
 Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `audit_log` (consultable via `GET /api/admin/audit`).
+
+| API d'administration | Rôle |
+|----------------------|------|
+| `GET/POST /api/admin/abonnes`, `GET/PUT /api/admin/abonnes/{id}` | Liste filtrable (`q`, `statut`, `type`), création, fiche, modification |
+| `POST /api/admin/abonnes/{id}/activer` · `/suspendre` · `/desactiver` · `/invitation` | Cycle de vie et renvoi de l'invitation |
+| `GET /api/admin/abonnes/resume` | Compteurs par statut |
+| `GET /api/admin/moyens`, `PATCH /api/admin/moyens/{code}/statut` | Catalogue des moyens de paiement |
+
+Les erreurs suivent le format ProblemDetail (RFC 9457) ; les erreurs de validation listent les champs dans `errors`.
 
 ### 2. Backend
 

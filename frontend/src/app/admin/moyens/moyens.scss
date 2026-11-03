@@ -1,0 +1,60 @@
+.methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.method {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+
+  &.inactive {
+    opacity: 0.7;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .title {
+    flex: 1;
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+  }
+}
+
+.description {
+  margin: 0;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+dt {
+  color: var(--ep-text-muted);
+}
+
+dd {
+  margin: 0;
+}
+
+.instructions {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--ep-primary-soft);
+  color: #1e40af;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}

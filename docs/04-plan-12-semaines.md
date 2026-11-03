@@ -33,13 +33,13 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [ ] Thème Keycloak aux couleurs du portail (page de connexion de la maquette) — reporté, non bloquant
 
 ### Semaine 4 (23–27 nov.) — Abonnés et catalogue
-- [ ] API abonnés : créer, modifier, activer, suspendre, désactiver
-- [ ] Création automatique du compte Keycloak + email d'invitation
-- [ ] Écrans admin : liste filtrable et fiche abonné
-- [ ] Tables payment_method / payment_provider ; catalogue Bankily, Masrvi, Visa
-- [ ] Écran admin : catalogue des moyens
-- [ ] Validation (NNI/NIF, téléphone, email unique)
-- [ ] **Fin du mois 1 : l'admin crée un abonné qui peut se connecter**
+- [x] API abonnés : créer, modifier, activer, suspendre, désactiver (+ recherche, compteurs)
+- [x] Création automatique du compte Keycloak + email d'invitation (lien 72 h, renvoi possible)
+- [x] Écrans admin : liste filtrable et fiche abonné (panneau « Nouvel abonné » de la maquette A2)
+- [x] Tables payment_method / payment_provider ; catalogue Bankily, Masrvi, Visa (migration V3)
+- [x] Écran admin : catalogue des moyens (activation / désactivation)
+- [x] Validation (NNI/NIF, téléphone, email unique)
+- [x] **Fin du mois 1 : l'admin crée un abonné qui peut se connecter** — vérifié de bout en bout le 03/11 contre le vrai Keycloak (TOTP admin → création → email Mailpit → mot de passe → connexion abonné)
 
 ## Mois 2 — Signature, droits et démo
 

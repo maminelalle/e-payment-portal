@@ -1,0 +1,183 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Abonnés</h1>
+    <p class="page-subtitle">
+      @if (summary(); as s) {
+        {{ s.total }} abonné{{ s.total > 1 ? 's' : '' }}, dont {{ s.active }} actif{{ s.active > 1 ? 's' : '' }}
+      } @else {
+        &nbsp;
+      }
+    </p>
+  </div>
+  <p-button label="Nouvel abonné" icon="pi pi-plus" (onClick)="openDrawer()" />
+</div>
+
+<div class="toolbar">
+  <p-iconfield class="search">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="w-full"
+      placeholder="Nom, référence, email ou téléphone"
+      [(ngModel)]="search"
+      (ngModelChange)="onFilterChange()"
+      aria-label="Rechercher un abonné"
+    />
+  </p-iconfield>
+  <p-select
+    [options]="statusOptions"
+    optionLabel="label"
+    optionValue="value"
+    [(ngModel)]="statusFilter"
+    (onChange)="onFilterChange()"
+    placeholder="Tous les statuts"
+    [showClear]="true"
+    ariaLabel="Filtrer par statut"
+  />
+  <p-select
+    [options]="typeOptions"
+    optionLabel="label"
+    optionValue="value"
+    [(ngModel)]="typeFilter"
+    (onChange)="onFilterChange()"
+    placeholder="Tous les types"
+    [showClear]="true"
+    ariaLabel="Filtrer par type"
+  />
+</div>
+
+<div class="card table-card">
+  <p-table
+    [value]="rows()"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="total()"
+    [loading]="loading()"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="{first}–{last} sur {totalRecords}"
+    dataKey="id"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Référence</th>
+        <th>Nom / raison sociale</th>
+        <th>Type</th>
+        <th>Téléphone</th>
+        <th>Statut</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-s>
+      <tr class="clickable" tabindex="0" (click)="open(s)" (keydown.enter)="open(s)">
+        <td class="muted">{{ s.reference }}</td>
+        <td>
+          <div class="identity">
+            <span class="avatar small">{{ initials(s.displayName) }}</span>
+            <div>
+              <div class="name">{{ s.displayName }}</div>
+              <div class="muted">{{ s.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ typeLabel(s) }}</td>
+        <td>{{ s.phone }}</td>
+        <td><app-status-tag [status]="s.status" /></td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5" class="empty">Aucun abonné ne correspond à ces critères.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-drawer
+  [visible]="drawerOpen()"
+  (visibleChange)="drawerOpen.set($event)"
+  position="right"
+  styleClass="subscriber-drawer"
+  header="Nouvel abonné"
+>
+  <p class="muted drawer-intro">Un compte de connexion sera créé et une invitation envoyée par email.</p>
+
+  <form [formGroup]="form" (ngSubmit)="create()" id="new-subscriber" novalidate>
+    <div class="field">
+      <label>Type d'abonné</label>
+      <div class="type-choice">
+        @for (option of typeOptions; track option.value) {
+          <label class="type-option" [class.selected]="form.controls.type.value === option.value">
+            <p-radiobutton formControlName="type" [value]="option.value" [inputId]="'type-' + option.value" />
+            <span>{{ option.label }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="displayName">{{ form.controls.type.value === 'MORALE' ? 'Raison sociale' : 'Nom complet' }}</label>
+      <input pInputText id="displayName" formControlName="displayName" />
+      @if (error('displayName'); as message) {
+        <small class="error">{{ message }}</small>
+      }
+    </div>
+
+    @if (form.controls.type.value === 'MORALE') {
+      <div class="field">
+        <label for="nif">NIF</label>
+        <input pInputText id="nif" formControlName="nif" inputmode="numeric" />
+        <small class="muted">Numéro d'identification fiscale de l'entreprise</small>
+        @if (error('nif'); as message) {
+          <small class="error">{{ message }}</small>
+        }
+      </div>
+    } @else {
+      <div class="field">
+        <label for="nni">NNI</label>
+        <input pInputText id="nni" formControlName="nni" inputmode="numeric" />
+        <small class="muted">Numéro national d'identification (10 chiffres)</small>
+        @if (error('nni'); as message) {
+          <small class="error">{{ message }}</small>
+        }
+      </div>
+    }
+
+    <div class="field-row">
+      <div class="field">
+        <label for="phone">Téléphone</label>
+        <input pInputText id="phone" formControlName="phone" placeholder="+222 22 00 00 01" inputmode="tel" />
+        @if (error('phone'); as message) {
+          <small class="error">{{ message }}</small>
+        }
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input pInputText id="email" formControlName="email" type="email" />
+        @if (error('email'); as message) {
+          <small class="error">{{ message }}</small>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="address">Adresse</label>
+      <input pInputText id="address" formControlName="address" placeholder="Tevragh Zeina, Nouakchott" />
+      @if (error('address'); as message) {
+        <small class="error">{{ message }}</small>
+      }
+    </div>
+
+    @if (formError(); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+  </form>
+
+  <ng-template #footer>
+    <div class="drawer-footer">
+      <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="drawerOpen.set(false)" />
+      <p-button label="Créer l'abonné" type="submit" form="new-subscriber" [loading]="saving()" />
+    </div>
+  </ng-template>
+</p-drawer>

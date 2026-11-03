@@ -13,6 +13,8 @@ Registre des décisions de cadrage. Une ligne par décision ; on ajoute, on ne r
 | H5 | Devise | MRU ; devises carte selon la passerelle | Retenu |
 | H6 | Signature | Intégrée : OTP (email via Mailpit pour la démo, SMS ensuite) + scellement PAdES (EU DSS) | Retenu |
 | H7 | Moyens de la démo | Bankily, Masrvi, Visa ; Sedad et Mastercard hors démo | Retenu |
+| H8 | Identifiants | NNI : 10 chiffres ; NIF : 8 chiffres (format de la maquette) ; téléphone : +222 suivi de 8 chiffres commençant par 2, 3 ou 4 | Retenu (à ajuster si besoin) |
+| H9 | Cycle de vie abonné | Créé « en attente » (peut se connecter pour définir son mot de passe) ; l'admin l'active ; suspension réversible ; désactivation définitive. L'email (identifiant de connexion) n'est pas modifiable | Retenu |
 
 ## Décisions techniques
 
