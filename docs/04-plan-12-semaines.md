@@ -61,15 +61,16 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] Statut « signé / en attente d'activation » — recette le 03/11 : CTR-2026-0002 signé, sceau vérifié (portée totale, signature cryptographique valide)
 
 ### Semaine 7 (14–18 déc.) — Moteur des droits et Espace Abonné
-- [ ] subscriber_entitlement ; activation automatique après signature
-- [ ] Idempotence (contrainte unique)
-- [ ] « Mes moyens de paiement » filtré par les droits
-- [ ] Contrôle serveur du droit sur chaque paiement
-- [ ] Suspension / résiliation → révocation
-- [ ] Job quotidien d'expiration (Scheduler + ShedLock)
-- [ ] Adaptateur de paiement simulé (mock) pour les 3 moyens
-- [ ] Tests d'intégration du workflow (Testcontainers)
-- [ ] **Jalon : démo du workflow complet**
+- [x] subscriber_entitlement (V6) ; activation automatique après signature (PDF scellé revérifié) ; abonné « en attente » activé
+- [x] Idempotence (contrainte unique + `ON CONFLICT DO NOTHING`)
+- [x] « Mes moyens de paiement » filtré par les droits (accueil B1 + page moyens + tiroir de paiement B3)
+- [x] Contrôle serveur du droit sur chaque paiement (abonné actif, droit actif, période, catalogue, plafond)
+- [x] Suspension / reprise / résiliation → droits suspendus, rouverts, révoqués (fiche contrat admin)
+- [x] Job quotidien d'expiration + rattrapage des contrats signés (Scheduler + ShedLock, 00 h 05 Nouakchott)
+- [x] Adaptateur de paiement simulé (mock) pour les 3 moyens, interface `PaymentProvider`
+- [x] Tests d'intégration du workflow (`WorkflowTests`, Testcontainers) — 35 tests backend au vert
+- [x] **Jalon : démo du workflow complet** — vérifié le 03/11 sur la vraie stack et à l'écran (Société Delta : création → contrat → signature → activation → paiement Bankily réussi, Masrvi refusé, plafond refusé)
+- [ ] Plafond mensuel cumulé : le contrôle existe, le cumul réel arrive avec la table des transactions (semaine 10)
 
 ### Semaine 8 (21–25 déc.) — Simulateur des fournisseurs
 - [ ] Interface `PaymentProvider`

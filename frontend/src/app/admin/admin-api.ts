@@ -8,6 +8,7 @@ import {
   ContractTemplate,
   CreatedSubscriber,
   DraftChanges,
+  EntitledMethod,
   NewSubscriber,
   PageResponse,
   PaymentMethod,
@@ -99,6 +100,15 @@ export class AdminApi {
 
   sendContract(id: string): Observable<Contract> {
     return this.http.post<Contract>(`/api/admin/contrats/${id}/envoyer`, null);
+  }
+
+  /** Cycle de vie après signature : chaque action ouvre ou ferme les droits de l'abonné. */
+  contractLifecycle(id: string, action: 'activer' | 'suspendre' | 'reprendre' | 'resilier', motif?: string) {
+    return this.http.post<Contract>(`/api/admin/contrats/${id}/${action}`, motif ? { motif } : null);
+  }
+
+  contractEntitlements(id: string): Observable<EntitledMethod[]> {
+    return this.http.get<EntitledMethod[]>(`/api/admin/contrats/${id}/droits`);
   }
 
   /** PDF du contrat (aperçu « brouillon » ou document envoyé). */

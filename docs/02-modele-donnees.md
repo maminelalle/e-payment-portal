@@ -182,6 +182,7 @@ Contrainte : `(type = 'PHYSIQUE' AND nni IS NOT NULL) OR (type = 'MORALE' AND ni
 | contract_id | uuid | → contract |
 | payment_method_id | uuid | → payment_method |
 | valid_from / valid_to | date | copie des dates du contrat |
+| per_transaction_limit / monthly_limit | numeric(15,2) | copie des plafonds du contrat (figés à la signature) |
 | status | varchar(20) | `ACTIVE`, `SUSPENDED`, `REVOKED`, `EXPIRED` |
 | activated_at / revoked_at | timestamptz | |
 | revoke_reason | varchar(300) | |

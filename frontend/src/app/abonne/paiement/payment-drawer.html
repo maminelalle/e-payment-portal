@@ -1,0 +1,108 @@
+<p-drawer
+  [visible]="!!method()"
+  (visibleChange)="!$event && close()"
+  position="right"
+  styleClass="payment-drawer"
+  [modal]="true"
+>
+  <ng-template #header>
+    @if (method(); as m) {
+      <div class="head">
+        <span class="method-badge small" [style.background]="m.color">{{ m.shortLabel }}</span>
+        <strong>Payer avec {{ m.name }}</strong>
+      </div>
+    }
+  </ng-template>
+
+  @if (method(); as m) {
+    <div class="progress">
+      <span class="filled" [class.done]="result()?.status === 'SUCCEEDED'"></span>
+      <span [class.filled]="busy() || result()" [class.done]="result()?.status === 'SUCCEEDED'"></span>
+      <span [class.filled]="result()" [class.done]="result()?.status === 'SUCCEEDED'"></span>
+    </div>
+
+    @if (result(); as r) {
+      <div class="outcome" [class]="'outcome ' + r.status">
+        <span class="icon">
+          <i [class]="r.status === 'SUCCEEDED' ? 'pi pi-check' : r.status === 'PENDING' ? 'pi pi-clock' : 'pi pi-times'"></i>
+        </span>
+        <h3>
+          @switch (r.status) {
+            @case ('SUCCEEDED') { Paiement réussi }
+            @case ('PENDING') { Paiement en attente }
+            @default { Paiement échoué }
+          }
+        </h3>
+        <p class="amount">{{ formatAmount(r.amount, '') }}<span>{{ r.currency }}</span></p>
+        @if (r.status !== 'SUCCEEDED') {
+          <p class="muted">{{ r.message }}</p>
+        }
+      </div>
+      <dl class="card details">
+        <dt>Référence</dt>
+        <dd>{{ r.reference }}</dd>
+        <dt>Date</dt>
+        <dd>{{ r.occurredAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
+        <dt>Moyen</dt>
+        <dd>{{ r.methodName }}</dd>
+        @if (r.description) {
+          <dt>Motif</dt>
+          <dd>{{ r.description }}</dd>
+        }
+        <dt>Statut fournisseur</dt>
+        <dd>{{ r.providerStatus }}</dd>
+      </dl>
+      <p class="muted note">Paiement simulé : l'historique et les reçus PDF arrivent avec les transactions.</p>
+    } @else {
+      <p class="muted">
+        Plafond par transaction : <strong>{{ formatAmount(m.perTransactionLimit, m.currency) }}</strong> ·
+        mensuel : {{ formatAmount(m.monthlyLimit, m.currency) }}
+      </p>
+
+      <div class="field">
+        <label for="amount">Montant</label>
+        <p-inputnumber
+          inputId="amount"
+          [(ngModel)]="amount"
+          locale="fr-FR"
+          [min]="1"
+          [max]="m.perTransactionLimit"
+          [maxFractionDigits]="2"
+          [suffix]="' ' + m.currency"
+          styleClass="w-full"
+          (keydown.enter)="pay()"
+        />
+      </div>
+      @if (m.category === 'WALLET') {
+        <div class="field">
+          <label for="phone">Numéro du wallet {{ m.name }}</label>
+          <input pInputText id="phone" [(ngModel)]="phone" placeholder="+222 22 00 00 01" inputmode="tel" />
+        </div>
+      }
+      <div class="field">
+        <label for="motif">Motif (facultatif)</label>
+        <input pInputText id="motif" [(ngModel)]="description" maxlength="140" placeholder="Facture octobre" />
+      </div>
+      @if (m.instructions) {
+        <p class="info"><i class="pi pi-info-circle"></i> {{ m.instructions }}</p>
+      }
+      <p class="muted hint">Démo : un montant en ,13 est refusé, en ,51 « solde insuffisant », en ,99 « en attente ».</p>
+    }
+
+    @if (error(); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+  }
+
+  <ng-template #footer>
+    <div class="footer">
+      @if (result()) {
+        <p-button label="Télécharger le reçu" icon="pi pi-download" styleClass="w-full" [disabled]="true" />
+        <p-button label="Retour à l'accueil" severity="secondary" [outlined]="true" styleClass="w-full" routerLink="/abonne" (onClick)="close()" />
+      } @else {
+        <p-button [label]="'Payer' + (amount ? ' ' + formatAmount(amount, method()?.currency) : '')" styleClass="w-full" [loading]="busy()" (onClick)="pay()" />
+        <p-button label="Annuler" severity="secondary" [outlined]="true" styleClass="w-full" (onClick)="close()" [disabled]="busy()" />
+      }
+    </div>
+  </ng-template>
+</p-drawer>

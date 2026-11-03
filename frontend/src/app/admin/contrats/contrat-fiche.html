@@ -20,6 +20,20 @@
         <p-button label="Modifier" icon="pi pi-pencil" severity="secondary" [outlined]="true" [routerLink]="['/admin/contrats', c.id, 'modifier']" />
         <p-button label="Envoyer pour signature" icon="pi pi-send" (onClick)="send()" [loading]="busy()" />
       }
+      @switch (c.status) {
+        @case ('SIGNED') {
+          <p-button label="Activer" icon="pi pi-check" (onClick)="lifecycle('activer')" [loading]="busy()" />
+        }
+        @case ('ACTIVE') {
+          <p-button label="Suspendre" icon="pi pi-pause" severity="warn" [outlined]="true" (onClick)="lifecycle('suspendre')" [disabled]="busy()" />
+        }
+        @case ('SUSPENDED') {
+          <p-button label="Reprendre" icon="pi pi-play" (onClick)="lifecycle('reprendre')" [loading]="busy()" />
+        }
+      }
+      @if (c.status === 'PENDING_SIGNATURE' || c.status === 'SIGNED' || c.status === 'ACTIVE' || c.status === 'SUSPENDED') {
+        <p-button label="Résilier" icon="pi pi-ban" severity="danger" [text]="true" (onClick)="lifecycle('resilier')" [disabled]="busy()" />
+      }
       <p-button label="Télécharger" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="download()" [disabled]="!pdfUrl()" />
     </div>
   </div>
@@ -50,6 +64,14 @@
           <dt>Signé le</dt>
           <dd>{{ c.signedAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
         }
+        @if (c.activatedAt) {
+          <dt>Activé le</dt>
+          <dd>{{ c.activatedAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
+        }
+        @if (c.terminatedAt) {
+          <dt>Résilié le</dt>
+          <dd>{{ c.terminatedAt | date: "dd/MM/yyyy 'à' HH:mm" }}</dd>
+        }
       </dl>
 
       <h3>Moyens inclus</h3>
@@ -64,6 +86,21 @@
         </div>
       } @empty {
         <p class="muted">Aucun moyen sélectionné.</p>
+      }
+
+      @if (entitlements().length) {
+        <h3>Droits ouverts</h3>
+        @for (e of entitlements(); track e.entitlementId) {
+          <div class="right">
+            <span class="method-badge tiny" [style.background]="e.color">{{ e.shortLabel }}</span>
+            <span>{{ e.name }}</span>
+            <span [class]="'status-pill ' + (e.status === 'ACTIVE' ? 'success' : e.status === 'SUSPENDED' ? 'warning' : 'neutral')">
+              {{ { ACTIVE: 'Actif', SUSPENDED: 'Suspendu', REVOKED: 'Révoqué', EXPIRED: 'Expiré' }[e.status] }}
+            </span>
+          </div>
+        }
+      } @else if (c.status === 'SIGNED') {
+        <p class="info">Signé : les droits s'ouvrent à l'activation (automatique, ou bouton « Activer »).</p>
       }
 
       @if (c.pdfSha256) {

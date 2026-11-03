@@ -116,6 +116,9 @@ export interface Contract {
   /** Empreinte du PDF scellé après signature. */
   signedPdfSha256: string | null;
   signedAt: string | null;
+  activatedAt: string | null;
+  terminatedAt: string | null;
+  terminationReason: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -127,6 +130,42 @@ export interface DraftChanges {
   endDate: string | null;
   commissionRate: number | null;
   methods: { code: string; perTransactionLimit: number; monthlyLimit: number }[];
+}
+
+/** Droit sur un moyen de paiement (« Mes moyens de paiement », droits d'un contrat côté admin). */
+export interface EntitledMethod {
+  entitlementId: string;
+  contractId: string;
+  code: string;
+  name: string;
+  category: 'WALLET' | 'CARD';
+  shortLabel: string;
+  color: string;
+  description: string | null;
+  instructions: string | null;
+  currency: string;
+  perTransactionLimit: number;
+  monthlyLimit: number;
+  validFrom: string;
+  validTo: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'EXPIRED';
+  available: boolean;
+  unavailableReason: string | null;
+}
+
+export interface PaymentResult {
+  reference: string;
+  status: 'SUCCEEDED' | 'FAILED' | 'PENDING';
+  providerStatus: string;
+  failureCode: string | null;
+  message: string;
+  methodCode: string;
+  methodName: string;
+  amount: number;
+  currency: string;
+  description: string | null;
+  contractId: string;
+  occurredAt: string;
 }
 
 export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {

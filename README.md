@@ -112,7 +112,13 @@ Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `aud
 |------------------------|------|
 | `GET /api/abonne/contrat`, `GET /api/abonne/contrat/pdf` | Mon contrat (204 si aucun) et son PDF (version scellée une fois signé) |
 | `POST /api/abonne/contrat/signature` | Envoie le code de signature par email (5 min, renvoi après 60 s) |
-| `POST /api/abonne/contrat/signature/{id}/confirmation` | Vérifie le code (3 essais), scelle le PDF (PAdES) et passe le contrat « signé » |
+| `POST /api/abonne/contrat/signature/{id}/confirmation` | Vérifie le code (3 essais), scelle le PDF (PAdES) ; le contrat est ensuite activé automatiquement |
+| `GET /api/abonne/moyens` | Mes moyens de paiement : uniquement ceux ouverts par le contrat en vigueur |
+| `POST /api/abonne/paiements` | Paiement (simulé) : droit et plafond revérifiés ; 403 si le moyen n'est pas au contrat, 422 si plafond dépassé |
+
+Côté admin, le cycle de vie d'un contrat signé : `POST /api/admin/contrats/{id}/activer` · `/suspendre` · `/reprendre` · `/resilier`, et `GET /api/admin/contrats/{id}/droits`.
+
+Paiements simulés (démo) : un montant se terminant par ,13 est refusé, ,51 « solde insuffisant », ,99 « en attente », sinon réussi.
 
 Les erreurs suivent le format ProblemDetail (RFC 9457) ; les erreurs de validation listent les champs dans `errors`.
 

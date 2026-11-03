@@ -13,8 +13,7 @@ export const ABONNE_ROUTES: Routes = [
       {
         path: '',
         title: 'Accueil · E-Payment',
-        component: AVenir,
-        data: { titre: 'Accueil', semaine: 'semaine 7' },
+        loadComponent: () => import('./accueil/accueil').then((m) => m.Accueil),
       },
       {
         path: 'contrat',
@@ -24,8 +23,7 @@ export const ABONNE_ROUTES: Routes = [
       {
         path: 'moyens',
         title: 'Moyens de paiement · E-Payment',
-        component: AVenir,
-        data: { titre: 'Moyens de paiement', semaine: 'semaine 7' },
+        loadComponent: () => import('./moyens/moyens').then((m) => m.AbonneMoyens),
       },
       {
         path: 'transactions',

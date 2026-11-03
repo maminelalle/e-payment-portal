@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { Contract } from '../core/api.models';
+import { Contract, EntitledMethod, PaymentResult } from '../core/api.models';
 
 /** Réponse à une demande de code de signature (le code n'est jamais renvoyé par l'API). */
 export interface OtpChallenge {
@@ -36,5 +36,14 @@ export class AbonneApi {
 
   confirmSignature(signatureId: string, code: string): Observable<Contract> {
     return this.http.post<Contract>(`/api/abonne/contrat/signature/${signatureId}/confirmation`, { code });
+  }
+
+  /** Moyens ouverts par le contrat en vigueur (et eux seuls). */
+  myMethods(): Observable<EntitledMethod[]> {
+    return this.http.get<EntitledMethod[]>('/api/abonne/moyens');
+  }
+
+  pay(body: { method: string; amount: number; payerPhone: string | null; description: string | null }) {
+    return this.http.post<PaymentResult>('/api/abonne/paiements', body);
   }
 }

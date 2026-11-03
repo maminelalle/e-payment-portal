@@ -1,0 +1,64 @@
+<h1 class="page-title">Bonjour, {{ session.user()?.fullName }}</h1>
+<p class="page-subtitle">Voici la situation de votre compte au {{ today | date: 'dd/MM/yyyy' }}.</p>
+
+@if (contract() !== undefined) {
+  @let c = contract();
+  <section class="banner" [class]="'banner ' + (c?.status ?? 'NONE')">
+    <span class="icon"><i [class]="c?.status === 'ACTIVE' ? 'pi pi-verified' : c?.status === 'PENDING_SIGNATURE' ? 'pi pi-pen-to-square' : 'pi pi-info-circle'"></i></span>
+    <div class="text">
+      @switch (c?.status) {
+        @case ('ACTIVE') {
+          <strong>Votre contrat est actif</strong>
+          <span class="muted">{{ c!.reference }} · valable du {{ formatDate(c!.startDate) }} au {{ formatDate(c!.endDate) }}</span>
+        }
+        @case ('PENDING_SIGNATURE') {
+          <strong>Votre contrat est prêt à être signé</strong>
+          <span class="muted">{{ c!.reference }} · signez-le pour ouvrir vos moyens de paiement</span>
+        }
+        @case ('SIGNED') {
+          <strong>Contrat signé, en attente d'activation</strong>
+          <span class="muted">{{ c!.reference }} · vos moyens seront disponibles dès son activation</span>
+        }
+        @case ('SUSPENDED') {
+          <strong>Votre contrat est suspendu</strong>
+          <span class="muted">{{ c!.reference }} · vos paiements sont temporairement bloqués</span>
+        }
+        @case (undefined) {
+          <strong>Aucun contrat pour l'instant</strong>
+          <span class="muted">Vous serez prévenu par email dès que votre contrat sera disponible.</span>
+        }
+        @default {
+          <strong>Votre contrat est terminé</strong>
+          <span class="muted">{{ c!.reference }} · contactez votre gestionnaire pour un nouveau contrat</span>
+        }
+      }
+    </div>
+    @if (c) {
+      <p-button
+        [label]="c.status === 'PENDING_SIGNATURE' ? 'Signer mon contrat' : 'Voir le contrat'"
+        [outlined]="c.status !== 'PENDING_SIGNATURE'"
+        severity="secondary"
+        routerLink="/abonne/contrat"
+      />
+    }
+  </section>
+}
+
+<div class="section-head">
+  <h2>Mes moyens de paiement</h2>
+  @if (methods().length) {
+    <span class="muted">{{ methods().length }} moyen{{ methods().length > 1 ? 's' : '' }} autorisé{{ methods().length > 1 ? 's' : '' }} par votre contrat</span>
+  }
+</div>
+@if (methods().length) {
+  <app-method-cards [methods]="methods()" (pay)="paying.set($event)" />
+} @else {
+  <p class="card empty muted">Aucun moyen de paiement ouvert : ils apparaissent ici dès que votre contrat est signé et actif.</p>
+}
+
+<div class="section-head">
+  <h2>Dernières transactions</h2>
+</div>
+<p class="card empty muted">L'historique de vos paiements et les reçus seront disponibles prochainement.</p>
+
+<app-payment-drawer [method]="paying()" (closed)="paying.set(null)" />

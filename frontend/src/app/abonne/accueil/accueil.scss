@@ -1,0 +1,75 @@
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0 32px;
+  padding: 20px 24px;
+  border: 1px solid var(--ep-border);
+  border-radius: 12px;
+  background: var(--ep-surface);
+
+  &.ACTIVE {
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+
+  &.PENDING_SIGNATURE,
+  &.SIGNED {
+    border-color: #fcd34d;
+    background: #fffbeb;
+  }
+
+  &.SUSPENDED {
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--ep-primary);
+    font-size: 1.2rem;
+  }
+
+  &.ACTIVE .icon {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 200px;
+  }
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 32px 0 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+}
+
+.empty {
+  margin: 0;
+  padding: 24px;
+}
+
+.banner .icon .pi {
+  font-size: 1.2rem;
+}

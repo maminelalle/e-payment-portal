@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 
-import { ApiProblem, Contract } from '../../core/api.models';
+import { ApiProblem, Contract, EntitledMethod } from '../../core/api.models';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatAmount, formatIsoDate } from '../../shared/formatting';
 import { AdminApi } from '../admin-api';
@@ -29,6 +29,7 @@ export class ContratFiche {
   protected readonly contract = signal<Contract | null>(null);
   protected readonly notFound = signal(false);
   protected readonly busy = signal(false);
+  protected readonly entitlements = signal<EntitledMethod[]>([]);
   protected readonly pdfUrl = signal<SafeResourceUrl | null>(null);
   private rawPdfUrl: string | null = null;
 
@@ -84,6 +85,39 @@ export class ContratFiche {
     });
   }
 
+  /** Activer / suspendre / reprendre / résilier : le serveur ouvre ou ferme les droits avec le contrat. */
+  protected lifecycle(action: 'activer' | 'suspendre' | 'reprendre' | 'resilier'): void {
+    const c = this.contract();
+    if (!c) return;
+    const texts = {
+      activer: ['Activer le contrat', `Les droits de ${c.subscriber.displayName} seront ouverts sur les moyens du contrat.`, 'Activer'],
+      suspendre: ['Suspendre le contrat', `Les paiements de ${c.subscriber.displayName} seront bloqués jusqu'à la reprise.`, 'Suspendre'],
+      reprendre: ['Reprendre le contrat', `Les droits de ${c.subscriber.displayName} seront rouverts.`, 'Reprendre'],
+      resilier: ['Résilier le contrat', `Résiliation définitive : les droits sont révoqués, l'historique est conservé.`, 'Résilier'],
+    } as const;
+    const [header, message, label] = texts[action];
+    this.confirmation.confirm({
+      header,
+      message,
+      acceptLabel: label,
+      rejectLabel: 'Annuler',
+      acceptButtonProps: { severity: action === 'resilier' || action === 'suspendre' ? 'danger' : 'primary' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => {
+        this.busy.set(true);
+        this.api.contractLifecycle(c.id, action).subscribe({
+          next: (updated) => {
+            this.busy.set(false);
+            this.contract.set(updated);
+            this.loadEntitlements(updated.id);
+            this.messages.add({ severity: 'success', summary: `${header.split(' ')[0]} : ${updated.reference}` });
+          },
+          error: (error) => this.fail(error),
+        });
+      },
+    });
+  }
+
   protected download(): void {
     const c = this.contract();
     if (!c || !this.rawPdfUrl) return;
@@ -101,8 +135,13 @@ export class ContratFiche {
     });
   }
 
+  private loadEntitlements(id: string): void {
+    this.api.contractEntitlements(id).subscribe((list) => this.entitlements.set(list));
+  }
+
   private show(contract: Contract): void {
     this.contract.set(contract);
+    this.loadEntitlements(contract.id);
     this.revokePdf();
     this.api.contractPdf(contract.id).subscribe((blob) => {
       this.rawPdfUrl = URL.createObjectURL(blob);
