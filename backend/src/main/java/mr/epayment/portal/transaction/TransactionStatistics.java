@@ -5,7 +5,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -63,6 +65,23 @@ public class TransactionStatistics {
                 """, (rs, i) -> new MethodCount(rs.getObject("payment_method_id", UUID.class), rs.getLong("total"),
                         rs.getBigDecimal("collected")),
                 Timestamp.from(from), Timestamp.from(to), subscriberId, subscriberId);
+    }
+
+    /**
+     * Montant engagé par moyen depuis {@code since} : paiements réussis et en cours, comme pour le contrôle du
+     * plafond mensuel (un paiement en cours peut encore réussir).
+     */
+    public Map<UUID, BigDecimal> engagedPerMethod(UUID subscriberId, Instant since) {
+        Map<UUID, BigDecimal> engaged = new HashMap<>();
+        jdbc.query("""
+                select payment_method_id, sum(amount) as engaged
+                from payment_transaction
+                where subscriber_id = ? and created_at >= ? and status in ('CREATED', 'PENDING', 'SUCCEEDED')
+                group by payment_method_id
+                """, rs -> {
+            engaged.put(rs.getObject("payment_method_id", UUID.class), rs.getBigDecimal("engaged"));
+        }, subscriberId, Timestamp.from(since));
+        return engaged;
     }
 
     public record Totals(long count, long succeeded, long failed, BigDecimal collected) {

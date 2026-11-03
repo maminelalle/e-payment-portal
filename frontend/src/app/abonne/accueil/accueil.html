@@ -44,6 +44,58 @@
   </section>
 }
 
+@if (dashboard(); as d) {
+  <div class="section-head">
+    <h2>Ce mois-ci</h2>
+    <span class="muted">depuis le 1er {{ today | date: 'MMMM' }}</span>
+  </div>
+  <section class="month">
+    <div class="card stat">
+      <span class="stat-label">Montant payé</span>
+      <span class="stat-value">{{ formatAmount(d.paid) }}</span>
+    </div>
+    <div class="card stat">
+      <span class="stat-label">Paiements réussis</span>
+      <span class="stat-value">{{ d.succeeded }}</span>
+    </div>
+    <div class="card stat">
+      <span class="stat-label">Paiements échoués</span>
+      <span class="stat-value">{{ d.failed }}</span>
+    </div>
+  </section>
+
+  @if (d.limits.length) {
+    <div class="card limits">
+      <h3>Plafonds mensuels</h3>
+      @for (l of d.limits; track l.code) {
+        <div class="limit">
+          <app-method-logo [method]="l" [size]="28" />
+          <div class="limit-body">
+            <div class="limit-head">
+              <span class="name">{{ l.name }}</span>
+              <span class="figures">
+                <strong>{{ formatAmount(l.engaged, l.currency) }}</strong>
+                <span class="muted"> sur {{ formatAmount(l.monthlyLimit, l.currency) }}</span>
+              </span>
+            </div>
+            <div class="meter" role="meter" [attr.aria-valuenow]="usedPercent(l)" aria-valuemin="0" aria-valuemax="100"
+                 [attr.aria-label]="'Plafond mensuel ' + l.name + ' utilisé à ' + usedPercent(l) + ' %'">
+              <span [class]="'fill ' + usageTone(l)" [style.width.%]="fillPercent(l)"></span>
+            </div>
+            <span class="limit-note" [class.alert]="usageTone(l) !== 'normal'">
+              @if (l.remaining > 0) {
+                Reste {{ formatAmount(l.remaining, l.currency) }} ce mois ({{ usedPercent(l) < 1 && l.engaged > 0 ? 'moins de 1' : usedPercent(l) }} % utilisé)
+              } @else {
+                <i class="pi pi-exclamation-triangle"></i> Plafond atteint : nouveaux paiements refusés jusqu'au mois prochain
+              }
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
+
 <div class="section-head">
   <h2>Mes moyens de paiement</h2>
   @if (methods().length) {

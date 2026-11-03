@@ -5,10 +5,11 @@ import { map, Observable } from 'rxjs';
 import {
   Contract,
   EntitledMethod,
-  filterParams,
   PageResponse,
+  SubscriberDashboard,
   Transaction,
   TransactionFilter,
+  filterParams,
 } from '../core/api.models';
 
 /** Réponse à une demande de code de signature (le code n'est jamais renvoyé par l'API). */
@@ -46,6 +47,10 @@ export class AbonneApi {
   }
 
   /** Moyens ouverts par le contrat en vigueur (et eux seuls). */
+  dashboard(): Observable<SubscriberDashboard> {
+    return this.http.get<SubscriberDashboard>('/api/abonne/tableau-de-bord');
+  }
+
   myMethods(): Observable<EntitledMethod[]> {
     return this.http.get<EntitledMethod[]>('/api/abonne/moyens');
   }

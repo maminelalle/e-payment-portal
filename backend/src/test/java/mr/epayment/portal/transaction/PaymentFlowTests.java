@@ -110,6 +110,18 @@ class PaymentFlowTests {
         pay(subject, "BANKILY", "15000.51", UUID.randomUUID().toString()).andExpect(jsonPath("$.status").value("FAILED"))
                 .andExpect(jsonPath("$.failureMessage").value("Solde insuffisant."));
         pay(subject, "BANKILY", "20000.00", UUID.randomUUID().toString()).andExpect(jsonPath("$.status").value("SUCCEEDED"));
+
+        // Tableau de bord de l'abonné : 2 réussis, 1 échoué (le refus du portail n'est pas un paiement), plafond utilisé.
+        mvc.perform(get("/api/abonne/tableau-de-bord").with(subscriber(subject)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payments").value(3))
+                .andExpect(jsonPath("$.succeeded").value(2))
+                .andExpect(jsonPath("$.failed").value(1))
+                .andExpect(jsonPath("$.paid").value(60000.0))
+                .andExpect(jsonPath("$.limits[0].code").value("BANKILY"))
+                .andExpect(jsonPath("$.limits[0].monthlyLimit").value(60000))
+                .andExpect(jsonPath("$.limits[0].engaged").value(60000.0))
+                .andExpect(jsonPath("$.limits[0].remaining").value(0));
     }
 
     @Test

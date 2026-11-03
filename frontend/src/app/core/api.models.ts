@@ -352,3 +352,25 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   WEBHOOK_CONFLICT: 'Webhook contradictoire',
   WEBHOOK_EVENT_ID_REUSED: 'Identifiant de webhook réutilisé',
 };
+
+/** Tableau de bord de l'abonné : paiements du mois et plafonds mensuels utilisés. */
+export interface SubscriberDashboard {
+  payments: number;
+  succeeded: number;
+  failed: number;
+  paid: number;
+  limits: LimitUsage[];
+}
+
+export interface LimitUsage {
+  code: string;
+  name: string;
+  shortLabel: string;
+  color: string;
+  logoUrl: string | null;
+  currency: string;
+  monthlyLimit: number;
+  /** Paiements réussis et en cours du mois sur ce moyen. */
+  engaged: number;
+  remaining: number;
+}

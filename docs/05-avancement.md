@@ -19,12 +19,17 @@ Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case 
 | 8 | Simulateur Bankily / Masrvi / Visa, webhooks | Terminée |
 | 9 | Adaptateurs HTTP, logos des moyens | Terminée |
 | 10 | Paiements, reçus, historiques, rapprochement | Terminée — jalon S10 atteint |
-| 11 | Notifications et tableaux de bord | **En cours** (emails, tableau de bord admin et journal d'audit faits) |
+| 11 | Notifications et tableaux de bord | **En cours** (reste le profil abonné) |
 | 12 | Recette et mise en ligne | **À faire** |
 
 Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
+
+### 03/11/2026 — Semaine 11 : tableau de bord abonné
+- Accueil abonné : montant payé, paiements réussis et échoués du mois ; jauge de chaque plafond mensuel
+  (paiements réussis + en cours, comme le contrôle du portail), alerte à 80 % et à 100 %.
+  API `GET /api/abonne/tableau-de-bord`.
 
 ### 03/11/2026 — Semaine 11 : journal d'audit
 - Écran « Paramètres et audit » : journal filtrable par acteur, ressource (TRX-…, CTR-…), action (libellés en français),
@@ -74,7 +79,7 @@ Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 ### Semaine 11 — Notifications et tableaux de bord
 - [x] Emails : contrat activé, paiement réussi, paiement échoué
 - [x] Tableau de bord admin avec graphiques (maquette A1)
-- [ ] Tableau de bord abonné
+- [x] Tableau de bord abonné
 - [ ] Profil abonné (données Keycloak)
 - [x] Écran du journal d'audit
 
