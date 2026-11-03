@@ -75,6 +75,15 @@ class Contract {
     @Column(name = "signed_at")
     private Instant signedAt;
 
+    @Column(name = "activated_at")
+    private Instant activatedAt;
+
+    @Column(name = "terminated_at")
+    private Instant terminatedAt;
+
+    @Column(name = "termination_reason")
+    private String terminationReason;
+
     @Column(name = "created_by", updatable = false)
     private String createdBy;
 
@@ -134,6 +143,70 @@ class Contract {
         this.status = ContractStatus.SIGNED;
         this.signedAt = Instant.now();
         this.updatedAt = signedAt;
+    }
+
+    /** Signé → actif. Sans effet si le contrat est déjà actif (activation idempotente). */
+    boolean activate() {
+        if (status == ContractStatus.ACTIVE) {
+            return false;
+        }
+        requireStatus(ContractStatus.SIGNED, "activer");
+        changeStatus(ContractStatus.ACTIVE);
+        this.activatedAt = updatedAt;
+        return true;
+    }
+
+    void suspend() {
+        requireStatus(ContractStatus.ACTIVE, "suspendre");
+        changeStatus(ContractStatus.SUSPENDED);
+    }
+
+    void resume() {
+        requireStatus(ContractStatus.SUSPENDED, "réactiver");
+        changeStatus(ContractStatus.ACTIVE);
+    }
+
+    /** Résiliation : possible tant que le contrat n'est pas déjà terminé (expiré ou résilié). */
+    void terminate(String reason) {
+        if (status == ContractStatus.DRAFT || status == ContractStatus.EXPIRED
+                || status == ContractStatus.TERMINATED) {
+            throw new BusinessRuleException("Impossible de résilier le contrat " + reference + " au statut "
+                    + status + ".");
+        }
+        changeStatus(ContractStatus.TERMINATED);
+        this.terminatedAt = updatedAt;
+        this.terminationReason = reason;
+    }
+
+    void expire() {
+        if (status != ContractStatus.ACTIVE && status != ContractStatus.SUSPENDED) {
+            throw new BusinessRuleException("Le contrat " + reference + " n'est pas en vigueur.");
+        }
+        changeStatus(ContractStatus.EXPIRED);
+    }
+
+    private void requireStatus(ContractStatus expected, String action) {
+        if (status != expected) {
+            throw new BusinessRuleException("Impossible de " + action + " le contrat " + reference + " : il est "
+                    + status + ".");
+        }
+    }
+
+    private void changeStatus(ContractStatus newStatus) {
+        this.status = newStatus;
+        this.updatedAt = Instant.now();
+    }
+
+    Instant getActivatedAt() {
+        return activatedAt;
+    }
+
+    Instant getTerminatedAt() {
+        return terminatedAt;
+    }
+
+    String getTerminationReason() {
+        return terminationReason;
     }
 
     boolean isSigned() {

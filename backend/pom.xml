@@ -22,6 +22,7 @@
 		<dss.version>6.5.1</dss.version>
 		<bouncycastle.version>1.86</bouncycastle.version>
 		<pdfbox.version>3.0.8</pdfbox.version>
+		<shedlock.version>7.10.1</shedlock.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -77,6 +78,16 @@
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>${jsoup.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.javacrumbs.shedlock</groupId>
+			<artifactId>shedlock-spring</artifactId>
+			<version>${shedlock.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.javacrumbs.shedlock</groupId>
+			<artifactId>shedlock-provider-jdbc-template</artifactId>
+			<version>${shedlock.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.europa.ec.joinup.sd-dss</groupId>

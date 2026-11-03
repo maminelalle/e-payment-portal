@@ -1,5 +1,6 @@
 package mr.epayment.portal.contract;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,14 @@ interface ContractRepository extends JpaRepository<Contract, UUID> {
 
     Optional<Contract> findFirstBySubscriberIdAndStatusInOrderByCreatedAtDesc(UUID subscriberId,
             Collection<ContractStatus> statuses);
+
+    /** Contrats en vigueur dont la date de fin est dépassée (job quotidien d'expiration). */
+    @Query("select c.id from Contract c where c.status in ('ACTIVE', 'SUSPENDED') and c.endDate < :today")
+    List<UUID> findIdsInForceEndedBefore(LocalDate today);
+
+    /** Contrats signés pas encore activés (rattrapage si l'activation automatique a échoué). */
+    @Query("select c.id from Contract c where c.status = 'SIGNED'")
+    List<UUID> findSignedIds();
 
     @Query(value = "select nextval('contract_ref_seq')", nativeQuery = true)
     long nextReferenceNumber();

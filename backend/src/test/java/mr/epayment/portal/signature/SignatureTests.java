@@ -118,8 +118,9 @@ class SignatureTests {
         assertThat(jdbc.queryForList("select action from audit_log where resource_id = ? order by id", String.class,
                 signatureId)).containsSubsequence("SIGNATURE_CODE_SENT", "SIGNATURE_CODE_REJECTED", "SIGNATURE_COMPLETED");
 
+        // Activation automatique juste après la signature (moteur des droits, semaine 7).
         mvc.perform(get("/api/admin/contrats/{id}", contractId).with(admin()))
-                .andExpect(jsonPath("$.status").value("SIGNED"));
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
         requestCode().andExpect(status().isUnprocessableContent());
     }
 

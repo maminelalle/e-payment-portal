@@ -84,6 +84,19 @@ public class SubscriberService {
         return changeStatus(id, Subscriber::disable, "SUBSCRIBER_DISABLED", reason);
     }
 
+    /**
+     * Appelé à l'activation de son contrat : un abonné encore « en attente » devient actif.
+     * Sans effet sur un abonné déjà actif, suspendu ou désactivé (la décision de l'admin prime).
+     */
+    @Transactional
+    public void activateIfPending(UUID id) {
+        Subscriber subscriber = find(id);
+        if (subscriber.getStatus() == SubscriberStatus.PENDING) {
+            subscriber.activate();
+            audit("SUBSCRIBER_ACTIVATED", subscriber, Map.of("trigger", "CONTRACT_ACTIVATED"));
+        }
+    }
+
     public boolean resendInvitation(UUID id) {
         Subscriber subscriber = find(id);
         if (!subscriber.getStatus().canLogIn()) {

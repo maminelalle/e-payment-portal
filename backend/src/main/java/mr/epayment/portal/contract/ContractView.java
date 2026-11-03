@@ -22,6 +22,9 @@ public record ContractView(
         Instant sentAt,
         String signedPdfSha256,
         Instant signedAt,
+        Instant activatedAt,
+        Instant terminatedAt,
+        String terminationReason,
         String createdBy,
         Instant createdAt,
         Instant updatedAt) {

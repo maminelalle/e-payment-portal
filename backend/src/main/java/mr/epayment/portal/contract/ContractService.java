@@ -213,6 +213,74 @@ public class ContractService {
         return toView(contract);
     }
 
+    // --- Cycle de vie après signature. Appelé par le moteur des droits (module entitlement), qui ouvre
+    // --- ou ferme les droits dans la même transaction : contrat et droits ne divergent jamais.
+
+    /**
+     * Vérifie la signature (présence et intégrité du PDF scellé) puis active le contrat.
+     * Idempotent : sans effet s'il est déjà actif.
+     */
+    @Transactional
+    public ContractView activate(UUID id) {
+        Contract contract = find(id);
+        if (contract.getStatus() == ContractStatus.SIGNED) {
+            readVerified(contract.getSignedPdfObjectKey(), contract.getSignedPdfSha256(), contract.getReference());
+        }
+        if (contract.activate()) {
+            audit("CONTRACT_ACTIVATED", contract, Map.of());
+        }
+        return toView(contract);
+    }
+
+    @Transactional
+    public ContractView suspend(UUID id, String reason) {
+        Contract contract = find(id);
+        contract.suspend();
+        audit("CONTRACT_SUSPENDED", contract, reasonDetails(reason));
+        return toView(contract);
+    }
+
+    @Transactional
+    public ContractView resume(UUID id) {
+        Contract contract = find(id);
+        if (contract.getEndDate().isBefore(LocalDate.now(ContractDocument.ZONE))) {
+            throw new BusinessRuleException("Le contrat " + contract.getReference() + " est arrivé à échéance.");
+        }
+        contract.resume();
+        audit("CONTRACT_RESUMED", contract, Map.of());
+        return toView(contract);
+    }
+
+    @Transactional
+    public ContractView terminate(UUID id, String reason) {
+        Contract contract = find(id);
+        contract.terminate(reason);
+        audit("CONTRACT_TERMINATED", contract, reasonDetails(reason));
+        return toView(contract);
+    }
+
+    @Transactional
+    public ContractView expire(UUID id) {
+        Contract contract = find(id);
+        contract.expire();
+        audit("CONTRACT_EXPIRED", contract, Map.of("endDate", contract.getEndDate().toString()));
+        return toView(contract);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID> inForceEndedBefore(LocalDate today) {
+        return contracts.findIdsInForceEndedBefore(today);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID> signedAwaitingActivation() {
+        return contracts.findSignedIds();
+    }
+
+    private static Map<String, Object> reasonDetails(String reason) {
+        return reason == null || reason.isBlank() ? Map.of() : Map.of("reason", reason.trim());
+    }
+
     private ContractPdf pdfOf(Contract contract) {
         if (contract.getStatus() == ContractStatus.DRAFT) {
             SubscriberView subscriber = subscribers.get(contract.getSubscriberId());
@@ -330,7 +398,8 @@ public class ContractService {
         }).toList();
         return new ContractView(c.getId(), c.getReference(), c.getStatus(), party, templateViews.get(c.getTemplateId()),
                 c.getStartDate(), c.getEndDate(), c.getCommissionRate(), included, c.getPdfSha256(), c.getSentAt(),
-                c.getSignedPdfSha256(), c.getSignedAt(),
+                c.getSignedPdfSha256(), c.getSignedAt(), c.getActivatedAt(), c.getTerminatedAt(),
+                c.getTerminationReason(),
                 c.getCreatedBy(), c.getCreatedAt(), c.getUpdatedAt());
     }
 
