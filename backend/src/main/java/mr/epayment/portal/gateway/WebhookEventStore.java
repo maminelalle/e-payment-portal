@@ -25,4 +25,11 @@ class WebhookEventStore {
                 webhook.merchantReference(), webhook.outcome().name(), webhook.providerStatus(),
                 new String(body, StandardCharsets.UTF_8)) == 1;
     }
+
+    /** Vrai si l'événement déjà enregistré a exactement le même contenu (vrai rejeu ou réessai). */
+    boolean sameAsRecorded(String providerCode, String eventId, byte[] body) {
+        return Boolean.TRUE.equals(jdbc.queryForObject(
+                "select payload = cast(? as jsonb) from webhook_event where provider_code = ? and event_id = ?",
+                Boolean.class, new String(body, StandardCharsets.UTF_8), providerCode, eventId));
+    }
 }

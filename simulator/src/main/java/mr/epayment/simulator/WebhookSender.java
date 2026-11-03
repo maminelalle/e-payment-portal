@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import mr.epayment.simulator.SimPayment.State;
@@ -33,7 +32,6 @@ import tools.jackson.databind.json.JsonMapper;
 public class WebhookSender {
 
     private static final Logger log = LoggerFactory.getLogger(WebhookSender.class);
-    private static final AtomicLong MASRVI_SEQUENCE = new AtomicLong(1000);
 
     private final RestClient http;
     private final JsonMapper json;
@@ -109,7 +107,8 @@ public class WebhookSender {
                 body.put("occurredAt", p.updatedAt().toString());
             }
             case MASRVI -> {
-                id = "ntf-" + MASRVI_SEQUENCE.incrementAndGet();
+                // Identifiant unique même après un redémarrage (un compteur repartirait à zéro : faux rejeu).
+                id = "ntf-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
                 body.put("evenementId", id);
                 body.put("idTransaction", p.id());
                 body.put("reference", p.merchantReference());

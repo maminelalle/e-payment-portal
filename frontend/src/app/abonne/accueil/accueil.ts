@@ -5,11 +5,12 @@ import { ButtonModule } from 'primeng/button';
 
 import { Contract, EntitledMethod, Transaction } from '../../core/api.models';
 import { Session } from '../../core/session';
+import { downloadBlob } from '../../shared/download';
 import { formatIsoDate } from '../../shared/formatting';
 import { AbonneApi } from '../abonne-api';
 import { MethodCards } from '../paiement/method-cards';
 import { PaymentDrawer } from '../paiement/payment-drawer';
-import { TransactionTable } from '../paiement/transaction-table';
+import { TransactionTable } from '../../shared/transaction-table';
 
 /** Accueil abonné (maquette B1) : état du contrat, moyens autorisés, paiement. */
 @Component({
@@ -33,6 +34,10 @@ export class Accueil {
     this.api.currentContract().subscribe((c) => this.contract.set(c));
     this.api.myMethods().subscribe((m) => this.methods.set(m));
     this.loadLatest();
+  }
+
+  protected downloadReceipt(tx: Transaction): void {
+    this.api.receipt(tx.reference).subscribe((blob) => downloadBlob(blob, `recu-${tx.reference}.pdf`));
   }
 
   protected loadLatest(): void {

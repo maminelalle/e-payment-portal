@@ -115,7 +115,9 @@ Refus d'accès, connexions et requêtes admin modifiantes sont tracés dans `aud
 | `POST /api/abonne/contrat/signature/{id}/confirmation` | Vérifie le code (3 essais), scelle le PDF (PAdES) ; le contrat est ensuite activé automatiquement |
 | `GET /api/abonne/moyens` | Mes moyens de paiement : uniquement ceux ouverts par le contrat en vigueur |
 | `POST /api/abonne/paiements` (en-tête `Idempotency-Key` obligatoire) | Paiement via le fournisseur : droit et plafonds (transaction et mois) revérifiés ; 403 si le moyen n'est pas au contrat, 422 si plafond dépassé ; carte : renvoie `redirectUrl` (page hébergée de la passerelle) |
-| `GET /api/abonne/paiements`, `GET /api/abonne/paiements/{ref}?actualiser=true`, `POST /api/abonne/paiements/{ref}/annuler` | Historique, suivi (statut redemandé au fournisseur), abandon d'un paiement carte non payé |
+| `GET /api/abonne/paiements?statut=&moyen=&du=&au=&q=`, `GET /api/abonne/paiements/{ref}?actualiser=true`, `POST /api/abonne/paiements/{ref}/annuler` | Historique filtré et paginé, suivi (statut redemandé au fournisseur), abandon d'un paiement carte non payé |
+| `GET /api/abonne/paiements/{ref}/recu` | Reçu PDF d'un paiement réussi (422 sinon) |
+| `GET /api/admin/transactions` (mêmes filtres + `abonne`), `GET /api/admin/transactions/{ref}`, `GET /api/admin/transactions/{ref}/recu` | Historique admin de toutes les transactions, détail, reçu |
 
 Côté admin, le cycle de vie d'un contrat signé : `POST /api/admin/contrats/{id}/activer` · `/suspendre` · `/reprendre` · `/resilier`, et `GET /api/admin/contrats/{id}/droits`.
 

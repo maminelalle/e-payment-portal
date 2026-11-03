@@ -94,10 +94,10 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] Clé d'idempotence (en-tête `Idempotency-Key`, unique par abonné) — avancé en semaine 9
 - [x] Écran abonné : payer et voir le résultat (suivi wallet, retour carte) — recette du 03/11 : Bankily et Visa réussis via le simulateur
 - [x] Plafond mensuel cumulé (paiements réussis + en cours du mois)
-- [ ] Reçu PDF
-- [ ] Historique abonné avec filtres (liste simple faite) ; historique admin
-- [ ] Job de rapprochement
-- [ ] **Jalon : un paiement réussi et un échoué sur chacun des 3 moyens**
+- [x] Reçu PDF (paiement réussi uniquement, stocké `recus/TRX-….pdf`, téléchargeable par l'abonné et l'admin)
+- [x] Historique abonné avec filtres (statut, moyen, période, référence) ; historique admin (toutes transactions, abonné affiché) et 5 dernières sur la fiche abonné
+- [x] Job de rapprochement (toutes les 2 min, ShedLock) : redemande le statut des paiements restés en cours
+- [x] **Jalon : un paiement réussi et un échoué sur chacun des 3 moyens** — recette du 03/11 : TRX-000003 Bankily réussi, TRX-000004 Bankily « solde insuffisant », TRX-000005 Masrvi réussi (rattrapé par le rapprochement, voir D24), TRX-000006 Masrvi refusé, TRX-000007 Visa réussi (411111******1111, reçu PDF), TRX-000008 Visa refusé
 
 ### Semaine 11 (11–15 janv.) — Notifications et tableaux de bord
 - [ ] Emails : contrat disponible, activé, paiement réussi / échoué

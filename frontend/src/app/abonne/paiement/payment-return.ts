@@ -4,6 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { Subscription } from 'rxjs';
 
 import { Transaction } from '../../core/api.models';
+import { downloadBlob } from '../../shared/download';
 import { AbonneApi } from '../abonne-api';
 import { PaymentOutcome } from './payment-outcome';
 import { watchPayment } from './payment-watch';
@@ -22,7 +23,10 @@ import { watchPayment } from './payment-watch';
         <div class="card box">
           <app-payment-outcome [tx]="t" />
           <div class="actions">
-            <p-button label="Retour à l'accueil" routerLink="/abonne" styleClass="w-full" />
+            @if (t.status === 'SUCCEEDED') {
+              <p-button label="Télécharger le reçu" icon="pi pi-download" styleClass="w-full" (onClick)="downloadReceipt(t)" />
+            }
+            <p-button label="Retour à l'accueil" routerLink="/abonne" styleClass="w-full" [outlined]="t.status === 'SUCCEEDED'" />
             <p-button label="Mes transactions" severity="secondary" [outlined]="true" routerLink="/abonne/transactions" styleClass="w-full" />
           </div>
         </div>
@@ -57,6 +61,10 @@ export class PaymentReturn {
       const cancelled = this.annule() === '1';
       untracked(() => this.load(reference, cancelled));
     });
+  }
+
+  protected downloadReceipt(t: Transaction): void {
+    this.api.receipt(t.reference).subscribe((blob) => downloadBlob(blob, `recu-${t.reference}.pdf`));
   }
 
   private load(reference: string | undefined, cancelled: boolean): void {

@@ -60,6 +60,6 @@
   <h2>Dernières transactions</h2>
   <a routerLink="/abonne/transactions">Voir tout</a>
 </div>
-<app-transaction-table [transactions]="latest()" />
+<app-transaction-table [transactions]="latest()" (receipt)="downloadReceipt($event)" />
 
 <app-payment-drawer [method]="paying()" (closed)="paying.set(null)" (completed)="loadLatest()" />

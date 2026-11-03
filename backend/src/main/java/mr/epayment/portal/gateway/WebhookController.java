@@ -78,6 +78,13 @@ class WebhookController {
             throw new MalformedWebhookException("X-Event-Id ne correspond pas à l'événement du corps.");
         }
         if (!store.recordIfNew(webhook, body)) {
+            if (!store.sameAsRecorded(named.code(), webhook.eventId(), body)) {
+                // Même identifiant, contenu différent : pas un rejeu mais une erreur du fournisseur.
+                // Rien n'est appliqué (le rapprochement retrouvera le bon statut) ; un humain doit regarder.
+                audit("WEBHOOK_EVENT_ID_REUSED", named.code(), webhook.eventId(), Outcome.FAILURE, Map.of(
+                        "merchantReference", String.valueOf(webhook.merchantReference()),
+                        "providerStatus", webhook.providerStatus()));
+            }
             return ResponseEntity.ok(Map.of("status", "duplicate"));
         }
         events.publishEvent(webhook);

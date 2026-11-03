@@ -9,6 +9,7 @@ import {
   CreatedSubscriber,
   DraftChanges,
   EntitledMethod,
+  filterParams,
   NewSubscriber,
   PageResponse,
   PaymentMethod,
@@ -17,6 +18,8 @@ import {
   SubscriberDetails,
   SubscriberStatus,
   SubscriberType,
+  Transaction,
+  TransactionFilter,
 } from '../core/api.models';
 
 export interface SubscriberQuery {
@@ -114,6 +117,16 @@ export class AdminApi {
   /** PDF du contrat (aperçu « brouillon » ou document envoyé). */
   contractPdf(id: string): Observable<Blob> {
     return this.http.get(`/api/admin/contrats/${id}/pdf`, { responseType: 'blob' });
+  }
+
+  transactions(page: number, size: number, filter: TransactionFilter = {}): Observable<PageResponse<Transaction>> {
+    return this.http.get<PageResponse<Transaction>>('/api/admin/transactions', {
+      params: filterParams(filter, page, size),
+    });
+  }
+
+  transactionReceipt(reference: string): Observable<Blob> {
+    return this.http.get(`/api/admin/transactions/${reference}/recu`, { responseType: 'blob' });
   }
 
   paymentMethods(): Observable<PaymentMethod[]> {

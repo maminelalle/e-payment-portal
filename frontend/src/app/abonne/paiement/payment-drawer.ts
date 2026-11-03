@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Subscription } from 'rxjs';
 
 import { ApiProblem, EntitledMethod, isFinal, Transaction } from '../../core/api.models';
+import { downloadBlob } from '../../shared/download';
 import { formatAmount } from '../../shared/formatting';
 import { MethodLogo } from '../../shared/method-logo';
 import { AbonneApi } from '../abonne-api';
@@ -115,6 +116,13 @@ export class PaymentDrawer {
           this.error.set(fields.length ? fields.join(' ') : (problem?.detail ?? 'Paiement impossible pour le moment.'));
         },
       });
+  }
+
+  protected downloadReceipt(): void {
+    const tx = this.tx();
+    if (tx?.status === 'SUCCEEDED') {
+      this.api.receipt(tx.reference).subscribe((blob) => downloadBlob(blob, `recu-${tx.reference}.pdf`));
+    }
   }
 
   private show(tx: Transaction): void {

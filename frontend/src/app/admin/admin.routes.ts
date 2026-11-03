@@ -54,8 +54,7 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'transactions',
         title: 'Transactions · E-Payment',
-        component: AVenir,
-        data: { titre: 'Transactions', semaine: 'semaine 10' },
+        loadComponent: () => import('./transactions/transactions').then((m) => m.AdminTransactions),
       },
       {
         path: 'audit',

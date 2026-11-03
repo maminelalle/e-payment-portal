@@ -81,9 +81,9 @@
       }
     </section>
 
-    <section class="card section">
-      <h2>Transactions</h2>
-      <p class="muted">L'historique des paiements apparaîtra ici (semaine 10).</p>
+    <section class="card section wide">
+      <h2>Dernières transactions</h2>
+      <app-transaction-table [transactions]="transactions()" (receipt)="downloadReceipt($event)" />
     </section>
   </div>
 

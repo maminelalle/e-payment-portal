@@ -61,6 +61,25 @@ class WebhookTests {
     }
 
     @Test
+    void reusedEventIdWithDifferentContentIsFlaggedNotApplied() throws Exception {
+        String eventId = "ntf-" + UUID.randomUUID();
+        String first = """
+                {"evenementId":"%s","idTransaction":"MSV-1","reference":"TRX-9101","etat":"ECHEC","code":"05",
+                 "montant":"10.00","dateHeure":"2026-11-03T10:00:00Z"}""".formatted(eventId);
+        String other = first.replace("TRX-9101", "TRX-9102").replace("ECHEC", "SUCCES").replace("\"05\"", "\"00\"");
+
+        send("masrvi", "masrvi-dev-webhook-secret", eventId, first, now()).andExpect(status().isOk());
+        send("masrvi", "masrvi-dev-webhook-secret", eventId, first, now())
+                .andExpect(jsonPath("$.status").value("duplicate"));
+        send("masrvi", "masrvi-dev-webhook-secret", eventId, other, now())
+                .andExpect(jsonPath("$.status").value("duplicate"));
+
+        assertThat(jdbc.queryForObject("select count(*) from audit_log where action = 'WEBHOOK_EVENT_ID_REUSED' "
+                + "and resource_id = ?", Integer.class, eventId)).isEqualTo(1);
+        assertThat(events.stream(ProviderWebhook.class).filter(w -> w.eventId().equals(eventId)).count()).isEqualTo(1);
+    }
+
+    @Test
     void wrongSignatureOrStaleTimestampIsRejected() throws Exception {
         String eventId = "evt_" + UUID.randomUUID();
         String body = bankilyBody(eventId, "TRX-9002", "SUCCESS", null);

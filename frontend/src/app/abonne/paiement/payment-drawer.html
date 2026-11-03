@@ -89,7 +89,8 @@
   <ng-template #footer>
     <div class="footer">
       @if (tx()) {
-        <p-button label="Télécharger le reçu" icon="pi pi-download" styleClass="w-full" [disabled]="true" />
+        <p-button label="Télécharger le reçu" icon="pi pi-download" styleClass="w-full"
+          [disabled]="tx()?.status !== 'SUCCEEDED'" (onClick)="downloadReceipt()" />
         <p-button label="Retour à l'accueil" severity="secondary" [outlined]="true" styleClass="w-full" routerLink="/abonne" (onClick)="close()" />
       } @else if (!redirecting()) {
         <p-button

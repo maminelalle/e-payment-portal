@@ -164,6 +164,7 @@ export interface Transaction {
   reference: string;
   status: TransactionStatus;
   providerStatus: string | null;
+  providerReference: string | null;
   methodCode: string;
   methodName: string;
   category: 'WALLET' | 'CARD';
@@ -180,8 +181,29 @@ export interface Transaction {
   /** Carte en cours : page hébergée de la passerelle où saisir la carte. */
   redirectUrl: string | null;
   contractId: string;
+  subscriberId: string;
+  subscriberReference: string;
+  subscriberName: string;
   createdAt: string;
   completedAt: string | null;
+}
+
+/** Filtres de l'historique des transactions (tous facultatifs ; dates au format yyyy-MM-dd). */
+export interface TransactionFilter {
+  statut?: TransactionStatus | null;
+  moyen?: string | null;
+  du?: string | null;
+  au?: string | null;
+  q?: string | null;
+  abonne?: string | null;
+}
+
+export function filterParams(filter: TransactionFilter, page: number, size: number): Record<string, string | number> {
+  const params: Record<string, string | number> = { page, size };
+  for (const [key, value] of Object.entries(filter)) {
+    if (value) params[key] = value;
+  }
+  return params;
 }
 
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {

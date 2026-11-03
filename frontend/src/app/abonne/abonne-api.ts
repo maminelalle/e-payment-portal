@@ -2,7 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { Contract, EntitledMethod, PageResponse, Transaction } from '../core/api.models';
+import {
+  Contract,
+  EntitledMethod,
+  filterParams,
+  PageResponse,
+  Transaction,
+  TransactionFilter,
+} from '../core/api.models';
 
 /** Réponse à une demande de code de signature (le code n'est jamais renvoyé par l'API). */
 export interface OtpChallenge {
@@ -67,7 +74,14 @@ export class AbonneApi {
     return this.http.post<Transaction>(`/api/abonne/paiements/${reference}/annuler`, null);
   }
 
-  payments(page: number, size: number): Observable<PageResponse<Transaction>> {
-    return this.http.get<PageResponse<Transaction>>('/api/abonne/paiements', { params: { page, size } });
+  payments(page: number, size: number, filter: TransactionFilter = {}): Observable<PageResponse<Transaction>> {
+    return this.http.get<PageResponse<Transaction>>('/api/abonne/paiements', {
+      params: filterParams(filter, page, size),
+    });
+  }
+
+  /** Reçu PDF d'un paiement réussi. */
+  receipt(reference: string): Observable<Blob> {
+    return this.http.get(`/api/abonne/paiements/${reference}/recu`, { responseType: 'blob' });
   }
 }
