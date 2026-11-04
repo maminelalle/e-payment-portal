@@ -82,7 +82,7 @@
           </div>
         </td>
         <td>{{ typeLabel(s) }}</td>
-        <td>{{ s.phone }}</td>
+        <td><bdi class="ep-ltr">{{ formatPhone(s.phone) }}</bdi></td>
         <td><app-status-tag [status]="s.status" /></td>
       </tr>
     </ng-template>

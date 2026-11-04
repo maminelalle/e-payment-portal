@@ -35,18 +35,21 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
             <th>Moyen</th>
             <th class="amount">Montant</th>
             <th>Statut</th>
-            <th>Reçu</th>
+            <th class="action">Reçu</th>
           </tr>
         </thead>
         <tbody>
           @for (t of transactions(); track t.reference) {
             <tr>
-              <td class="muted">{{ t.reference }}</td>
-              <td>{{ t.createdAt | date: "dd/MM/yyyy 'à' HH:mm" }}</td>
+              <td><bdi class="ep-ref">{{ t.reference }}</bdi></td>
+              <td>
+                <bdi class="ep-ltr">{{ t.createdAt | date: 'dd/MM/yyyy' }}</bdi>
+                <span class="ep-cell-secondary"><bdi>{{ t.createdAt | date: 'HH:mm' }}</bdi></span>
+              </td>
               @if (showSubscriber()) {
                 <td>
-                  <div>{{ t.subscriberName }}</div>
-                  <div class="muted small">{{ t.subscriberReference }}</div>
+                  <span class="ep-cell-primary">{{ t.subscriberName }}</span>
+                  <bdi class="ep-ref ep-cell-secondary">{{ t.subscriberReference }}</bdi>
                 </td>
               }
               <td>
@@ -55,16 +58,17 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
                   {{ t.methodName }}
                 </span>
               </td>
-              <td class="amount">{{ formatAmount(t.amount, t.currency) }}</td>
+              <td class="amount"><bdi>{{ formatAmount(t.amount, t.currency) }}</bdi></td>
               <td>
-                <span [class]="'status-pill ' + tones[t.status]" [title]="t.failureMessage ?? ''">{{ labels[t.status] }}</span>
+                <span [class]="'status-pill ' + tones[t.status]" [title]="t.failureMessage ?? ''" [attr.aria-description]="t.failureMessage">{{ labels[t.status] }}</span>
+                @if (t.status === 'FAILED' && t.failureMessage) { <span class="failure">{{ t.failureMessage }}</span> }
               </td>
               <td>
                 @if (t.status === 'SUCCEEDED') {
-                  <p-button icon="pi pi-download" [text]="true" [rounded]="true" size="small"
+                  <p-button icon="pi pi-download" label="Reçu" [text]="true" size="small"
                     [ariaLabel]="'Télécharger le reçu ' + t.reference" (onClick)="receipt.emit(t)" />
                 } @else {
-                  <span class="muted">—</span>
+                  <span class="ep-subtle">—</span>
                 }
               </td>
             </tr>
@@ -79,14 +83,18 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
   `,
   styles: `
     .table { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 640px; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--ep-border); }
-    th { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ep-text-muted); font-weight: 600; }
-    tbody tr:last-child td { border-bottom: 0; }
-    .amount { text-align: right; white-space: nowrap; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 14px; line-height: 20px; }
+    th, td { padding: var(--space-3) var(--space-4); text-align: start; border-block-end: 1px solid var(--border); vertical-align: middle; }
+    th { font-size: 13px; font-weight: 600; color: var(--ink-muted); background: var(--surface-sunken); white-space: nowrap; }
+    tbody tr:hover td { background: var(--surface-sunken); }
+    tbody tr:last-child td { border-block-end: 0; }
+    .amount { text-align: end; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .action { text-align: end; }
+    td:last-child { text-align: end; }
+    .failure { display: block; max-width: 28ch; margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--ink-subtle); white-space: normal; }
     .method { display: inline-flex; align-items: center; gap: 10px; }
     .small { font-size: 0.8rem; }
-    .empty { text-align: center; color: var(--ep-text-muted); padding: 24px; }
+    .empty { text-align: center !important; color: var(--ink-muted); padding: var(--space-12) var(--space-6); }
   `,
 })
 export class TransactionTable {

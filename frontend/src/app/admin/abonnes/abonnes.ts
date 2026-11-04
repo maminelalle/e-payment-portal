@@ -20,6 +20,7 @@ import {
   SubscriberStatus,
   SubscriberType,
 } from '../../core/api.models';
+import { formatPhone } from '../../shared/formatting';
 import { applyServerErrors, fieldError } from '../../shared/form-errors';
 import { StatusTag } from '../../shared/status-tag';
 import { AdminApi, SubscriberQuery } from '../admin-api';
@@ -52,6 +53,7 @@ export class Abonnes {
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly typeLabels = SUBSCRIBER_TYPE_LABELS;
+  protected readonly formatPhone = formatPhone;
   protected readonly statusOptions = Object.entries(SUBSCRIBER_STATUS_LABELS).map(([value, label]) => ({
     value: value as SubscriberStatus,
     label,
@@ -98,8 +100,8 @@ export class Abonnes {
       )
       .subscribe({
         next: (page) => {
-          this.rows.set(page.content);
-          this.total.set(page.totalElements);
+          this.rows.set(page.items);
+          this.total.set(page.total);
           this.loading.set(false);
         },
         error: () => this.loading.set(false),

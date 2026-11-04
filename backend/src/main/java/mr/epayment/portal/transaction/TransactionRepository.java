@@ -42,6 +42,32 @@ interface TransactionRepository extends JpaRepository<PaymentTransaction, UUID> 
     Page<PaymentTransaction> search(UUID subscriberId, TransactionStatus status, UUID methodId, Instant from,
             Instant to, String reference, Pageable pageable);
 
+    /** Totaux sur les mêmes filtres que {@link #search} : nombre de transactions et montant encaissé (réussies). */
+    @Query("""
+            select new mr.epayment.portal.transaction.FilteredTotals(count(t),
+                   coalesce(sum(case when t.status = 'SUCCEEDED' then t.amount else 0 end), 0))
+            from PaymentTransaction t
+            where (:subscriberId is null or t.subscriberId = :subscriberId)
+              and (:status is null or t.status = :status)
+              and (:methodId is null or t.paymentMethodId = :methodId)
+              and (cast(:from as Instant) is null or t.createdAt >= :from)
+              and (cast(:to as Instant) is null or t.createdAt < :to)
+              and (:reference is null or lower(t.reference) like :reference)
+            """)
+    FilteredTotals totals(UUID subscriberId, TransactionStatus status, UUID methodId, Instant from, Instant to,
+            String reference);
+
+    /** Transactions récentes, pour la détection d'anomalies. */
+    java.util.List<PaymentTransaction> findByCreatedAtGreaterThanEqualOrderByCreatedAtDesc(Instant since);
+
+    /** Montant moyen et nombre des paiements réussis de chaque abonné sur une période. */
+    @Query("""
+            select t.subscriberId, avg(t.amount), count(t) from PaymentTransaction t
+            where t.status = 'SUCCEEDED' and t.createdAt >= :since and t.createdAt < :before
+            group by t.subscriberId
+            """)
+    java.util.List<Object[]> successAverages(Instant since, Instant before);
+
     /** Paiements à rapprocher : en cours depuis un moment (webhook perdu, abonné parti avant la fin…). */
     @Query("select t from PaymentTransaction t where t.status in ('CREATED', 'PENDING') and t.createdAt < :before")
     java.util.List<PaymentTransaction> findUnfinishedCreatedBefore(Instant before);

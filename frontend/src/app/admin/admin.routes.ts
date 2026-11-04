@@ -59,6 +59,11 @@ export const ADMIN_ROUTES: Routes = [
         title: "Journal d'audit · E-Payment",
         loadComponent: () => import('./audit/audit').then((m) => m.Audit),
       },
+      {
+        path: 'profil',
+        title: 'Mon profil · E-Payment',
+        loadComponent: () => import('./profil/profil').then((m) => m.AdminProfil),
+      },
     ],
   },
 ];

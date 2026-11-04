@@ -18,6 +18,19 @@
 </section>
 
 <section class="form-side">
+  <div class="page-preferences">
+    <div class="ep-lang" role="group" aria-label="Langue">
+      <button type="button" lang="fr" [attr.aria-pressed]="preferences.language() === 'fr'"
+              (click)="preferences.setLanguage('fr')">FR</button>
+      <button type="button" lang="ar" [attr.aria-pressed]="preferences.language() === 'ar'"
+              (click)="preferences.setLanguage('ar')">عربي</button>
+    </div>
+    <button type="button" class="icon-button" (click)="preferences.toggleTheme()"
+            [attr.aria-label]="preferences.theme() === 'dark' ? 'Mode clair' : 'Mode sombre'"
+            [title]="preferences.theme() === 'dark' ? 'Mode clair' : 'Mode sombre'">
+      <i [class]="preferences.theme() === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"></i>
+    </button>
+  </div>
   <div class="card">
     <h2>Connexion</h2>
     <p class="page-subtitle">Accédez à votre espace E-Payment</p>
@@ -26,5 +39,6 @@
     <p-button label="Se connecter" styleClass="w-full" (onClick)="session.login()" />
 
     <p class="hint">Administrateur ou abonné : l'espace s'adapte à votre compte.</p>
+    <p class="hint"><a routerLink="/statut">État du service</a></p>
   </div>
 </section>

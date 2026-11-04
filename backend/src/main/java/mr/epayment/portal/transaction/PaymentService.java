@@ -193,21 +193,60 @@ public class PaymentService {
     /** Historique de toutes les transactions (administrateur), filtrable par abonné. */
     @Transactional(readOnly = true)
     public PageResponse<TransactionView> search(Filter filter, int page, int size) {
-        var pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, 100));
+        return searchUpTo(filter, page, Math.clamp(size, 1, 100));
+    }
+
+    /** Nombre de transactions et montant encaissé sur les filtres actifs (toutes pages confondues). */
+    @Transactional(readOnly = true)
+    public FilteredTotals totals(Filter filter) {
+        Criteria c = criteria(filter);
+        return transactions.totals(c.subscriberId(), c.status(), c.methodId(), c.from(), c.to(), c.reference());
+    }
+
+    /** Totaux de l'historique de l'abonné connecté. */
+    @Transactional(readOnly = true)
+    public FilteredTotals historyTotals(Authentication authentication, Filter filter) {
+        return totals(filter.withSubscriber(currentSubscriber.require(authentication).id()));
+    }
+
+    /** Export CSV (séparateur « ; », lisible par Excel en français) des transactions filtrées, 5 000 au plus. */
+    @Transactional(readOnly = true)
+    public byte[] exportCsv(Filter filter, boolean withSubscriber) {
+        var rows = searchUpTo(filter, 0, 5000).content();
+        return TransactionCsv.write(rows, withSubscriber);
+    }
+
+    /** Export CSV de l'historique de l'abonné connecté. */
+    @Transactional(readOnly = true)
+    public byte[] exportHistoryCsv(Authentication authentication, Filter filter) {
+        return exportCsv(filter.withSubscriber(currentSubscriber.require(authentication).id()), false);
+    }
+
+    private PageResponse<TransactionView> searchUpTo(Filter filter, int page, int size) {
+        Criteria c = criteria(filter);
+        var result = transactions.search(c.subscriberId(), c.status(), c.methodId(), c.from(), c.to(), c.reference(),
+                PageRequest.of(Math.max(page, 0), size));
+        Map<UUID, PaymentMethodView> methods = catalogById();
+        Map<UUID, SubscriberView> parties = subscribers.findAllById(
+                result.getContent().stream().map(PaymentTransaction::getSubscriberId).collect(Collectors.toSet()));
+        return PageResponse.of(result, tx -> view(tx, methods, parties.get(tx.getSubscriberId())));
+    }
+
+    /** Filtres de l'API traduits pour les requêtes (dates de Nouakchott, référence en motif LIKE). */
+    private Criteria criteria(Filter filter) {
         // Moyen inconnu : identifiant impossible, donc aucun résultat (plutôt que tout afficher).
         UUID methodId = filter.methodCode() == null ? null
                 : Optional.ofNullable(catalogByCode().get(filter.methodCode())).map(PaymentMethodView::id)
                         .orElse(new UUID(0, 0));
         String reference = filter.reference() == null || filter.reference().isBlank() ? null
                 : "%" + filter.reference().trim().toLowerCase(Locale.ROOT) + "%";
-        var result = transactions.search(filter.subscriberId(), filter.status(), methodId,
+        return new Criteria(filter.subscriberId(), filter.status(), methodId,
                 filter.from() == null ? null : filter.from().atStartOfDay(ZONE).toInstant(),
-                filter.to() == null ? null : filter.to().plusDays(1).atStartOfDay(ZONE).toInstant(), reference,
-                pageable);
-        Map<UUID, PaymentMethodView> methods = catalogById();
-        Map<UUID, SubscriberView> parties = subscribers.findAllById(
-                result.getContent().stream().map(PaymentTransaction::getSubscriberId).collect(Collectors.toSet()));
-        return PageResponse.of(result, tx -> view(tx, methods, parties.get(tx.getSubscriberId())));
+                filter.to() == null ? null : filter.to().plusDays(1).atStartOfDay(ZONE).toInstant(), reference);
+    }
+
+    private record Criteria(UUID subscriberId, TransactionStatus status, UUID methodId, Instant from, Instant to,
+            String reference) {
     }
 
     /** Reçu PDF d'un paiement réussi de l'abonné connecté. */

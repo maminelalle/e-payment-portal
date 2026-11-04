@@ -32,10 +32,19 @@ export class Accueil {
   protected readonly formatDate = formatIsoDate;
   protected readonly formatAmount = formatAmount;
   protected readonly dashboard = signal<SubscriberDashboard | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
 
   constructor() {
-    this.api.currentContract().subscribe((c) => this.contract.set(c));
-    this.api.myMethods().subscribe((m) => this.methods.set(m));
+    this.api.currentContract().subscribe({
+      next: (c) => this.contract.set(c),
+      error: () => this.error.set('Le contrat ne peut pas être chargé pour le moment.'),
+      complete: () => this.loading.set(false),
+    });
+    this.api.myMethods().subscribe({
+      next: (m) => this.methods.set(m),
+      error: () => this.error.set('Les moyens de paiement ne peuvent pas être chargés pour le moment.'),
+    });
     this.loadLatest();
   }
 
@@ -59,7 +68,32 @@ export class Accueil {
   }
 
   protected loadLatest(): void {
-    this.api.payments(0, 3).subscribe((page) => this.latest.set(page.content));
-    this.api.dashboard().subscribe((d) => this.dashboard.set(d));
+    this.api.payments(0, 3).subscribe({
+      next: (page) => this.latest.set(page.items),
+      error: () => this.error.set('L’historique des transactions est temporairement indisponible.'),
+    });
+    this.api.dashboard().subscribe({
+      next: (d) => this.dashboard.set(d),
+      error: () => this.error.set('Le tableau de bord est temporairement indisponible.'),
+    });
+  }
+
+  protected contractStep(status: Contract['status']): number {
+    const steps: Record<Contract['status'], number> = {
+      DRAFT: 1,
+      PENDING_SIGNATURE: 2,
+      SIGNED: 3,
+      ACTIVE: 4,
+      SUSPENDED: 4,
+      EXPIRED: 4,
+      TERMINATED: 4,
+    };
+    return steps[status];
+  }
+
+  protected expiresSoon(endDate: string | null): boolean {
+    if (!endDate) return false;
+    const days = (new Date(`${endDate}T00:00:00`).getTime() - Date.now()) / 86_400_000;
+    return days >= 0 && days <= 30;
   }
 }

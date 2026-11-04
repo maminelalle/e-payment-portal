@@ -148,6 +148,18 @@ class PaymentFlowTests {
         assertThat(awaitNotifications(5)).filteredOn(n -> ((String) n.get("subject")).contains(pending)).hasSize(1);
     }
 
+    @Test
+    void noPaymentEmailWhenTheSubscriberTurnedThemOff() throws Exception {
+        mvc.perform(put("/api/abonne/notifications/preferences").with(subscriber(subject))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"paymentEmails\":false}"))
+                .andExpect(status().isOk());
+        pay(subject, "BANKILY", "700.00", UUID.randomUUID().toString()).andExpect(jsonPath("$.status").value("SUCCEEDED"));
+
+        // Les emails de contrat partent toujours ; aucun email de paiement.
+        assertThat(awaitNotifications(2)).extracting(n -> n.get("template"))
+                .containsExactlyInAnyOrder("CONTRACT_AVAILABLE", "CONTRACT_ACTIVATED");
+    }
+
     private List<Map<String, Object>> awaitNotifications(int expected) throws InterruptedException {
         List<Map<String, Object>> rows = List.of();
         for (int i = 0; i < 50 && rows.size() < expected; i++) {
@@ -245,6 +257,92 @@ class PaymentFlowTests {
                 .andExpect(jsonPath("$.content[0].subscriberName").value("Société Paiement"))
                 .andExpect(jsonPath("$.content[0].providerReference").isNotEmpty());
         mvc.perform(get("/api/admin/transactions").with(subscriber(subject))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void totalsAndCsvExportFollowTheFilters() throws Exception {
+        String ok = reference(pay(subject, "BANKILY", "1250.00", UUID.randomUUID().toString()));
+        String ko = reference(pay(subject, "BANKILY", "300.51", UUID.randomUUID().toString()));
+
+        // Toutes pages confondues : 2 transactions, seul le paiement réussi est encaissé.
+        mvc.perform(get("/api/abonne/paiements/totaux").with(subscriber(subject)))
+                .andExpect(jsonPath("$.count").value(2))
+                .andExpect(jsonPath("$.collected").value(1250.0));
+        mvc.perform(get("/api/abonne/paiements/totaux").param("statut", "FAILED").with(subscriber(subject)))
+                .andExpect(jsonPath("$.count").value(1))
+                .andExpect(jsonPath("$.collected").value(0));
+        mvc.perform(get("/api/admin/transactions/totaux").param("q", ok).with(admin()))
+                .andExpect(jsonPath("$.count").value(1));
+
+        String csv = mvc.perform(get("/api/abonne/paiements/export.csv").with(subscriber(subject)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(csv).startsWith("﻿Référence;Date;Moyen;Montant");
+        assertThat(csv).contains(ok + ";", "1 250,00;MRU;Réussie", ko + ";", "Échouée", "Solde insuffisant.");
+        String adminCsv = mvc.perform(get("/api/admin/transactions/export.csv").param("q", ok).with(admin()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(adminCsv).contains("Abonné", "Société Paiement", ok).doesNotContain(ko);
+        mvc.perform(get("/api/admin/transactions/export.csv").with(subscriber(subject))).andExpect(status().isForbidden());
+    }
+
+    @Autowired
+    private ReceiptVerification verification;
+
+    @Test
+    void receiptQrCodeLeadsToAPublicVerification() throws Exception {
+        String ok = reference(pay(subject, "BANKILY", "4200.00", UUID.randomUUID().toString()));
+        byte[] pdf = mvc.perform(get("/api/abonne/paiements/{ref}/recu", ok).with(subscriber(subject)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        String code = verification.code(ok, new java.math.BigDecimal("4200.00"));
+        try (var doc = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(doc)).contains("Code de vérification", code);
+            assertThat(doc.getPage(0).getResources().getXObjectNames()).isNotEmpty();
+        }
+
+        // Sans connexion : le bon code confirme le paiement, un code faux ne révèle rien.
+        mvc.perform(get("/api/public/recus/{ref}", ok).param("c", code))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.valid").value(true))
+                .andExpect(jsonPath("$.amount").value(4200.0))
+                .andExpect(jsonPath("$.methodName").value("Bankily"))
+                .andExpect(jsonPath("$.payee").value("Société Paiement"));
+        mvc.perform(get("/api/public/recus/{ref}", ok).param("c", "0000000000000000"))
+                .andExpect(jsonPath("$.valid").value(false))
+                .andExpect(jsonPath("$.amount").doesNotExist());
+        mvc.perform(get("/api/public/recus/{ref}", ok)).andExpect(jsonPath("$.valid").value(false));
+    }
+
+    @Test
+    void unusualAmountsAndRepeatedFailuresRaiseAlerts() throws Exception {
+        // Historique : 3 petits paiements réussis il y a 10 jours (moyenne 100 MRU).
+        for (int i = 0; i < 3; i++) {
+            String old = reference(pay(subject, "BANKILY", "100.00", UUID.randomUUID().toString()));
+            jdbc.update("update payment_transaction set created_at = now() - interval '10 days' where reference = ?", old);
+        }
+        String big = reference(pay(subject, "BANKILY", "900.00", UUID.randomUUID().toString()));
+        String normal = reference(pay(subject, "BANKILY", "120.00", UUID.randomUUID().toString()));
+        for (int i = 0; i < 3; i++) {
+            pay(subject, "BANKILY", "200.51", UUID.randomUUID().toString()).andExpect(jsonPath("$.status").value("FAILED"));
+        }
+
+        String alerts = mvc.perform(get("/api/admin/alertes").with(admin()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        List<Map<String, Object>> mine = JsonPath.read(alerts, "$[?(@.subscriberName == 'Société Paiement')]");
+        assertThat(mine).extracting(a -> a.get("reference")).contains(big).doesNotContain(normal);
+        assertThat(mine).extracting(a -> a.get("type")).contains("UNUSUAL_AMOUNT", "REPEATED_FAILURES");
+        mvc.perform(get("/api/admin/alertes").with(subscriber(subject))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void publicStatusNeedsNoLoginAndHidesTechnicalDetails() throws Exception {
+        mvc.perform(get("/api/public/statut"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.providers.length()").value(3))
+                .andExpect(jsonPath("$.providers[0].name").value("Bankily"))
+                .andExpect(jsonPath("$.providers[0].latencyMs").doesNotExist());
+        mvc.perform(get("/api/admin/fournisseurs/etat").with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.providers[0].code").value("BANKILY"));
     }
 
     @Test

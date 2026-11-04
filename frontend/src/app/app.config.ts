@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(Session).init()),
     { provide: LOCALE_ID, useValue: 'fr' },
     providePrimeNG({
-      theme: { preset: EPaymentPreset, options: { darkModeSelector: false } },
+      theme: { preset: EPaymentPreset, options: { darkModeSelector: '.dark' } },
     }),
   ],
 };

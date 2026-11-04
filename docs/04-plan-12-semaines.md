@@ -103,7 +103,7 @@ Jalons : **S7** workflow complet démontrable · **S10** paiements simulés réa
 - [x] Emails : contrat disponible, activé, paiement réussi / échoué — journalisés dans la table `notification` (V10) ; le corps des emails de code de signature n'est pas conservé
 - [x] Tableau de bord admin (graphiques PrimeNG / Chart.js, maquette A1) : 4 indicateurs du mois comparés à la même durée du mois précédent, volume par jour (7/30/90 jours), répartition par moyen, contrats à traiter, dernières transactions
 - [x] Tableau de bord abonné (accueil B1) : paiements du mois (montant, réussis, échoués) et jauge de chaque plafond mensuel
-- [ ] Profil abonné (Keycloak)
+- [x] Profil abonné (Keycloak) : coordonnées, changement de mot de passe, sessions ouvertes et préférences de notification
 - [x] Journal d'audit consultable (écran A6) : filtres acteur, ressource, action, résultat, période ; détail de chaque événement
 
 ### Semaine 12 (18–22 janv.) — Recette et mise en ligne

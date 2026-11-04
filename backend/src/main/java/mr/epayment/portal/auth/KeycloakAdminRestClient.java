@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import mr.epayment.portal.shared.ConflictException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
@@ -100,6 +101,15 @@ class KeycloakAdminRestClient implements KeycloakAdminClient {
     }
 
     @Override
+    public void updateUser(String userId, String email, String displayName) {
+        http.put().uri("/users/{id}", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("email", email, "username", email, "firstName", displayName))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    @Override
     public void logout(String userId) {
         http.post().uri("/users/{id}/logout", userId).retrieve().toBodilessEntity();
     }
@@ -107,5 +117,18 @@ class KeycloakAdminRestClient implements KeycloakAdminClient {
     @Override
     public void deleteUser(String userId) {
         http.delete().uri("/users/{id}", userId).retrieve().toBodilessEntity();
+    }
+
+    @Override
+    public List<UserSession> sessions(String userId) {
+        List<UserSession> sessions = http.get().uri("/users/{id}/sessions", userId).retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                });
+        return sessions == null ? List.of() : sessions;
+    }
+
+    @Override
+    public void deleteSession(String sessionId) {
+        http.delete().uri("/sessions/{id}", sessionId).retrieve().toBodilessEntity();
     }
 }

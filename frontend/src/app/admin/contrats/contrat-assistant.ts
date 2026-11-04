@@ -169,7 +169,7 @@ export class ContratAssistant {
       methods: this.api.paymentMethods(),
     }).subscribe(({ subscribers, templates, methods }) => {
       // Seuls les abonnés en attente ou actifs peuvent recevoir un contrat.
-      this.subscribers.set(subscribers.content.filter((s) => s.status === 'PENDING' || s.status === 'ACTIVE'));
+      this.subscribers.set(subscribers.items.filter((s) => s.status === 'PENDING' || s.status === 'ACTIVE'));
       this.templates.set(templates);
       this.templateId = templates[0]?.id ?? null;
       this.subscriberId = prefillSubscriber ?? null;

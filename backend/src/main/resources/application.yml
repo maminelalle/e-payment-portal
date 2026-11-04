@@ -87,6 +87,9 @@ epayment:
       base-url: ${VISA_BASE_URL:http://localhost:8090/visa-gateway/api/v1}
       api-key: ${VISA_API_KEY:visa-dev-api-key}
       webhook-secret: ${VISA_WEBHOOK_SECRET:visa-dev-webhook-secret}
+  receipts:
+    # Clé HMAC du code de vérification imprimé dans le QR des reçus : à remplacer hors développement.
+    verification-secret: ${RECEIPT_VERIFICATION_SECRET:dev-receipt-secret-a-remplacer}
   signature:
     # Clé HMAC des codes de signature : à remplacer hors développement.
     otp-secret: ${SIGNATURE_OTP_SECRET:dev-otp-secret-a-remplacer}

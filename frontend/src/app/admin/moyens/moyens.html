@@ -3,17 +3,20 @@
     <h1 class="page-title">Moyens de paiement</h1>
     <p class="page-subtitle">Catalogue des wallets et cartes proposés dans les contrats</p>
   </div>
+  <p-button label="Tester les connexions" icon="pi pi-sync" severity="secondary" [outlined]="true"
+            [loading]="checking()" (onClick)="checkProviders()" />
 </div>
 
 @if (methods(); as list) {
   <div class="methods">
     @for (m of list; track m.code + revision()) {
+      @let live = health(m);
       <article class="card method" [class.inactive]="m.status === 'INACTIVE'">
         <header>
           <app-method-logo [method]="m" [size]="48" />
           <div class="title">
             <h2>{{ m.name }}</h2>
-            <span class="muted">{{ m.category === 'WALLET' ? 'Wallet mobile' : 'Carte bancaire' }}</span>
+            <span class="ep-subtle">{{ m.category === 'WALLET' ? 'Wallet mobile' : 'Carte bancaire' }} · {{ m.currency }}</span>
           </div>
           <p-toggleswitch
             [ngModel]="m.status === 'ACTIVE'"
@@ -23,37 +26,32 @@
           />
         </header>
 
-        <p class="description">{{ m.description }}</p>
+        @if (m.description) {
+          <p class="description">{{ m.description }}</p>
+        }
 
-        <dl>
+        <dl class="ep-dl">
           <dt>Statut</dt>
           <dd>
-            <span class="status-pill" [class]="m.status === 'ACTIVE' ? 'status-pill success' : 'status-pill neutral'">
+            <span [class]="m.status === 'ACTIVE' ? 'status-pill success' : 'status-pill neutral'">
               {{ m.status === 'ACTIVE' ? 'Actif' : 'Inactif' }}
             </span>
           </dd>
-          <dt>Fournisseur</dt>
-          <dd>{{ m.provider.name }}</dd>
+          @if (m.provider.name !== m.name) {
+            <dt>Fournisseur</dt>
+            <dd>{{ m.provider.name }}</dd>
+          }
           <dt>Disponibilité</dt>
           <dd>
-            <span
-              class="status-pill"
-              [class]="
-                m.provider.healthStatus === 'UP'
-                  ? 'status-pill success'
-                  : m.provider.healthStatus === 'DOWN'
-                    ? 'status-pill danger'
-                    : 'status-pill neutral'
-              "
-              >{{ healthLabels[m.provider.healthStatus] }}</span
-            >
+            <span [class]="'status-pill ' + live.tone" [title]="live.message ?? ''">{{ live.label }}</span>
+            @if (live.latencyMs != null) {
+              <span class="ep-subtle"><bdi>{{ live.latencyMs }} ms</bdi></span>
+            }
           </dd>
-          <dt>Devise</dt>
-          <dd>{{ m.currency }}</dd>
         </dl>
 
         @if (m.instructions) {
-          <p class="instructions"><i class="pi pi-info-circle"></i> {{ m.instructions }}</p>
+          <p class="instructions"><i class="pi pi-info-circle" aria-hidden="true"></i> {{ m.instructions }}</p>
         }
 
         <div class="logo-actions">
@@ -74,13 +72,18 @@
             (onClick)="logoInput.click()"
           />
           @if (m.logoUrl) {
-            <p-button label="Retirer" size="small" severity="danger" [text]="true" [disabled]="pending() === m.code" (onClick)="removeLogo(m)" />
+            <p-button label="Retirer le logo" size="small" severity="danger" [text]="true"
+                      [disabled]="pending() === m.code" (onClick)="removeLogo(m)" />
           }
-          <small class="muted">PNG, JPEG ou WebP · 256 Ko max · format carré conseillé</small>
+          <small class="ep-subtle">PNG, JPEG ou WebP · 256 Ko max · format carré conseillé</small>
         </div>
       </article>
     }
   </div>
 } @else {
-  <p class="muted">Chargement…</p>
+  <div class="methods" aria-busy="true">
+    @for (i of [1, 2, 3]; track i) {
+      <span class="skeleton" style="height: 280px"></span>
+    }
+  </div>
 }

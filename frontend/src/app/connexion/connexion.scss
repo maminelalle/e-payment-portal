@@ -59,10 +59,19 @@ small {
 }
 
 .form-side {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
+}
+
+.page-preferences {
+  position: absolute;
+  top: 24px;
+  inset-inline-end: 24px;
+  display: flex;
+  gap: 4px;
 }
 
 .card {

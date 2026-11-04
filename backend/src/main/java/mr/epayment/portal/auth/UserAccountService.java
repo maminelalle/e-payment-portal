@@ -15,15 +15,18 @@ import org.springframework.transaction.annotation.Transactional;
 class UserAccountService {
 
     static final String LOGIN = "LOGIN";
+    static final String LOGOUT = "LOGOUT";
 
     private final AppUserRepository users;
     private final RoleRepository roles;
     private final AuditService auditService;
+    private final KeycloakAdminClient keycloak;
 
-    UserAccountService(AppUserRepository users, RoleRepository roles, AuditService auditService) {
+    UserAccountService(AppUserRepository users, RoleRepository roles, AuditService auditService, KeycloakAdminClient keycloak) {
         this.users = users;
         this.roles = roles;
         this.auditService = auditService;
+        this.keycloak = keycloak;
     }
 
     /**
@@ -53,6 +56,25 @@ class UserAccountService {
                 .map(UserAccountService::toCurrentUser)
                 .orElseGet(() -> new CurrentUser(null, jwt.getClaimAsString("email"), fullName(jwt.getClaims()),
                         roleCodes(authentication), null));
+    }
+
+    @Transactional(readOnly = true)
+    void recordLogout(JwtAuthenticationToken authentication) {
+        auditService.record(AuditEvent.of(authentication, LOGOUT, "USER", authentication.getName(),
+                Outcome.SUCCESS, Map.of()));
+    }
+
+    @Transactional
+    CurrentUser updateCurrentUser(JwtAuthenticationToken authentication, String email, String fullName) {
+        if (email == null || email.isBlank() || fullName == null || fullName.isBlank()) {
+            throw new IllegalArgumentException("L'email et le nom sont obligatoires.");
+        }
+        var user = users.findByKeycloakId(authentication.getToken().getSubject())
+                .orElseThrow(() -> new IllegalStateException("Compte utilisateur introuvable."));
+        keycloak.updateUser(user.getKeycloakId(), email.trim(), fullName.trim());
+        user.refreshFrom(email.trim(), fullName.trim(), roles.findByCodeIn(roleCodes(authentication)));
+        users.saveAndFlush(user);
+        return toCurrentUser(user);
     }
 
     private static Set<String> roleCodes(JwtAuthenticationToken authentication) {

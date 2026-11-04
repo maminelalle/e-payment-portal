@@ -100,6 +100,7 @@ export class MonContrat {
         this.stopTimer();
         this.contract.set(signed);
         this.step.set('done');
+        this.load();
       },
       error: (error) => {
         this.code = '';

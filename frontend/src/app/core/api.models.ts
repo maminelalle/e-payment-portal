@@ -311,6 +311,8 @@ export interface AuditFilter {
 /** Libellés des actions journalisées ; une action inconnue s'affiche avec son code. */
 export const AUDIT_ACTION_LABELS: Record<string, string> = {
   LOGIN: 'Connexion',
+  LOGOUT: 'Déconnexion',
+  UPDATE_PASSWORD: 'Mot de passe modifié',
   ACCESS_DENIED: 'Accès refusé',
   ADMIN_REQUEST: 'Requête administrateur',
   SUBSCRIBER_CREATED: 'Abonné créé',
@@ -319,6 +321,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   SUBSCRIBER_SUSPENDED: 'Abonné suspendu',
   SUBSCRIBER_DISABLED: 'Abonné désactivé',
   SUBSCRIBER_INVITATION_SENT: 'Invitation envoyée',
+  SESSION_ENDED: "Session fermée par l'abonné",
+  SESSIONS_ALL_ENDED: 'Déconnexion de tous les appareils',
   PAYMENT_METHOD_STATUS_CHANGED: 'Moyen de paiement activé / désactivé',
   PAYMENT_METHOD_LOGO_CHANGED: 'Logo de moyen modifié',
   PAYMENT_METHOD_LOGO_REMOVED: 'Logo de moyen retiré',
@@ -373,4 +377,79 @@ export interface LimitUsage {
   /** Paiements réussis et en cours du mois sur ce moyen. */
   engaged: number;
   remaining: number;
+}
+
+/** Profil de l'abonné connecté (écran B5). */
+export interface SubscriberProfile {
+  subscriber: Subscriber;
+  sessions: AccountSession[];
+  /** Session du navigateur courant. */
+  currentSessionId: string | null;
+}
+
+export interface AccountSession {
+  id: string;
+  ipAddress: string;
+  startedAt: string;
+  lastAccessAt: string;
+  applications: string[];
+}
+
+export interface SentNotification {
+  id: string;
+  channel: 'EMAIL' | 'SMS' | 'IN_APP';
+  template: string;
+  subject: string;
+  status: 'QUEUED' | 'SENT' | 'FAILED';
+  createdAt: string;
+  sentAt: string | null;
+}
+
+export interface NotificationPreferences {
+  paymentEmails: boolean;
+}
+
+/** Totaux d'une recherche de transactions (toutes pages) : nombre et montant encaissé (réussies). */
+export interface TransactionTotals {
+  count: number;
+  collected: number;
+}
+
+/** Transaction suspecte détectée sur les 7 derniers jours. */
+export interface TransactionAlert {
+  type: 'UNUSUAL_AMOUNT' | 'REPEATED_FAILURES';
+  reference: string;
+  subscriberName: string;
+  at: string;
+  detail: string;
+}
+
+export type ProviderState = 'UP' | 'DOWN' | 'SIMULATED';
+
+export interface ProviderHealth {
+  code: string;
+  name: string;
+  state: ProviderState;
+  latencyMs: number | null;
+  message: string | null;
+}
+
+export interface ProviderSnapshot {
+  checkedAt: string;
+  providers: ProviderHealth[];
+}
+
+export interface PublicStatus {
+  checkedAt: string;
+  providers: { name: string; state: ProviderState }[];
+}
+
+export interface ReceiptCheck {
+  valid: boolean;
+  reference: string;
+  amount: number | null;
+  currency: string | null;
+  paidAt: string | null;
+  methodName: string | null;
+  payee: string | null;
 }

@@ -15,20 +15,28 @@
         >
       }
     </nav>
-    <div class="topbar-actions">
-      <button type="button" class="icon-button" aria-label="Notifications"><i class="pi pi-bell"></i></button>
-      <a class="avatar" routerLink="/abonne/profil" aria-label="Mon profil" [title]="session.user()?.fullName">{{
-        session.initials()
-      }}</a>
-      <button type="button" class="icon-button" aria-label="Se déconnecter" title="Se déconnecter" (click)="session.logout()">
-        <i class="pi pi-sign-out"></i>
-      </button>
-    </div>
+    <button type="button" class="menu-button icon-button" aria-label="Ouvrir le menu"
+            (click)="menuOpen.set(true)">
+      <i class="pi pi-bars"></i>
+    </button>
+    <app-header-tools class="topbar-actions" space="abonne" profileLink="/abonne/profil"
+                      [notifications]="notifications()" />
   </div>
 </header>
 
 <main class="content">
   <router-outlet />
 </main>
+
+<p-drawer [(visible)]="menuOpen" [position]="preferences.isArabic() ? 'left' : 'right'" header="Navigation">
+  <nav class="mobile-nav">
+    @for (item of menu; track item.lien) {
+      <a class="nav-item" [routerLink]="item.lien" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: item.exact }" (click)="menuOpen.set(false)">
+        {{ item.libelle }}
+      </a>
+    }
+  </nav>
+</p-drawer>
 
 <p-toast position="top-right" />

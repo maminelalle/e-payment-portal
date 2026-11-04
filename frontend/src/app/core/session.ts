@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 
 export type Role = 'ADMIN' | 'ABONNE';
 
@@ -22,6 +23,7 @@ export interface CurrentUser {
 export class Session {
   private readonly oidc = inject(OidcSecurityService);
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   readonly user = signal<CurrentUser | null>(null);
   readonly isAdmin = computed(() => this.hasRole('ADMIN'));
@@ -62,10 +64,26 @@ export class Session {
     this.oidc.authorize();
   }
 
-  /** Déconnexion complète : fin de la session Keycloak puis retour à /connexion. */
+  updateProfile(email: string, fullName: string) {
+    return this.http.put<CurrentUser>('/api/me', { email, fullName });
+  }
+
+  /**
+   * Changement de mot de passe chez Keycloak (action « UPDATE_PASSWORD ») : le mot de passe ne transite
+   * jamais par le portail ; Keycloak ramène ensuite l'utilisateur, connecté, sur le portail.
+   */
+  changePassword(): void {
+    this.oidc.authorize(undefined, { customParams: { kc_action: 'UPDATE_PASSWORD' } });
+  }
+
+  /** Journalise puis termine la session Keycloak et remplace l'URL courante. */
   logout(): void {
     this.user.set(null);
-    this.oidc.logoff().subscribe();
+    this.router.navigateByUrl('/connexion', { replaceUrl: true });
+    this.http.post<void>('/api/me/deconnexion', null).subscribe({
+      complete: () => this.oidc.logoff().subscribe(),
+      error: () => this.oidc.logoff().subscribe(),
+    });
   }
 
   /** Oublie la session locale sans passer par Keycloak (jeton expiré ou refusé). */

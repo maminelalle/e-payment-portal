@@ -3,7 +3,7 @@
 Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case par case est dans le
 [plan sur 12 semaines](04-plan-12-semaines.md) ; les choix et leurs raisons dans les [décisions](00-decisions.md).
 
-**Dernière mise à jour : 03/11/2026** — semaines 1 à 10 terminées, semaine 11 en cours.
+**Dernière mise à jour : 04/11/2026** — semaine 11 terminée, semaine 12 à faire.
 
 ## Vue d'ensemble
 
@@ -19,12 +19,40 @@ Journal de suivi du projet, à mettre à jour à chaque étape. Le détail case 
 | 8 | Simulateur Bankily / Masrvi / Visa, webhooks | Terminée |
 | 9 | Adaptateurs HTTP, logos des moyens | Terminée |
 | 10 | Paiements, reçus, historiques, rapprochement | Terminée — jalon S10 atteint |
-| 11 | Notifications et tableaux de bord | **En cours** (reste le profil abonné) |
+| 11 | Notifications et tableaux de bord | Terminée |
 | 12 | Recette et mise en ligne | **À faire** |
 
-Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
+Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
+
+### 04/11/2026 — Design system Claude Design et améliorations UX
+- Charte du design system appliquée : IBM Plex Sans / Sans Arabic / Mono, bleu sceau `#1D44B8`, tokens clair et
+  sombre (`frontend/src/styles/tokens.css`), classes `ep-…` (`styles/components.css`), preset PrimeNG recoloré.
+  Les anciennes variables `--ep-*` restent comme alias.
+- Audit de l'interface corrigé : pastilles de statut avec icône (jamais la couleur seule), en-têtes de tableaux en
+  casse de phrase, références en mono isolées en LTR (`<bdi>`), montants en chiffres tabulaires, focus clavier visible,
+  liens sans violet « visité », carte de moyen inactive lisible (seul le logo est grisé), « Retirer le logo » confirmé,
+  journal d'audit lisible (libellé traduit, code en infobulle, identifiant raccourci + copier, `::1` → localhost),
+  stepper du contrat conforme au composant `ContractStepper` (corrige l'affichage arabe), téléphones `+222 22 00 00 07`.
+- En-tête commun admin / abonné : langue (sélecteur segmenté) · thème · notifications · utilisateur · déconnexion.
+  Centre de notifications : emails reçus (abonné) ; fournisseurs en panne, transactions suspectes et contrats à traiter (admin).
+- Admin : recherche globale **Ctrl+K** (abonnés, contrats, transactions, pages) ; état des fournisseurs en direct
+  dans la barre latérale et sur l'écran des moyens (« Tester les connexions ») ; menu mobile sous 1024 px.
+- Transactions : totaux calculés par le serveur sur les filtres (« 10 transactions · 161 500,00 MRU encaissés sur la période »),
+  export CSV pour Excel (abonné et admin). API `GET …/totaux` et `GET …/export.csv`.
+- Alertes de transactions suspectes (montant ≥ 3× la moyenne de l'abonné, 3 échecs en une heure) : `GET /api/admin/alertes`.
+- Reçu PDF avec QR code de vérification (D26) ; page publique `/verification/recu/TRX-…`.
+- Page publique de statut `/statut` (`GET /api/public/statut`) ; manifeste PWA (installation sur mobile).
+- Messages d'erreur plus clairs quand le service de paiement ne répond pas.
+
+### 04/11/2026 — Profil abonné
+- Écran B5 : coordonnées en lecture seule, changement de mot de passe via Keycloak, sessions ouvertes
+  (fermeture d'une session ou de toutes), préférences des emails de paiement et historique des notifications.
+- API `GET /api/abonne/profil`, gestion des sessions Keycloak et préférences de notification ; le profil est accessible
+  depuis la navigation de l'espace abonné.
+- Déconnexion journalisée dans l'audit et sortie avec remplacement de l'URL ; les routes protégées redirigent
+  vers l'authentification après déconnexion. Le PDF signé est rechargé immédiatement pour afficher le cachet visible.
 
 ### 03/11/2026 — Semaine 11 : tableau de bord abonné
 - Accueil abonné : montant payé, paiements réussis et échoués du mois ; jauge de chaque plafond mensuel
@@ -80,7 +108,7 @@ Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 - [x] Emails : contrat activé, paiement réussi, paiement échoué
 - [x] Tableau de bord admin avec graphiques (maquette A1)
 - [x] Tableau de bord abonné
-- [ ] Profil abonné (données Keycloak)
+- [x] Profil abonné (données Keycloak)
 - [x] Écran du journal d'audit
 
 ### Semaine 12 — Recette et mise en ligne
@@ -90,6 +118,16 @@ Tests automatisés : 58 backend, 8 simulateur, 11 frontend, tous au vert.
 - [ ] Sauvegardes quotidiennes PostgreSQL + stockage S3
 - [ ] Guides administrateur et abonné (1 page chacun)
 - [ ] Démo finale — **jalon : version pilote en ligne**
+
+### Améliorations proposées, non réalisées (à arbitrer)
+- [ ] Lien / QR code de paiement à envoyer à un client ; paiements récurrents ou programmés
+- [ ] Relevés mensuels en PDF ; moyens et montants favoris
+- [ ] Demande de nouveau moyen depuis le portail (avenant au contrat) ; support / réclamation sur une transaction
+- [ ] Plusieurs utilisateurs par personne morale (comptable, caissier) ; rôles admin fins (super-admin, opérateur, auditeur)
+- [ ] Commissions et facture mensuelle par abonné ; modèles d'email et de SMS modifiables ; invitation par import CSV
+- [ ] API et webhooks pour les abonnés (clés générées depuis le portail) ; notifications push (service worker PWA)
+- [ ] Connexion sans mot de passe (passkey, via Keycloak WebAuthn)
+- [ ] Traduction arabe complète : l'actuelle traduit le texte affiché par dictionnaire ; une vraie i18n par clés reste à faire
 
 ### Points secondaires
 - [ ] Thème Keycloak aux couleurs du portail (page de connexion)

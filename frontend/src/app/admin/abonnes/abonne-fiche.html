@@ -38,7 +38,7 @@
         <dt>{{ s.type === 'MORALE' ? 'NIF' : 'NNI' }}</dt>
         <dd>{{ s.type === 'MORALE' ? s.nif : s.nni }}</dd>
         <dt>Téléphone</dt>
-        <dd>{{ s.phone }}</dd>
+        <dd><bdi class="ep-ltr">{{ formatPhone(s.phone) }}</bdi></dd>
         <dt>Email</dt>
         <dd>{{ s.email }}</dd>
         <dt>Adresse</dt>

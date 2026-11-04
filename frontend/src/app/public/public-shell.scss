@@ -1,0 +1,39 @@
+:host {
+  display: flex;
+  min-height: 100vh;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-10) var(--space-4);
+}
+
+.panel {
+  width: min(560px, 100%);
+  padding: var(--space-8);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-6);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+h1 {
+  margin: 0 0 var(--space-1);
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 600;
+}
+
+.lead {
+  margin: 0 0 var(--space-6);
+  color: var(--ink-muted);
+}
+
+.foot {
+  margin: var(--space-6) 0 0;
+  font-size: 13px;
+  color: var(--ink-subtle);
+}

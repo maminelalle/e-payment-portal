@@ -11,6 +11,17 @@ export const routes: Routes = [
     canActivate: [anonymousOnlyGuard],
     loadComponent: () => import('./connexion/connexion').then((m) => m.Connexion),
   },
+  // Pages publiques, sans connexion : état du service et vérification d'un reçu (QR code).
+  {
+    path: 'statut',
+    title: 'État du service · E-Payment',
+    loadComponent: () => import('./public/statut').then((m) => m.Statut),
+  },
+  {
+    path: 'verification/recu/:reference',
+    title: 'Vérification d’un reçu · E-Payment',
+    loadComponent: () => import('./public/verification-recu').then((m) => m.VerificationRecu),
+  },
   {
     path: 'admin',
     canMatch: [roleGuard('ADMIN')],

@@ -26,3 +26,10 @@ export function fromIsoDate(iso: string | null | undefined): Date | null {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y!, m! - 1, d!);
 }
+
+/** '+22222000007' → '+222 22 00 00 07' (numéros mauritaniens) ; autre format : inchangé. */
+export function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '—';
+  const match = /^\+222(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(phone.replace(/\s/g, ''));
+  return match ? `+222 ${match.slice(1).join(' ')}` : phone;
+}

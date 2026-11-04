@@ -1,0 +1,35 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mon profil</h1>
+    <p class="page-subtitle">Gérez les informations de votre compte administrateur.</p>
+  </div>
+</div>
+
+<div class="profile-grid">
+  <section class="card profile-card">
+    <div class="profile-heading">
+      <span class="avatar large">{{ session.initials() }}</span>
+      <div>
+        <h2>{{ fullName || 'Administrateur' }}</h2>
+        <span class="muted">Compte administrateur</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="fullName">Nom complet</label>
+      <input pInputText id="fullName" [(ngModel)]="fullName" maxlength="120" />
+    </div>
+    <div class="field">
+      <label for="email">Adresse email</label>
+      <input pInputText id="email" type="email" [(ngModel)]="email" maxlength="254" />
+    </div>
+    <p-button label="Enregistrer les modifications" icon="pi pi-check" [loading]="saving" (onClick)="save()" />
+  </section>
+
+  <section class="card profile-card">
+    <h2>Sécurité</h2>
+    <p class="muted">Le mot de passe et le MFA sont gérés de manière sécurisée par Keycloak.</p>
+    <p-button label="Changer mon mot de passe" icon="pi pi-key" severity="secondary" [outlined]="true"
+              (onClick)="session.changePassword()" />
+  </section>
+</div>

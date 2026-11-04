@@ -12,7 +12,7 @@ import { Contract, Subscriber, SUBSCRIBER_TYPE_LABELS, Transaction } from '../..
 import { downloadBlob } from '../../shared/download';
 import { TransactionTable } from '../../shared/transaction-table';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
-import { formatIsoDate } from '../../shared/formatting';
+import { formatIsoDate, formatPhone } from '../../shared/formatting';
 import { applyServerErrors, fieldError } from '../../shared/form-errors';
 import { StatusTag } from '../../shared/status-tag';
 import { AdminApi } from '../admin-api';
@@ -47,6 +47,7 @@ export class AbonneFiche {
   readonly id = input.required<string>();
 
   protected readonly typeLabels = SUBSCRIBER_TYPE_LABELS;
+  protected readonly formatPhone = formatPhone;
   protected readonly subscriber = signal<Subscriber | null>(null);
   protected readonly contracts = signal<Contract[]>([]);
   protected readonly transactions = signal<Transaction[]>([]);
@@ -205,8 +206,8 @@ export class AbonneFiche {
       next: (s) => this.subscriber.set(s),
       error: () => this.notFound.set(true),
     });
-    this.api.searchContracts({ abonne: id, page: 0, size: 20 }).subscribe((page) => this.contracts.set(page.content));
-    this.api.transactions(0, 5, { abonne: id }).subscribe((page) => this.transactions.set(page.content));
+    this.api.searchContracts({ abonne: id, page: 0, size: 20 }).subscribe((page) => this.contracts.set(page.items));
+    this.api.transactions(0, 5, { abonne: id }).subscribe((page) => this.transactions.set(page.items));
   }
 
   private fail(error: { error?: { detail?: string } }): void {

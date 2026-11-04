@@ -1,34 +1,51 @@
-<aside class="sidebar">
+<aside class="sidebar" [class.open]="menuOpen()">
   <a class="brand" routerLink="/admin">
     <span class="brand-logo">EP</span>
     <span class="brand-name">E-Payment</span>
   </a>
-  <nav>
+  <nav aria-label="Navigation principale">
     @for (item of menu; track item.lien) {
       <a
         class="nav-item"
         [routerLink]="item.lien"
         routerLinkActive="active"
+        ariaCurrentWhenActive="page"
         [routerLinkActiveOptions]="{ exact: item.exact }"
+        (click)="menuOpen.set(false)"
       >
-        <i [class]="item.icone"></i>
+        <i [class]="item.icone" aria-hidden="true"></i>
         <span>{{ item.libelle }}</span>
+        @if (item.lien === '/admin/contrats' && contractsToProcess()) {
+          <span class="count" [title]="contractsToProcess() + ' contrat(s) à traiter'">{{ contractsToProcess() }}</span>
+        }
       </a>
     }
   </nav>
+  <div class="providers" aria-label="État des fournisseurs">
+    <span class="providers-title">Fournisseurs</span>
+    @for (p of providers(); track p.code) {
+      <span class="provider" [title]="p.message ?? ''">
+        <span [class]="'dot ' + p.state" aria-hidden="true"></span>
+        {{ p.name }}
+        <span class="state">{{ providerLabel(p.state) }}</span>
+      </span>
+    } @empty {
+      <span class="ep-subtle">Vérification…</span>
+    }
+  </div>
 </aside>
+@if (menuOpen()) {
+  <div class="backdrop" (click)="menuOpen.set(false)" aria-hidden="true"></div>
+}
 
 <div class="main">
   <header class="topbar">
-    <span></span>
-    <div class="topbar-actions">
-      <button type="button" class="icon-button" aria-label="Notifications"><i class="pi pi-bell"></i></button>
-      <span class="user-name">{{ session.user()?.fullName }}</span>
-      <span class="avatar" [title]="session.user()?.email">{{ session.initials() }}</span>
-      <button type="button" class="icon-button" aria-label="Se déconnecter" title="Se déconnecter" (click)="session.logout()">
-        <i class="pi pi-sign-out"></i>
-      </button>
-    </div>
+    <button type="button" class="icon-button menu-button" aria-label="Ouvrir le menu" title="Menu"
+            (click)="menuOpen.set(true)">
+      <i class="pi pi-bars"></i>
+    </button>
+    <app-recherche-globale class="search" />
+    <app-header-tools space="admin" profileLink="/admin/profil" [notifications]="notifications()" />
   </header>
   <main class="content">
     <router-outlet />

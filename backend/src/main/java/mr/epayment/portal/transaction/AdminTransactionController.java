@@ -35,6 +35,25 @@ class AdminTransactionController {
         return payments.search(new Filter(abonne, statut, moyen, du, au, q), page, size);
     }
 
+    /** Nombre et montant encaissé sur les filtres actifs (titre de page « 10 transactions · 161 500,00 MRU encaissés »). */
+    @GetMapping("/totaux")
+    FilteredTotals totals(@RequestParam(required = false) UUID abonne,
+            @RequestParam(required = false) TransactionStatus statut, @RequestParam(required = false) String moyen,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate du,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate au,
+            @RequestParam(required = false) String q) {
+        return payments.totals(new Filter(abonne, statut, moyen, du, au, q));
+    }
+
+    @GetMapping("/export.csv")
+    ResponseEntity<byte[]> export(@RequestParam(required = false) UUID abonne,
+            @RequestParam(required = false) TransactionStatus statut, @RequestParam(required = false) String moyen,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate du,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate au,
+            @RequestParam(required = false) String q) {
+        return Receipts.csv("transactions.csv", payments.exportCsv(new Filter(abonne, statut, moyen, du, au, q), true));
+    }
+
     @GetMapping("/{reference}")
     TransactionView get(@PathVariable String reference) {
         return payments.adminGet(reference);

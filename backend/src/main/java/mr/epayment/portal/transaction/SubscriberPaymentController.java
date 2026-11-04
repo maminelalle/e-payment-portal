@@ -63,6 +63,26 @@ class SubscriberPaymentController {
         return payments.history(authentication, new Filter(null, statut, moyen, du, au, q), page, size);
     }
 
+    @GetMapping("/totaux")
+    FilteredTotals totals(Authentication authentication, @RequestParam(required = false) TransactionStatus statut,
+            @RequestParam(required = false) String moyen,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate du,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate au,
+            @RequestParam(required = false) String q) {
+        return payments.historyTotals(authentication, new Filter(null, statut, moyen, du, au, q));
+    }
+
+    /** Historique en CSV (Excel), mêmes filtres que la liste. */
+    @GetMapping("/export.csv")
+    ResponseEntity<byte[]> export(Authentication authentication, @RequestParam(required = false) TransactionStatus statut,
+            @RequestParam(required = false) String moyen,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate du,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate au,
+            @RequestParam(required = false) String q) {
+        return Receipts.csv("mes-transactions.csv",
+                payments.exportHistoryCsv(authentication, new Filter(null, statut, moyen, du, au, q)));
+    }
+
     /** Reçu PDF (paiement réussi uniquement). */
     @GetMapping("/{reference}/recu")
     ResponseEntity<byte[]> receipt(Authentication authentication, @PathVariable String reference) {

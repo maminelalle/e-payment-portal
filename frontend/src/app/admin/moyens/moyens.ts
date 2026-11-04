@@ -5,7 +5,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
-import { ApiProblem, PaymentMethod } from '../../core/api.models';
+import { ApiProblem, PaymentMethod, ProviderHealth } from '../../core/api.models';
 import { MethodLogo } from '../../shared/method-logo';
 import { AdminApi } from '../admin-api';
 
@@ -25,10 +25,44 @@ export class Moyens {
   /** Incrémenté pour redessiner les interrupteurs quand un changement est annulé ou échoue. */
   protected readonly revision = signal(0);
 
-  protected readonly healthLabels = { UP: 'Disponible', DOWN: 'Indisponible', UNKNOWN: 'Non vérifiée' } as const;
+  protected readonly providers = signal<ProviderHealth[]>([]);
+  protected readonly checking = signal(false);
 
   constructor() {
     this.api.paymentMethods().subscribe((methods) => this.methods.set(methods));
+    this.api.providerStatus().subscribe({ next: (s) => this.providers.set(s.providers), error: () => {} });
+  }
+
+  /** Disponibilité en direct (sonde du fournisseur) ; à défaut, dernier état connu du catalogue. */
+  protected health(method: PaymentMethod): { label: string; tone: string; message: string | null; latencyMs: number | null } {
+    const live = this.providers().find((p) => p.code === method.provider.code);
+    const state = live?.state ?? method.provider.healthStatus;
+    const labels: Record<string, [string, string]> = {
+      UP: ['En ligne', 'success'],
+      DOWN: ['En panne', 'danger'],
+      SIMULATED: ['Simulé', 'neutral'],
+      UNKNOWN: ['Non vérifiée', 'warning'],
+    };
+    const [label, tone] = labels[state] ?? labels['UNKNOWN']!;
+    return { label, tone, message: live?.message ?? null, latencyMs: live?.latencyMs ?? null };
+  }
+
+  protected checkProviders(): void {
+    this.checking.set(true);
+    this.api.providerStatus(true).subscribe({
+      next: (s) => {
+        this.providers.set(s.providers);
+        this.checking.set(false);
+        const down = s.providers.filter((p) => p.state === 'DOWN');
+        this.messages.add(down.length
+          ? { severity: 'warn', summary: 'Fournisseur indisponible', detail: down.map((p) => p.name).join(', ') + ' ne répond pas.' }
+          : { severity: 'success', summary: 'Tous les fournisseurs répondent' });
+      },
+      error: () => {
+        this.checking.set(false);
+        this.messages.add({ severity: 'error', summary: 'Vérification impossible' });
+      },
+    });
   }
 
   protected toggle(method: PaymentMethod, active: boolean): void {
@@ -74,6 +108,18 @@ export class Moyens {
   }
 
   protected removeLogo(method: PaymentMethod): void {
+    this.confirmation.confirm({
+      header: `Retirer le logo de ${method.name}`,
+      message: `Le logo de ${method.name} sera remplacé par ses initiales partout dans le portail.`,
+      acceptLabel: 'Retirer',
+      rejectLabel: 'Annuler',
+      acceptButtonProps: { severity: 'danger' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this.doRemoveLogo(method),
+    });
+  }
+
+  private doRemoveLogo(method: PaymentMethod): void {
     this.pending.set(method.code);
     this.api.removePaymentMethodLogo(method.code).subscribe({
       next: (updated) => this.replace(updated, `Logo de ${updated.name} retiré`),

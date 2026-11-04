@@ -5,12 +5,16 @@ import { map, Observable } from 'rxjs';
 import {
   Contract,
   EntitledMethod,
-  PageResponse,
+  NotificationPreferences,
+  SentNotification,
   SubscriberDashboard,
+  SubscriberProfile,
   Transaction,
   TransactionFilter,
+  TransactionTotals,
   filterParams,
 } from '../core/api.models';
+import { mapPage, UiPage } from '../shared/pagination';
 
 /** Réponse à une demande de code de signature (le code n'est jamais renvoyé par l'API). */
 export interface OtpChallenge {
@@ -47,6 +51,30 @@ export class AbonneApi {
   }
 
   /** Moyens ouverts par le contrat en vigueur (et eux seuls). */
+  profile(): Observable<SubscriberProfile> {
+    return this.http.get<SubscriberProfile>('/api/abonne/profil');
+  }
+
+  endSession(sessionId: string): Observable<void> {
+    return this.http.delete<void>(`/api/abonne/profil/sessions/${encodeURIComponent(sessionId)}`);
+  }
+
+  logoutEverywhere(): Observable<void> {
+    return this.http.post<void>('/api/abonne/profil/sessions/deconnexion', {});
+  }
+
+  notifications(): Observable<SentNotification[]> {
+    return this.http.get<SentNotification[]>('/api/abonne/notifications');
+  }
+
+  notificationPreferences(): Observable<NotificationPreferences> {
+    return this.http.get<NotificationPreferences>('/api/abonne/notifications/preferences');
+  }
+
+  updateNotificationPreferences(preferences: NotificationPreferences): Observable<NotificationPreferences> {
+    return this.http.put<NotificationPreferences>('/api/abonne/notifications/preferences', preferences);
+  }
+
   dashboard(): Observable<SubscriberDashboard> {
     return this.http.get<SubscriberDashboard>('/api/abonne/tableau-de-bord');
   }
@@ -79,10 +107,19 @@ export class AbonneApi {
     return this.http.post<Transaction>(`/api/abonne/paiements/${reference}/annuler`, null);
   }
 
-  payments(page: number, size: number, filter: TransactionFilter = {}): Observable<PageResponse<Transaction>> {
-    return this.http.get<PageResponse<Transaction>>('/api/abonne/paiements', {
+  payments(page: number, size: number, filter: TransactionFilter = {}): Observable<UiPage<Transaction>> {
+    return mapPage<Transaction>(this.http.get('/api/abonne/paiements', {
       params: filterParams(filter, page, size),
-    });
+    }));
+  }
+
+  paymentTotals(filter: TransactionFilter = {}): Observable<TransactionTotals> {
+    return this.http.get<TransactionTotals>('/api/abonne/paiements/totaux', { params: filterParams(filter, 0, 1) });
+  }
+
+  /** Historique en CSV (Excel), mêmes filtres que la liste. */
+  paymentsCsv(filter: TransactionFilter = {}): Observable<Blob> {
+    return this.http.get('/api/abonne/paiements/export.csv', { params: filterParams(filter, 0, 1), responseType: 'blob' });
   }
 
   /** Reçu PDF d'un paiement réussi. */

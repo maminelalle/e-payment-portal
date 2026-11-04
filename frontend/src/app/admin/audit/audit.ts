@@ -16,6 +16,17 @@ import { AdminApi } from '../admin-api';
 
 const PAGE_SIZE = 25;
 
+const RESOURCE_TYPES: Record<string, string> = {
+  USER: 'Utilisateur',
+  SUBSCRIBER: 'Abonné',
+  CONTRACT: 'Contrat',
+  TRANSACTION: 'Transaction',
+  PAYMENT_METHOD: 'Moyen de paiement',
+  SIGNATURE: 'Signature',
+  WEBHOOK: 'Webhook',
+  HTTP: 'Requête',
+};
+
 /** Journal d'audit (écran A6) : lecture seule, filtrable, détail de chaque événement. */
 @Component({
   selector: 'app-audit',
@@ -64,12 +75,35 @@ export class Audit {
       )
       .subscribe({
         next: (page) => {
-          this.rows.set(page.content);
-          this.total.set(page.totalElements);
+          this.rows.set(page.items);
+          this.total.set(page.total);
           this.loading.set(false);
         },
         error: () => this.loading.set(false),
       });
+  }
+
+  protected readonly copied = signal<string | null>(null);
+
+  /** UUID raccourci (début) ; les références métier (TRX-…, CTR-…, e-mail) restent entières. */
+  protected resourceLabel(id: string): string {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) ? `${id.slice(0, 8)}…` : id;
+  }
+
+  protected resourceTypeLabel(type: string): string {
+    return RESOURCE_TYPES[type] ?? type;
+  }
+
+  protected ipLabel(ip: string | null): string {
+    if (!ip) return '—';
+    return ip === '::1' || ip === '127.0.0.1' || ip === '0:0:0:0:0:0:0:1' ? `localhost (${ip})` : ip;
+  }
+
+  protected copy(value: string): void {
+    navigator.clipboard?.writeText(value).then(() => {
+      this.copied.set(value);
+      setTimeout(() => this.copied.set(null), 1500);
+    });
   }
 
   protected actionLabel(code: string): string {

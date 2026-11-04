@@ -113,7 +113,15 @@ export class PaymentDrawer {
           this.busy.set(false);
           const problem = error instanceof HttpErrorResponse ? (error.error as ApiProblem | null) : null;
           const fields = Object.values(problem?.errors ?? {});
-          this.error.set(fields.length ? fields.join(' ') : (problem?.detail ?? 'Paiement impossible pour le moment.'));
+          // Pas de réponse exploitable (réseau, passerelle) : le dire clairement plutôt qu'un message générique.
+          const unreachable = error instanceof HttpErrorResponse && (error.status === 0 || error.status >= 502);
+          this.error.set(
+            fields.length
+              ? fields.join(' ')
+              : unreachable
+                ? 'Le service de paiement ne répond pas. Vérifiez l’historique avant de réessayer : une même demande n’est jamais débitée deux fois.'
+                : (problem?.detail ?? 'Paiement impossible pour le moment.'),
+          );
         },
       });
   }

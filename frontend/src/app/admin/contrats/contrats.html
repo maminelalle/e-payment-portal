@@ -59,20 +59,23 @@
         <td class="muted">{{ c.reference }}</td>
         <td>
           <div class="name">{{ c.subscriber.displayName }}</div>
-          <div class="muted">{{ c.subscriber.reference }}</div>
+          <bdi class="ep-ref">{{ c.subscriber.reference }}</bdi>
         </td>
         <td>
           <div class="badges">
-            @for (m of c.methods; track m.code) {
-              <app-method-logo [method]="m" [size]="26" />
+            @for (m of c.methods.slice(0, 3); track m.code) {
+              <app-method-logo [method]="m" [size]="28" />
             } @empty {
               <span class="muted">—</span>
             }
+            @if (c.methods.length > 3) {
+              <span class="more" [title]="moreMethods(c)">+{{ c.methods.length - 3 }}</span>
+            }
           </div>
         </td>
-        <td>{{ formatDate(c.startDate) }} → {{ formatDate(c.endDate) }}</td>
+        <td><bdi>{{ formatDate(c.startDate) }} → {{ formatDate(c.endDate) }}</bdi></td>
         <td><app-contract-status-tag [status]="c.status" /></td>
-        <td class="muted">{{ c.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td class="ep-subtle"><bdi>{{ c.createdAt | date: 'dd/MM/yyyy' }}</bdi></td>
       </tr>
     </ng-template>
     <ng-template #emptymessage>

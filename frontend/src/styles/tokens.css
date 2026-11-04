@@ -1,0 +1,51 @@
+/* E-Payment — tokens du design system (Claude Design, tokens.json). Thème sombre : classe .dark sur <html>. */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --surface-sunken: #f0f2f5;
+  --border: #e3e6eb; --border-strong: #8c95a6;
+  --ink: #0f1728; --ink-muted: #4a5568; --ink-subtle: #5d6779;
+  --brand: #1d44b8; --brand-hover: #163791; --brand-soft: #eaf0ff; --on-brand: #ffffff;
+  --sable: #c98a1b; --sable-soft: #fbf1dc;
+  --success: #05603a; --success-soft: #e7f6ee;
+  --danger: #b42318; --danger-soft: #fdecea;
+  --warning: #93370d; --warning-soft: #fff4e0;
+  --neutral-soft: #eef0f3;
+  --focus: var(--brand); --link: var(--brand);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
+  --shadow-md: 0 6px 16px rgba(16, 24, 40, .10);
+  --shadow-focus: 0 0 0 2px #ffffff, 0 0 0 4px #1d44b8;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
+  --control-h: 40px; --control-h-sm: 32px; --header-h: 64px; --sidebar-w: 248px;
+  --content-max: 1200px; --logo-tile: 40px;
+
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, "Segoe UI", sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  /* Anciens noms, conservés comme alias pour les écrans existants */
+  --ep-primary: var(--brand);
+  --ep-primary-dark: var(--brand-hover);
+  --ep-primary-soft: var(--brand-soft);
+  --ep-background: var(--bg);
+  --ep-surface: var(--surface);
+  --ep-border: var(--border);
+  --ep-text: var(--ink);
+  --ep-text-muted: var(--ink-muted);
+}
+
+:root.dark {
+  --bg: #0b1120; --surface: #121a2b; --surface-sunken: #0e1524;
+  --border: #243049; --border-strong: #5a6782;
+  --ink: #e8ecf4; --ink-muted: #a9b3c6; --ink-subtle: #8f9ab0;
+  --brand: #8fb0ff; --brand-hover: #b0c8ff; --brand-soft: #18264a; --on-brand: #0b1120;
+  --sable: #e0b252; --sable-soft: #2e2410;
+  --success: #5fd68f; --success-soft: #0f2e1f;
+  --danger: #ff8a80; --danger-soft: #3a1513;
+  --warning: #fbbf24; --warning-soft: #33240a;
+  --neutral-soft: #1c263b;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, .55);
+  --shadow-focus: 0 0 0 2px #0b1120, 0 0 0 4px #8fb0ff;
+}

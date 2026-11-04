@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
-import { AVenir } from '../shared/a-venir';
 import { AbonneLayout } from './abonne-layout';
 
 export const ABONNE_ROUTES: Routes = [
@@ -38,8 +37,7 @@ export const ABONNE_ROUTES: Routes = [
       {
         path: 'profil',
         title: 'Profil · E-Payment',
-        component: AVenir,
-        data: { titre: 'Profil', semaine: 'semaine 11' },
+        loadComponent: () => import('./profil/profil').then((m) => m.Profil),
       },
     ],
   },

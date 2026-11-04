@@ -5,6 +5,7 @@ import { debounceTime, Subject, switchMap } from 'rxjs';
 
 import { Transaction, TransactionFilter } from '../../core/api.models';
 import { downloadBlob } from '../../shared/download';
+import { formatAmount } from '../../shared/formatting';
 import { TransactionFilters } from '../../shared/transaction-filters';
 import { TransactionTable } from '../../shared/transaction-table';
 import { AbonneApi } from '../abonne-api';
@@ -16,8 +17,17 @@ const PAGE_SIZE = 20;
   selector: 'app-abonne-transactions',
   imports: [ButtonModule, TransactionFilters, TransactionTable],
   template: `
-    <h1 class="page-title">Transactions</h1>
-    <p class="page-subtitle">{{ total() }} paiement{{ total() > 1 ? 's' : '' }}</p>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Transactions</h1>
+        <p class="page-subtitle">
+          {{ total() }} paiement{{ total() > 1 ? 's' : '' }}
+          @if (collected() > 0) { · {{ formatAmount(collected()) }} payés sur la période }
+        </p>
+      </div>
+      <p-button label="Exporter en CSV" icon="pi pi-file-export" severity="secondary" [outlined]="true"
+        [disabled]="!total()" (onClick)="exportCsv()" />
+    </div>
     <div class="filters">
       <app-transaction-filters [methods]="methods()" (changed)="applyFilter($event)" />
     </div>
@@ -28,7 +38,7 @@ const PAGE_SIZE = 20;
     }
   `,
   styles: `
-    .filters { margin-top: 24px; }
+    .filters { margin-top: 0; }
     :host ::ng-deep .more { margin-top: 16px; }
   `,
 })
@@ -36,6 +46,8 @@ export class AbonneTransactions {
   private readonly api = inject(AbonneApi);
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
+  protected readonly collected = signal(0);
+  protected readonly formatAmount = formatAmount;
   protected readonly loading = signal(false);
   protected readonly methods = signal<{ code: string; name: string }[]>([]);
   private filter: TransactionFilter = {};
@@ -49,13 +61,14 @@ export class AbonneTransactions {
         debounceTime(250),
         switchMap(() => {
           this.loading.set(true);
+          this.api.paymentTotals(this.filter).subscribe({ next: (t) => this.collected.set(t.collected), error: () => this.collected.set(0) });
           return this.api.payments(0, PAGE_SIZE, this.filter);
         }),
         takeUntilDestroyed(inject(DestroyRef)),
       )
       .subscribe((page) => {
-        this.rows.set(page.content);
-        this.total.set(page.totalElements);
+        this.rows.set(page.items);
+        this.total.set(page.total);
         this.page = 1;
         this.loading.set(false);
       });
@@ -70,10 +83,14 @@ export class AbonneTransactions {
   protected more(): void {
     this.loading.set(true);
     this.api.payments(this.page, PAGE_SIZE, this.filter).subscribe((page) => {
-      this.rows.update((rows) => [...rows, ...page.content]);
+      this.rows.update((rows) => [...rows, ...page.items]);
       this.page++;
       this.loading.set(false);
     });
+  }
+
+  protected exportCsv(): void {
+    this.api.paymentsCsv(this.filter).subscribe((blob) => downloadBlob(blob, 'mes-transactions.csv'));
   }
 
   protected download(tx: Transaction): void {

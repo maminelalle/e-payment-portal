@@ -1,5 +1,8 @@
 package mr.epayment.portal.auth;
 
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -74,6 +77,39 @@ public class SubscriberAccounts {
             keycloak.logout(user.getKeycloakId());
         }
         user.changeEnabled(enabled);
+    }
+
+    /** Sessions ouvertes du compte, la plus récemment utilisée d'abord. */
+    @Transactional(readOnly = true)
+    public List<AccountSession> sessions(UUID userId) {
+        return keycloak.sessions(find(userId).getKeycloakId()).stream()
+                .map(s -> new AccountSession(s.id(), s.ipAddress(), Instant.ofEpochMilli(s.start()),
+                        Instant.ofEpochMilli(s.lastAccess()),
+                        s.clients() == null ? List.of() : List.copyOf(s.clients().values())))
+                .sorted(Comparator.comparing(AccountSession::lastAccessAt).reversed())
+                .toList();
+    }
+
+    /** Ferme une session du compte ; refusé si elle appartient à un autre compte. */
+    @Transactional(readOnly = true)
+    public void endSession(UUID userId, String sessionId) {
+        String keycloakId = find(userId).getKeycloakId();
+        boolean own = keycloak.sessions(keycloakId).stream().anyMatch(s -> s.id().equals(sessionId));
+        if (!own) {
+            throw new NotFoundException("Session introuvable.");
+        }
+        keycloak.deleteSession(sessionId);
+    }
+
+    /** Ferme toutes les sessions du compte (y compris celle en cours). */
+    @Transactional(readOnly = true)
+    public void logoutEverywhere(UUID userId) {
+        keycloak.logout(find(userId).getKeycloakId());
+    }
+
+    /** Session ouverte : navigateur ou appareil connecté au compte. */
+    public record AccountSession(String id, String ipAddress, Instant startedAt, Instant lastAccessAt,
+            List<String> applications) {
     }
 
     /** Compte local correspondant à l'identité Keycloak (claim {@code sub}), s'il existe. */

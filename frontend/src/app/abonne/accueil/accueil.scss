@@ -1,45 +1,47 @@
+/* Bandeau contrat (ContractBanner) : toujours sur surface, la couleur d'état est portée par la pastille. */
 .banner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  margin: 24px 0 32px;
-  padding: 20px 24px;
-  border: 1px solid var(--ep-border);
-  border-radius: 12px;
-  background: var(--ep-surface);
-
-  &.ACTIVE {
-    border-color: #86efac;
-    background: #f0fdf4;
-  }
-
-  &.PENDING_SIGNATURE,
-  &.SIGNED {
-    border-color: #fcd34d;
-    background: #fffbeb;
-  }
-
-  &.SUSPENDED {
-    border-color: #fca5a5;
-    background: #fef2f2;
-  }
+  gap: var(--space-4);
+  margin: var(--space-6) 0 var(--space-8);
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 
   .icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-grid;
+    place-items: center;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
-    background: #ffffff;
-    color: var(--ep-primary);
-    font-size: 1.2rem;
+    flex: none;
+    border-radius: var(--radius-pill);
+    background: var(--brand-soft);
+    color: var(--brand);
+
+    .pi {
+      font-size: 1.2rem;
+    }
   }
 
   &.ACTIVE .icon {
-    background: #dcfce7;
-    color: #15803d;
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  &.PENDING_SIGNATURE .icon,
+  &.SIGNED .icon {
+    background: var(--warning-soft);
+    color: var(--warning);
+  }
+
+  &.SUSPENDED .icon,
+  &.TERMINATED .icon,
+  &.EXPIRED .icon {
+    background: var(--danger-soft);
+    color: var(--danger);
   }
 
   .text {
@@ -48,67 +50,130 @@
     flex-direction: column;
     gap: 2px;
     min-width: 200px;
+
+    strong {
+      font-size: 16px;
+      line-height: 24px;
+    }
+  }
+}
+
+.expiry-alert,
+.page-error,
+.loading-state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+}
+
+.expiry-alert {
+  border-color: transparent;
+  background: var(--warning-soft);
+  color: var(--ink);
+
+  .pi {
+    color: var(--warning);
+    margin-top: 3px;
+  }
+}
+
+.page-error {
+  border-color: transparent;
+  background: var(--danger-soft);
+  color: var(--ink);
+
+  .pi {
+    color: var(--danger);
+    margin-top: 3px;
+  }
+}
+
+.loading-state {
+  color: var(--ink-muted);
+}
+
+.contract-progress {
+  margin: calc(-1 * var(--space-4)) 0 var(--space-8);
+  padding: var(--space-5) var(--space-6);
+
+  h2 {
+    margin: 0 0 var(--space-5);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
   }
 }
 
 .section-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin: 32px 0 16px;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-8) 0 var(--space-4);
+
+  .title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+  }
 
   h2 {
     margin: 0;
-    font-size: 1.15rem;
-  }
-
-  a {
-    color: var(--ep-primary);
+    font-size: 19px;
+    line-height: 28px;
+    font-weight: 600;
   }
 }
 
 .empty {
   margin: 0;
-  padding: 24px;
+  padding: var(--space-6);
 }
 
-.banner .icon .pi {
-  font-size: 1.2rem;
-}
-
+/* Cartes KPI */
 .month {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px 20px;
+  gap: var(--space-1);
+  padding: var(--space-5);
 }
 
 .stat-label {
-  color: var(--ep-text-muted);
-  font-size: 0.85rem;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 18px;
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 28px;
+  line-height: 34px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+
+  &.zero {
+    color: var(--ink-subtle);
+  }
 }
 
+/* Plafonds (LimitMeter) */
 .limits {
-  padding: 16px 20px;
+  padding: var(--space-5) var(--space-6);
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 1rem;
+    margin: 0 0 var(--space-2);
+    font-size: 16px;
+    line-height: 24px;
     font-weight: 600;
   }
 }
@@ -116,12 +181,12 @@
 .limit {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid var(--ep-border);
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-block-start: 1px solid var(--border);
 
   &:first-of-type {
-    border-top: none;
+    border-block-start: none;
   }
 }
 
@@ -137,45 +202,53 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 4px 12px;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
 
   .name {
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .figures {
+    font-size: 14px;
+    color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
+
+    strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
   }
 }
 
-/* Jauge : piste neutre, remplissage arrondi ; l'état (normal / proche / atteint) est aussi écrit dessous. */
 .meter {
   height: 8px;
   overflow: hidden;
-  border-radius: 4px;
-  background: #f1f5f9;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
 
   .fill {
     display: block;
     height: 100%;
-    border-radius: 4px;
-    background: var(--ep-primary);
+    min-width: 2px;
+    border-radius: inherit;
+    background: var(--brand);
 
     &.warning {
-      background: #d97706;
+      background: var(--warning);
     }
 
     &.critical {
-      background: #dc2626;
+      background: var(--danger);
     }
   }
 }
 
 .limit-note {
-  color: var(--ep-text-muted);
-  font-size: 0.8rem;
+  color: var(--ink-subtle);
+  font-size: 13px;
 
   &.alert {
-    color: #b45309;
+    color: var(--warning);
   }
 }

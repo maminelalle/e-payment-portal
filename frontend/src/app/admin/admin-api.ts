@@ -14,16 +14,19 @@ import {
   EntitledMethod,
   filterParams,
   NewSubscriber,
-  PageResponse,
   PaymentMethod,
   PaymentMethodStatus,
   Subscriber,
   SubscriberDetails,
   SubscriberStatus,
   SubscriberType,
+  ProviderSnapshot,
   Transaction,
+  TransactionAlert,
   TransactionFilter,
+  TransactionTotals,
 } from '../core/api.models';
+import { mapPage, UiPage } from '../shared/pagination';
 
 export interface SubscriberQuery {
   q?: string;
@@ -38,24 +41,24 @@ export interface SubscriberQuery {
 export class AdminApi {
   private readonly http = inject(HttpClient);
 
-  searchSubscribers(query: SubscriberQuery): Observable<PageResponse<Subscriber>> {
+  searchSubscribers(query: SubscriberQuery): Observable<UiPage<Subscriber>> {
     let params = new HttpParams().set('page', query.page).set('size', query.size);
     if (query.q?.trim()) params = params.set('q', query.q.trim());
     if (query.statut) params = params.set('statut', query.statut);
     if (query.type) params = params.set('type', query.type);
-    return this.http.get<PageResponse<Subscriber>>('/api/admin/abonnes', { params });
+    return mapPage<Subscriber>(this.http.get('/api/admin/abonnes', { params }));
   }
 
   dashboard(days: number): Observable<AdminDashboard> {
     return this.http.get<AdminDashboard>('/api/admin/tableau-de-bord', { params: { jours: days } });
   }
 
-  audit(page: number, size: number, filter: AuditFilter): Observable<PageResponse<AuditEntry>> {
+  audit(page: number, size: number, filter: AuditFilter): Observable<UiPage<AuditEntry>> {
     let params = new HttpParams().set('page', page).set('size', size);
     for (const [key, value] of Object.entries(filter)) {
       if (value) params = params.set(key, value);
     }
-    return this.http.get<PageResponse<AuditEntry>>('/api/admin/audit', { params });
+    return mapPage<AuditEntry>(this.http.get('/api/admin/audit', { params }));
   }
 
   auditActions(): Observable<string[]> {
@@ -92,12 +95,12 @@ export class AdminApi {
     q?: string;
     page: number;
     size: number;
-  }): Observable<PageResponse<Contract>> {
+  }): Observable<UiPage<Contract>> {
     let params = new HttpParams().set('page', query.page).set('size', query.size);
     if (query.statut) params = params.set('statut', query.statut);
     if (query.abonne) params = params.set('abonne', query.abonne);
     if (query.q?.trim()) params = params.set('q', query.q.trim());
-    return this.http.get<PageResponse<Contract>>('/api/admin/contrats', { params });
+    return mapPage<Contract>(this.http.get('/api/admin/contrats', { params }));
   }
 
   contractTemplates(): Observable<ContractTemplate[]> {
@@ -138,10 +141,27 @@ export class AdminApi {
     return this.http.get(`/api/admin/contrats/${id}/pdf`, { responseType: 'blob' });
   }
 
-  transactions(page: number, size: number, filter: TransactionFilter = {}): Observable<PageResponse<Transaction>> {
-    return this.http.get<PageResponse<Transaction>>('/api/admin/transactions', {
+  transactions(page: number, size: number, filter: TransactionFilter = {}): Observable<UiPage<Transaction>> {
+    return mapPage<Transaction>(this.http.get('/api/admin/transactions', {
       params: filterParams(filter, page, size),
-    });
+    }));
+  }
+
+  transactionTotals(filter: TransactionFilter = {}): Observable<TransactionTotals> {
+    return this.http.get<TransactionTotals>('/api/admin/transactions/totaux', { params: filterParams(filter, 0, 1) });
+  }
+
+  /** Export CSV (Excel) des transactions filtrées. */
+  transactionsCsv(filter: TransactionFilter = {}): Observable<Blob> {
+    return this.http.get('/api/admin/transactions/export.csv', { params: filterParams(filter, 0, 1), responseType: 'blob' });
+  }
+
+  alerts(): Observable<TransactionAlert[]> {
+    return this.http.get<TransactionAlert[]>('/api/admin/alertes');
+  }
+
+  providerStatus(refresh = false): Observable<ProviderSnapshot> {
+    return this.http.get<ProviderSnapshot>('/api/admin/fournisseurs/etat', { params: refresh ? { actualiser: true } : {} });
   }
 
   transactionReceipt(reference: string): Observable<Blob> {

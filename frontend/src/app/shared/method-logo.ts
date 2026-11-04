@@ -13,14 +13,14 @@ export interface MethodIdentity {
  * ou à défaut la pastille colorée « BK », « MS »… Repli automatique si l'image ne se charge pas.
  */
 @Component({
-  selector: 'app-method-logo',
+  selector: 'app-method-logo, ep-method-logo',
   template: `
-    @if (method().logoUrl && !failed()) {
-      <img [src]="method().logoUrl" [alt]="method().name" [title]="method().name" [style.width.px]="size()"
+    @if (source() && !failed()) {
+      <img [src]="source()" alt="" [title]="name()" [style.width.px]="size()"
            [style.height.px]="size()" (error)="failed.set(true)" />
     } @else {
-      <span class="badge" [style.background]="method().color" [style.width.px]="size()" [style.height.px]="size()"
-            [style.font-size.px]="fontSize()" [title]="method().name">{{ method().shortLabel }}</span>
+      <span class="badge" [style.background]="color()" [style.width.px]="size()" [style.height.px]="size()"
+            [style.font-size.px]="fontSize()" [title]="name()">{{ initials() }}</span>
     }
   `,
   styles: `
@@ -45,9 +45,18 @@ export interface MethodIdentity {
   `,
 })
 export class MethodLogo {
-  readonly method = input.required<MethodIdentity>();
+  readonly method = input<MethodIdentity | null>(null);
+  readonly src = input<string | null>(null);
+  readonly code = input<string | null>(null);
   /** Côté en pixels (40 par défaut, comme les maquettes). */
   readonly size = input(40);
   protected readonly failed = signal(false);
   protected readonly fontSize = computed(() => Math.round(this.size() * 0.32));
+  protected readonly name = computed(() => this.method()?.name || this.code() || '');
+  protected readonly color = computed(() => this.method()?.color || '#64748b');
+  protected readonly source = computed(() => this.src() || this.method()?.logoUrl || null);
+  protected readonly initials = computed(() => {
+    const value = this.code() || this.method()?.shortLabel || this.method()?.name || '';
+    return value.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase();
+  });
 }

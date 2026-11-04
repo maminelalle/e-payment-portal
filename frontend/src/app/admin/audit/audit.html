@@ -16,7 +16,7 @@
   </p-iconfield>
   <p-iconfield class="search">
     <p-inputicon class="pi pi-search" />
-    <input pInputText type="search" class="w-full" placeholder="Ressource (TRX-000001, CTR-2026-0001…)"
+    <input pInputText type="search" class="w-full" placeholder="Référence ou e-mail"
            [(ngModel)]="resource" (ngModelChange)="onFilterChange()" aria-label="Filtrer par ressource" />
   </p-iconfield>
   <p-select [options]="actions()" optionLabel="label" optionValue="value" [(ngModel)]="action"
@@ -53,6 +53,8 @@
                     [attr.aria-label]="expanded ? 'Masquer le détail' : 'Voir le détail'">
               <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
             </button>
+          } @else {
+            <span class="icon-button small placeholder" aria-hidden="true"></span>
           }
         </td>
         <td class="nowrap">{{ entry.occurredAt | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
@@ -64,15 +66,20 @@
           }
         </td>
         <td>
-          <span class="action">{{ actionLabel(entry.action) }}</span>
-          <span class="code">{{ entry.action }}</span>
+          <span class="action" [title]="entry.action">{{ actionLabel(entry.action) }}</span>
         </td>
         <td>
           @if (entry.resourceId) {
-            <span class="mono ellipsis" [title]="entry.resourceId">{{ entry.resourceId }}</span>
+            <span class="resource">
+              <bdi class="ep-ref ellipsis" [title]="entry.resourceId">{{ resourceLabel(entry.resourceId) }}</bdi>
+              <button type="button" class="copy" (click)="copy(entry.resourceId)"
+                      [attr.aria-label]="'Copier l’identifiant ' + entry.resourceId" title="Copier">
+                <i [class]="copied() === entry.resourceId ? 'pi pi-check' : 'pi pi-copy'"></i>
+              </button>
+            </span>
           }
           @if (entry.resourceType) {
-            <span class="code">{{ entry.resourceType }}</span>
+            <span class="code">{{ resourceTypeLabel(entry.resourceType) }}</span>
           }
         </td>
         <td>
@@ -80,7 +87,7 @@
             {{ entry.outcome === 'SUCCESS' ? 'Réussite' : 'Échec' }}
           </span>
         </td>
-        <td class="mono muted">{{ entry.ipAddress ?? '—' }}</td>
+        <td class="mono muted"><bdi>{{ ipLabel(entry.ipAddress) }}</bdi></td>
       </tr>
     </ng-template>
     <ng-template #expandedrow let-entry>

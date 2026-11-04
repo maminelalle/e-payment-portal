@@ -37,9 +37,14 @@ const PAGE_SIZE = 10;
   templateUrl: './contrats.html',
   styles: `
     .clickable { cursor: pointer; }
-    .badges { display: flex; gap: 4px; }
+    .badges { display: flex; align-items: center; gap: 4px; }
+    .more {
+      display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 6px;
+      border-radius: var(--radius-sm); background: var(--surface-sunken); color: var(--ink-muted);
+      font-size: 12px; font-weight: 600;
+    }
     .empty { padding: 32px; text-align: center; color: var(--ep-text-muted); }
-    .name { font-weight: 500; }
+    .name { font-weight: 600; }
   `,
 })
 export class Contrats {
@@ -48,6 +53,10 @@ export class Contrats {
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly formatDate = formatIsoDate;
+
+  protected moreMethods(c: Contract): string {
+    return c.methods.slice(3).map((m) => m.name).join(', ');
+  }
   protected readonly statusOptions = Object.entries(CONTRACT_STATUS_LABELS).map(([value, label]) => ({
     value: value as ContractStatus,
     label,
@@ -79,8 +88,8 @@ export class Contrats {
       )
       .subscribe({
         next: (page) => {
-          this.rows.set(page.content);
-          this.total.set(page.totalElements);
+          this.rows.set(page.items);
+          this.total.set(page.total);
           this.loading.set(false);
         },
         error: () => this.loading.set(false),

@@ -1,15 +1,29 @@
 <h1 class="page-title">Bonjour, {{ session.user()?.fullName }}</h1>
 <p class="page-subtitle">Voici la situation de votre compte au {{ today | date: 'dd/MM/yyyy' }}.</p>
 
+@if (error(); as message) {
+  <p class="card page-error" role="alert"><i class="pi pi-exclamation-triangle"></i> {{ message }}</p>
+}
+
+@if (loading()) {
+  <div class="card loading-state" role="status" aria-label="Chargement de votre contrat"><span class="skeleton" style="width: 44px; height: 44px; border-radius: 50%"></span><span class="skeleton" style="flex: 1; height: 44px"></span></div>
+}
+
 @if (contract() !== undefined) {
   @let c = contract();
+  @if (c && expiresSoon(c.endDate)) {
+    <p class="card expiry-alert" role="alert">
+      <i class="pi pi-calendar-clock"></i>
+      Votre contrat expire dans 30 jours ou moins. Contactez votre gestionnaire pour le renouveler.
+    </p>
+  }
   <section class="banner" [class]="'banner ' + (c?.status ?? 'NONE')">
     <span class="icon"><i [class]="c?.status === 'ACTIVE' ? 'pi pi-verified' : c?.status === 'PENDING_SIGNATURE' ? 'pi pi-pen-to-square' : 'pi pi-info-circle'"></i></span>
     <div class="text">
       @switch (c?.status) {
         @case ('ACTIVE') {
           <strong>Votre contrat est actif</strong>
-          <span class="muted">{{ c!.reference }} · valable du {{ formatDate(c!.startDate) }} au {{ formatDate(c!.endDate) }}</span>
+          <span class="muted"><bdi class="ep-ref">{{ c!.reference }}</bdi> · valable du <bdi>{{ formatDate(c!.startDate) }}</bdi> au <bdi>{{ formatDate(c!.endDate) }}</bdi></span>
         }
         @case ('PENDING_SIGNATURE') {
           <strong>Votre contrat est prêt à être signé</strong>
@@ -42,25 +56,47 @@
       />
     }
   </section>
+  @if (c && c.status !== 'ACTIVE') {
+    <section class="card contract-progress" aria-label="Progression du contrat">
+      <h2>Progression du contrat</h2>
+      <ol class="ep-steps">
+        @for (step of [
+          { label: 'Brouillon', index: 1 },
+          { label: 'À signer', index: 2 },
+          { label: 'Signé', index: 3 },
+          { label: 'Actif', index: 4 }
+        ]; track step.index) {
+          <li class="ep-step"
+              [class.is-done]="step.index < contractStep(c.status)"
+              [class.is-current]="step.index === contractStep(c.status)"
+              [attr.aria-current]="step.index === contractStep(c.status) ? 'step' : null">
+            {{ step.label }}
+          </li>
+        }
+      </ol>
+    </section>
+  }
 }
 
 @if (dashboard(); as d) {
   <div class="section-head">
-    <h2>Ce mois-ci</h2>
-    <span class="muted">depuis le 1er {{ today | date: 'MMMM' }}</span>
+    <div class="title">
+      <h2>Ce mois-ci</h2>
+      <span class="ep-subtle">depuis le 1er {{ today | date: 'MMMM' }}</span>
+    </div>
   </div>
   <section class="month">
     <div class="card stat">
       <span class="stat-label">Montant payé</span>
-      <span class="stat-value">{{ formatAmount(d.paid) }}</span>
+      <span class="stat-value" [class.zero]="!d.paid"><bdi>{{ formatAmount(d.paid) }}</bdi></span>
     </div>
     <div class="card stat">
       <span class="stat-label">Paiements réussis</span>
-      <span class="stat-value">{{ d.succeeded }}</span>
+      <span class="stat-value" [class.zero]="!d.succeeded">{{ d.succeeded }}</span>
     </div>
     <div class="card stat">
       <span class="stat-label">Paiements échoués</span>
-      <span class="stat-value">{{ d.failed }}</span>
+      <span class="stat-value" [class.zero]="!d.failed">{{ d.failed }}</span>
     </div>
   </section>
 
@@ -74,8 +110,7 @@
             <div class="limit-head">
               <span class="name">{{ l.name }}</span>
               <span class="figures">
-                <strong>{{ formatAmount(l.engaged, l.currency) }}</strong>
-                <span class="muted"> sur {{ formatAmount(l.monthlyLimit, l.currency) }}</span>
+                <bdi><strong>{{ formatAmount(l.engaged, l.currency) }}</strong> / {{ formatAmount(l.monthlyLimit, l.currency) }}</bdi>
               </span>
             </div>
             <div class="meter" role="meter" [attr.aria-valuenow]="usedPercent(l)" aria-valuemin="0" aria-valuemax="100"
@@ -84,7 +119,7 @@
             </div>
             <span class="limit-note" [class.alert]="usageTone(l) !== 'normal'">
               @if (l.remaining > 0) {
-                Reste {{ formatAmount(l.remaining, l.currency) }} ce mois ({{ usedPercent(l) < 1 && l.engaged > 0 ? 'moins de 1' : usedPercent(l) }} % utilisé)
+                Reste <bdi>{{ formatAmount(l.remaining, l.currency) }}</bdi> ce mois ({{ usedPercent(l) < 1 && l.engaged > 0 ? 'moins de 1' : usedPercent(l) }} % utilisé)
               } @else {
                 <i class="pi pi-exclamation-triangle"></i> Plafond atteint : nouveaux paiements refusés jusqu'au mois prochain
               }
@@ -105,12 +140,16 @@
 @if (methods().length) {
   <app-method-cards [methods]="methods()" (pay)="paying.set($event)" />
 } @else {
-  <p class="card empty muted">Aucun moyen de paiement ouvert : ils apparaissent ici dès que votre contrat est signé et actif.</p>
+  <div class="card ep-empty">
+    <span class="ep-empty__icon"><i class="pi pi-credit-card" aria-hidden="true"></i></span>
+    <p class="ep-empty__title">Aucun moyen de paiement ouvert</p>
+    <p class="ep-empty__text">Ils apparaissent ici dès que votre contrat est signé et actif.</p>
+  </div>
 }
 
 <div class="section-head">
   <h2>Dernières transactions</h2>
-  <a routerLink="/abonne/transactions">Voir tout</a>
+  <a class="ep-btn ep-btn--ghost ep-btn--sm" routerLink="/abonne/transactions">Voir tout</a>
 </div>
 <app-transaction-table [transactions]="latest()" (receipt)="downloadReceipt($event)" />
 

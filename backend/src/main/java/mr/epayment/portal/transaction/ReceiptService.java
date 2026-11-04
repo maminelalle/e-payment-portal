@@ -36,10 +36,12 @@ class ReceiptService {
     private final ContractService contracts;
     private final PdfRenderer pdfRenderer;
     private final DocumentStorage storage;
+    private final ReceiptVerification verification;
     private final String template;
 
     ReceiptService(TransactionRepository transactions, SubscriberService subscribers, ContractService contracts,
-            PdfRenderer pdfRenderer, DocumentStorage storage) {
+            PdfRenderer pdfRenderer, DocumentStorage storage, ReceiptVerification verification) {
+        this.verification = verification;
         this.transactions = transactions;
         this.subscribers = subscribers;
         this.contracts = contracts;
@@ -82,6 +84,8 @@ class ReceiptService {
         vars.put("description", tx.getDescription());
         vars.put("providerReference", tx.getProviderReference());
         vars.put("contract", contracts.get(tx.getContractId()).reference());
+        vars.put("qr", verification.qrDataUri(tx));
+        vars.put("verificationCode", verification.code(tx.getReference(), tx.getAmount()));
         return Map.of("tx", vars, "issuedAt", DATE.format(Instant.now()));
     }
 

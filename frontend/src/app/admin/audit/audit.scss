@@ -35,17 +35,17 @@
 .code {
   display: block;
   color: var(--ep-text-muted);
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
 }
 
 .mono {
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
 }
 
 .details-row td {
-  background: #f8fafc;
+  background: var(--surface-sunken);
 }
 
 .details {
@@ -61,7 +61,7 @@
 
   dd {
     margin: 0;
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-family: var(--font-mono);
     word-break: break-all;
   }
 }
@@ -69,4 +69,29 @@
 .empty {
   padding: 32px;
   text-align: center;
+}
+
+.placeholder {
+  visibility: hidden;
+}
+
+.resource {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+}
+
+.copy {
+  border: 0;
+  background: transparent;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    color: var(--brand);
+    background: var(--brand-soft);
+  }
 }

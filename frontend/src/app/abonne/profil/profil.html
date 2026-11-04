@@ -1,0 +1,123 @@
+<h1 class="page-title">Mon profil</h1>
+<p class="page-subtitle">Vos coordonnées, la sécurité de votre compte et vos notifications.</p>
+
+@if (error()) {
+  <p class="card alert" role="alert">{{ error() }}</p>
+}
+
+@if (profile(); as p) {
+  <div class="grid">
+    <section class="card block">
+      <div class="block-head">
+        <h2>Coordonnées</h2>
+        <app-status-tag [status]="p.subscriber.status" />
+      </div>
+      <dl class="details">
+        <dt>Raison sociale / nom</dt>
+        <dd>{{ p.subscriber.displayName }}</dd>
+        <dt>Référence abonné</dt>
+        <dd class="mono">{{ p.subscriber.reference }}</dd>
+        @if (p.subscriber.nif) {
+          <dt>NIF</dt>
+          <dd class="mono">{{ p.subscriber.nif }}</dd>
+        }
+        @if (p.subscriber.nni) {
+          <dt>NNI</dt>
+          <dd class="mono">{{ p.subscriber.nni }}</dd>
+        }
+        <dt>Email de connexion</dt>
+        <dd>{{ p.subscriber.email }}</dd>
+        <dt>Téléphone</dt>
+        <dd><bdi class="ep-ltr">{{ formatPhone(p.subscriber.phone) }}</bdi></dd>
+        <dt>Adresse</dt>
+        <dd>{{ p.subscriber.address || '—' }}</dd>
+      </dl>
+      <p class="hint muted">
+        <i class="pi pi-info-circle"></i>
+        Ces informations figurent sur votre contrat : pour les modifier, contactez votre gestionnaire.
+      </p>
+    </section>
+
+    <section class="card block">
+      <div class="block-head">
+        <h2>Mot de passe</h2>
+      </div>
+      <p class="muted">
+        Le mot de passe est géré par le service de connexion sécurisé : le portail ne le voit jamais.
+        Vous serez redirigé pour le changer, puis ramené ici.
+      </p>
+      <p-button label="Changer mon mot de passe" icon="pi pi-key" severity="secondary" [outlined]="true"
+                (onClick)="changePassword()" />
+
+      <div class="block-head spaced">
+        <h2>Notifications</h2>
+      </div>
+      <label class="toggle">
+        <p-toggleswitch [ngModel]="paymentEmails()" (ngModelChange)="togglePaymentEmails($event)"
+                        [disabled]="savingPreferences()" inputId="payment-emails" />
+        <span>
+          <strong>Email à chaque paiement</strong>
+          <span class="muted">réussi ou échoué, avec le lien vers le reçu</span>
+        </span>
+      </label>
+      <p class="hint muted">Les emails liés à votre contrat (disponible, activé) et les codes de signature sont toujours envoyés.</p>
+    </section>
+  </div>
+
+  <section class="card block">
+    <div class="block-head">
+      <h2>Sessions ouvertes</h2>
+      <p-button label="Me déconnecter partout" icon="pi pi-sign-out" severity="danger" [text]="true"
+                (onClick)="logoutEverywhere()" />
+    </div>
+    @for (s of p.sessions; track s.id) {
+      <div class="row">
+        <i class="pi pi-desktop device"></i>
+        <span class="main">
+          <span class="title">
+            Adresse {{ s.ipAddress }}
+            @if (isCurrent(s)) {
+              <span class="status-pill success">Cet appareil</span>
+            }
+          </span>
+          <span class="muted">
+            Connecté le {{ s.startedAt | date: "dd/MM/yyyy 'à' HH:mm" }} · dernière activité
+            {{ s.lastAccessAt | date: "dd/MM/yyyy 'à' HH:mm" }}
+          </span>
+        </span>
+        @if (!isCurrent(s)) {
+          <p-button label="Fermer" severity="secondary" [outlined]="true" size="small"
+                    [loading]="closing() === s.id" (onClick)="endSession(s)" />
+        }
+      </div>
+    } @empty {
+      <p class="muted">Aucune session ouverte.</p>
+    }
+  </section>
+
+  <section class="card block">
+    <div class="block-head">
+      <h2>Derniers emails reçus</h2>
+    </div>
+    @for (n of notifications(); track n.id) {
+      <div class="row">
+        <i class="pi pi-envelope device"></i>
+        <span class="main">
+          <span class="title">{{ n.subject }}</span>
+          <span class="muted">{{ templateLabel(n.template) }} · {{ n.createdAt | date: "dd/MM/yyyy 'à' HH:mm" }}</span>
+        </span>
+        @switch (n.status) {
+          @case ('SENT') { <span class="status-pill success">Envoyé</span> }
+          @case ('FAILED') { <span class="status-pill danger">Échec d'envoi</span> }
+          @default { <span class="status-pill warning">En cours</span> }
+        }
+      </div>
+    } @empty {
+      <p class="muted">Aucun email pour l'instant.</p>
+    }
+  </section>
+} @else if (!error()) {
+  <p class="muted">Chargement…</p>
+}
+
+<p-confirmdialog />

@@ -6,14 +6,18 @@
 <style>
   @page { size: A5; margin: 14mm 12mm; }
   body { font-family: sans-serif; font-size: 9.5pt; color: #0f172a; }
-  .brand { font-size: 8pt; color: #2563eb; font-weight: bold; letter-spacing: 1px; }
+  .brand { font-size: 8pt; color: #1d44b8; font-weight: bold; letter-spacing: 1px; }
   h1 { font-size: 14pt; margin: 4px 0 14px; }
-  .status { text-align: center; margin: 10px 0 14px; padding: 10px; border-radius: 6px; background: #dcfce7; color: #15803d; }
+  .status { text-align: center; margin: 10px 0 14px; padding: 10px; border-radius: 6px; background: #e7f6ee; color: #05603a; }
   .amount { font-size: 20pt; font-weight: bold; margin: 2px 0 0; }
   table { width: 100%; border-collapse: collapse; }
   td { padding: 6px 4px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
   td:first-child { color: #64748b; width: 42%; }
   td:last-child { text-align: right; }
+  .verify { margin-top: 14px; }
+  .verify td { border: 0; vertical-align: middle; padding: 0; }
+  .verify img { width: 26mm; height: 26mm; }
+  .verify .hint { text-align: left; padding-left: 8px; font-size: 8pt; color: #4a5568; line-height: 1.4; }
   .footer { margin-top: 16px; font-size: 7.5pt; color: #64748b; line-height: 1.4; }
 </style>
 </head>
@@ -35,6 +39,14 @@
   <tr th:if="${tx.description != null}"><td>Motif</td><td th:text="${tx.description}">Facture octobre</td></tr>
   <tr><td>Référence fournisseur</td><td th:text="${tx.providerReference}">BKL-1</td></tr>
   <tr><td>Contrat</td><td th:text="${tx.contract}">CTR-2026-0001</td></tr>
+</table>
+
+<table class="verify">
+  <tr>
+    <td style="width: 28mm"><img th:src="${tx.qr}" alt="QR code de vérification" /></td>
+    <td class="hint">Vérifiez l'authenticité de ce reçu : scannez le QR code avec votre téléphone.<br />
+      Code de vérification : <strong th:text="${tx.verificationCode}">0123abcd4567ef89</strong></td>
+  </tr>
 </table>
 
 <div class="footer">

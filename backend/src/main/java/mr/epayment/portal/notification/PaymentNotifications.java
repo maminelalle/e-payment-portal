@@ -13,7 +13,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.util.HtmlUtils;
 
-/** Email à l'abonné à la fin de chaque paiement (réussi ou échoué), après validation, en arrière-plan. */
+/**
+ * Email à l'abonné à la fin de chaque paiement (réussi ou échoué), après validation, en arrière-plan.
+ * L'abonné peut le couper dans son profil.
+ */
 @Component
 class PaymentNotifications {
 
@@ -22,16 +25,22 @@ class PaymentNotifications {
             .withZone(ZoneId.of("Africa/Nouakchott"));
 
     private final EmailSender email;
+    private final NotificationPreferences preferences;
     private final String portalUrl;
 
-    PaymentNotifications(EmailSender email, @Value("${epayment.portal-url}") String portalUrl) {
+    PaymentNotifications(EmailSender email, NotificationPreferences preferences,
+            @Value("${epayment.portal-url}") String portalUrl) {
         this.email = email;
+        this.preferences = preferences;
         this.portalUrl = portalUrl;
     }
 
     @Async
     @TransactionalEventListener
     void onPaymentCompleted(PaymentCompleted event) {
+        if (!preferences.paymentEmails(event.subscriberId())) {
+            return;
+        }
         String amount = Amounts.format(event.amount()) + " " + event.currency();
         String when = DATE_TIME.format(event.completedAt());
         String link = portalUrl + "/abonne/transactions";

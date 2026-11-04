@@ -38,6 +38,11 @@ docs/        Cadrage, modèle de données, contrats d'API, maquettes
 | [docs/02-modele-donnees.md](docs/02-modele-donnees.md) | Modèle de données (13 entités) |
 | [docs/03-api-fournisseurs-simules.md](docs/03-api-fournisseurs-simules.md) | Contrat d'API du simulateur |
 | [docs/04-plan-12-semaines.md](docs/04-plan-12-semaines.md) | Plan et avancement |
+| [docs/05-avancement.md](docs/05-avancement.md) | Journal d'avancement |
+| [docs/06-suivi-taches.md](docs/06-suivi-taches.md) | Tâches réalisées et restantes |
+| [docs/07-production.md](docs/07-production.md) | Préparation de production |
+| [docs/guide-admin.md](docs/guide-admin.md) | Guide administrateur |
+| [docs/guide-abonne.md](docs/guide-abonne.md) | Guide abonné |
 | [docs/references/](docs/references/) | Conception, étude et checklist d'origine |
 | [docs/maquettes/](docs/maquettes/) | Maquettes des écrans |
 
@@ -93,6 +98,7 @@ Le realm n'est importé qu'au premier démarrage. Après modification de `infra/
 | Préfixe | Accès |
 |---------|-------|
 | `/api/me`, `/api/me/connexion` | Tout utilisateur connecté (profil, journalisation de la connexion) |
+| `/api/me/deconnexion` | Tout utilisateur connecté (journalisation de la déconnexion) |
 | `/api/admin/**` | Rôle `ADMIN` |
 | `/api/abonne/**` | Rôle `ABONNE` |
 | Tout autre chemin `/api/**` | Refusé |

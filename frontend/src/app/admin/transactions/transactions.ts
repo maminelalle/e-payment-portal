@@ -22,9 +22,11 @@ const PAGE_SIZE = 20;
         <h1 class="page-title">Transactions</h1>
         <p class="page-subtitle">
           {{ total() }} transaction{{ total() > 1 ? 's' : '' }}
-          @if (pageAmount() > 0) { · {{ formatAmount(pageAmount()) }} réussis sur cette page }
+          @if (collected() > 0) { · {{ formatAmount(collected()) }} encaissés sur la période }
         </p>
       </div>
+      <p-button label="Exporter en CSV" icon="pi pi-file-export" severity="secondary" [outlined]="true"
+        [disabled]="!total()" (onClick)="exportCsv()" />
     </div>
     <app-transaction-filters [methods]="methods()" [initialReference]="q()" (changed)="applyFilter($event)" />
     <app-transaction-table [transactions]="rows()" [showSubscriber]="true"
@@ -41,6 +43,7 @@ export class AdminTransactions implements OnInit {
   readonly q = input<string>();
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
+  protected readonly collected = signal(0);
   protected readonly loading = signal(false);
   protected readonly methods = signal<{ code: string; name: string }[]>([]);
   protected readonly formatAmount = formatAmount;
@@ -55,13 +58,14 @@ export class AdminTransactions implements OnInit {
         debounceTime(250),
         switchMap(() => {
           this.loading.set(true);
+          this.api.transactionTotals(this.filter).subscribe({ next: (t) => this.collected.set(t.collected), error: () => this.collected.set(0) });
           return this.api.transactions(0, PAGE_SIZE, this.filter);
         }),
         takeUntilDestroyed(inject(DestroyRef)),
       )
       .subscribe((page) => {
-        this.rows.set(page.content);
-        this.total.set(page.totalElements);
+        this.rows.set(page.items);
+        this.total.set(page.total);
         this.page = 1;
         this.loading.set(false);
       });
@@ -72,12 +76,6 @@ export class AdminTransactions implements OnInit {
     this.reload$.next();
   }
 
-  protected pageAmount(): number {
-    return this.rows()
-      .filter((t) => t.status === 'SUCCEEDED')
-      .reduce((sum, t) => sum + t.amount, 0);
-  }
-
   protected applyFilter(filter: TransactionFilter): void {
     this.filter = filter;
     this.reload$.next();
@@ -86,10 +84,14 @@ export class AdminTransactions implements OnInit {
   protected more(): void {
     this.loading.set(true);
     this.api.transactions(this.page, PAGE_SIZE, this.filter).subscribe((page) => {
-      this.rows.update((rows) => [...rows, ...page.content]);
+      this.rows.update((rows) => [...rows, ...page.items]);
       this.page++;
       this.loading.set(false);
     });
+  }
+
+  protected exportCsv(): void {
+    this.api.transactionsCsv(this.filter).subscribe((blob) => downloadBlob(blob, 'transactions.csv'));
   }
 
   protected download(tx: Transaction): void {
