@@ -117,15 +117,41 @@ class SecurityRulesTests {
                 .andExpect(jsonPath("$.id").isNotEmpty());
     }
 
+    @Test
+    void sameVerifiedEmailWithNewKeycloakIdKeepsTheLocalAccount() throws Exception {
+        String email = "relink-" + UUID.randomUUID() + "@exemple.mr";
+        String before = UUID.randomUUID().toString();
+        mvc.perform(post("/api/me/connexion").with(user(before, email, Roles.ABONNE))).andExpect(status().isOk());
+        String id = jdbc.queryForObject("select id::text from app_user where keycloak_id = ?", String.class, before);
+
+        // Realm réimporté : même personne, nouvel identifiant Keycloak → plus de 409, même compte local.
+        String after = UUID.randomUUID().toString();
+        mvc.perform(post("/api/me/connexion").with(user(after, email, Roles.ABONNE)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id));
+        assertThat(jdbc.queryForObject("select keycloak_id from app_user where id = ?::uuid", String.class, id))
+                .isEqualTo(after);
+        assertThat(auditActions(after)).containsExactly(UserAccountService.ACCOUNT_RELINKED, UserAccountService.LOGIN);
+
+        // Email non vérifié : pas de rattachement, le doublon reste refusé.
+        mvc.perform(post("/api/me/connexion").with(user(UUID.randomUUID().toString(), email, false, Roles.ABONNE)))
+                .andExpect(status().isConflict());
+    }
+
     private List<String> auditActions(String subject) {
         return jdbc.queryForList("select action from audit_log where actor_subject = ? order by id", String.class,
                 subject);
     }
 
     private static RequestPostProcessor user(String subject, String email, String... roles) {
+        return user(subject, email, true, roles);
+    }
+
+    private static RequestPostProcessor user(String subject, String email, boolean emailVerified, String... roles) {
         return jwt()
                 .jwt(token -> token.subject(subject)
                         .claim("email", email)
+                        .claim("email_verified", emailVerified)
                         .claim("name", email)
                         .claim("realm_access", Map.of("roles", List.of(roles))))
                 .authorities(new KeycloakRealmRoleConverter());

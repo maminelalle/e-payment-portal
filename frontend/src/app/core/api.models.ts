@@ -312,6 +312,7 @@ export interface AuditFilter {
 export const AUDIT_ACTION_LABELS: Record<string, string> = {
   LOGIN: 'Connexion',
   LOGOUT: 'Déconnexion',
+  ACCOUNT_RELINKED: 'Compte relié à un nouvel identifiant Keycloak',
   UPDATE_PASSWORD: 'Mot de passe modifié',
   ACCESS_DENIED: 'Accès refusé',
   ADMIN_REQUEST: 'Requête administrateur',

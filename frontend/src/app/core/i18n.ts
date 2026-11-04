@@ -273,8 +273,10 @@ export class I18n {
       for (const attribute of ['aria-label', 'title', 'placeholder']) {
         const value = element.getAttribute(attribute);
         if (!value) continue;
-        const original = element.dataset[`i18n${attribute}`] ?? value;
-        element.dataset[`i18n${attribute}`] = original;
+        // Clé data-* valide : « aria-label » → i18nAriaLabel (un tiret suivi d'une minuscule est refusé).
+        const key = `i18n${attribute.replace(/(^|-)([a-z])/g, (_, __, c: string) => c.toUpperCase())}`;
+        const original = element.dataset[key] ?? value;
+        element.dataset[key] = original;
         const next = arabic ? this.translateText(original) : original;
         if (value !== next) element.setAttribute(attribute, next);
       }

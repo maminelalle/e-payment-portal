@@ -26,7 +26,8 @@ class AppUser {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "keycloak_id", nullable = false, unique = true, updatable = false)
+    // Modifiable uniquement par relinkTo (même email vérifié, nouveau compte Keycloak).
+    @Column(name = "keycloak_id", nullable = false, unique = true)
     private String keycloakId;
 
     @Column(nullable = false)
@@ -60,6 +61,12 @@ class AppUser {
 
     AppUser(String keycloakId) {
         this.keycloakId = keycloakId;
+    }
+
+    /** Même personne (même email), nouveau compte Keycloak : par exemple après une réimportation du realm. */
+    void relinkTo(String newKeycloakId) {
+        this.keycloakId = newKeycloakId;
+        this.updatedAt = Instant.now();
     }
 
     /** Recopie l'identité et les rôles portés par le jeton (Keycloak fait foi). */

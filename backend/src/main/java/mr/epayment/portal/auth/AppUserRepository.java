@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 interface AppUserRepository extends JpaRepository<AppUser, UUID> {
 
     Optional<AppUser> findByKeycloakId(String keycloakId);
+
+    Optional<AppUser> findByEmailIgnoreCase(String email);
 }

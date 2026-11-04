@@ -16,6 +16,7 @@ class UserAccountService {
 
     static final String LOGIN = "LOGIN";
     static final String LOGOUT = "LOGOUT";
+    static final String ACCOUNT_RELINKED = "ACCOUNT_RELINKED";
 
     private final AppUserRepository users;
     private final RoleRepository roles;
@@ -38,7 +39,7 @@ class UserAccountService {
         var jwt = authentication.getToken();
         Set<String> roleCodes = roleCodes(authentication);
 
-        AppUser user = users.findByKeycloakId(jwt.getSubject()).orElseGet(() -> new AppUser(jwt.getSubject()));
+        AppUser user = users.findByKeycloakId(jwt.getSubject()).orElseGet(() -> relinkedOrNew(authentication));
         user.refreshFrom(jwt.getClaimAsString("email"), fullName(jwt.getClaims()), roles.findByCodeIn(roleCodes));
         user.markLoggedIn();
         users.saveAndFlush(user);
@@ -46,6 +47,26 @@ class UserAccountService {
         auditService.record(AuditEvent.of(authentication, LOGIN, "USER", user.getId().toString(), Outcome.SUCCESS,
                 Map.of("roles", roleCodes)));
         return toCurrentUser(user);
+    }
+
+    /**
+     * Compte local introuvable pour ce sujet Keycloak. Si l'email (vérifié par Keycloak) correspond à un compte
+     * existant, c'est la même personne avec un nouvel identifiant Keycloak (realm réimporté, compte recréé) :
+     * le compte local, et donc l'abonné qui lui est rattaché, est relié au nouvel identifiant. Sinon, nouveau compte.
+     */
+    private AppUser relinkedOrNew(JwtAuthenticationToken authentication) {
+        var jwt = authentication.getToken();
+        String email = jwt.getClaimAsString("email");
+        if (email == null || !Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified"))) {
+            return new AppUser(jwt.getSubject());
+        }
+        return users.findByEmailIgnoreCase(email).map(existing -> {
+            String previous = existing.getKeycloakId();
+            existing.relinkTo(jwt.getSubject());
+            auditService.record(AuditEvent.of(authentication, ACCOUNT_RELINKED, "USER", existing.getId().toString(),
+                    Outcome.SUCCESS, Map.of("previousKeycloakId", previous, "keycloakId", jwt.getSubject())));
+            return existing;
+        }).orElseGet(() -> new AppUser(jwt.getSubject()));
     }
 
     /** Profil courant, lu dans le jeton ; l'identifiant local est renseigné si le compte existe déjà. */
