@@ -1,0 +1,8 @@
+10015	IGNORE	index.html en « no-cache » volontairement : chaque visite revalide la version de l'application.
+10049	IGNORE	Informatif : fichiers versionnés en cache un an, index.html revalidé.
+10055	WARN	style-src 'unsafe-inline' requis par PrimeNG (styles de thème injectés à l'exécution) ; script-src reste 'self' uniquement.
+10094	IGNORE	Faux positif : chemins des polices Google et alphabet base64 dans le code JavaScript.
+10109	IGNORE	Informatif : application Angular (SPA).
+10110	IGNORE	bypassSecurityTrustHtml est dans le code du framework Angular ; le portail n'utilise que bypassSecurityTrustResourceUrl sur ses propres PDF (blob:).
+90004	WARN	Cross-Origin-Embedder-Policy non défini (COOP et CORP le sont) : require-corp bloquerait les polices Google.
+90005	IGNORE	Faux positif : en-têtes Sec-Fetch-* envoyés par le navigateur, absents des requêtes du scanner.

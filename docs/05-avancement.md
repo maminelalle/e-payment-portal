@@ -112,11 +112,11 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [x] Écran du journal d'audit
 
 ### Semaine 12 — Recette et mise en ligne
-- [~] Tests de bout en bout Playwright : 13 scénarios écrits ; public, admin (avec TOTP) et mobile validés sur la recette, scénarios abonné à lancer sur un compte avec contrat actif
-- [ ] Scan de sécurité OWASP ZAP et corrections (script prêt : infra/security/zap-baseline.sh)
+- [x] Tests de bout en bout Playwright : 16 scénarios, tous verts sur la recette HTTPS (dont le parcours complet nouvel abonné → signature → paiement)
+- [x] Scan de sécurité OWASP ZAP : 0 échec, 2 avertissements acceptés et justifiés (infra/security/zap-rules.tsv)
 - [x] Configuration de production : Docker Compose, Nginx, HTTPS (pile complète testée en local sur https://localhost:8443)
-- [~] Sauvegardes quotidiennes PostgreSQL + documents S3 + base Keycloak : service planifié écrit, restauration à tester
-- [~] Guides administrateur et abonné (1 page chacun) : ébauches, nouveautés à ajouter
+- [x] Sauvegardes quotidiennes PostgreSQL + documents S3 + base Keycloak ; restauration testée (base temporaire, mêmes nombres de lignes)
+- [x] Guides administrateur et abonné (1 page chacun), à jour des nouveautés
 - [ ] Démo finale — **jalon : version pilote en ligne**
 - [x] Correctifs de recette (04/11) :
   - connexion bloquée après réimport du realm : le compte local est rattaché au nouvel identifiant Keycloak si l'email est vérifié (audit ACCOUNT_RELINKED) ;
@@ -124,6 +124,11 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
   - export Excel/CSV : indicateur de chargement et message d'erreur ;
   - favicon remplacé par le logo E-Payment (icon.svg).
   Vérifié dans le navigateur : profil, export, test des fournisseurs, connexion abonné.
+- [x] Défauts trouvés par la recette (04/11) :
+  - traduction automatique : remettait le premier texte affiché à chaque changement (bouton « Payer 125,00 MRU », résultats Ctrl+K), même en français ;
+  - production : feuille de styles globale bloquée par la CSP (chargement différé d'Angular) ; recherche Ctrl+K : réponse d'une ancienne saisie ignorée ;
+  - nginx : limite de débit de la connexion sur les seuls POST (réponse 429), en-têtes de sécurité sur toutes les réponses ;
+  - sauvegarde : image reconstruite, la base Keycloak est bien incluse.
 
 ### Améliorations proposées, non réalisées (à arbitrer)
 - [ ] Lien / QR code de paiement à envoyer à un client ; paiements récurrents ou programmés

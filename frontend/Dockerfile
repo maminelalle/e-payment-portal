@@ -10,3 +10,4 @@ FROM nginx:1.31.8-alpine
 COPY --from=build /src/dist/frontend/browser /usr/share/nginx/html
 # Modèle traité au démarrage par l'image officielle (envsubst) : PORTAL_HOST, etc.
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx-security-headers.conf /etc/nginx/snippets/security-headers.conf

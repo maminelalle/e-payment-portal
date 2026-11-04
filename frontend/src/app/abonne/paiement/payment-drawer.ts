@@ -42,7 +42,8 @@ export class PaymentDrawer {
   protected readonly redirecting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly tx = signal<Transaction | null>(null);
-  protected amount: number | null = null;
+  // Signal : le bouton « Payer 125,00 MRU » est dans le pied du tiroir, rafraîchi seulement par un signal.
+  protected readonly amount = signal<number | null>(null);
   protected phone = '';
   protected description = '';
   /** Une clé par tentative : renvoyer le formulaire ne crée jamais un second paiement. */
@@ -53,7 +54,7 @@ export class PaymentDrawer {
     inject(DestroyRef).onDestroy(() => this.watching?.unsubscribe());
     effect(() => {
       if (this.method()) {
-        this.amount = null;
+        this.amount.set(null);
         this.phone = '';
         this.description = '';
         this.idempotencyKey = crypto.randomUUID();
@@ -74,11 +75,12 @@ export class PaymentDrawer {
   protected pay(): void {
     const method = this.method();
     if (!method) return;
-    if (!this.amount || this.amount <= 0) {
+    const amount = this.amount();
+    if (!amount || amount <= 0) {
       this.error.set('Indiquez un montant.');
       return;
     }
-    if (this.amount > method.perTransactionLimit) {
+    if (amount > method.perTransactionLimit) {
       this.error.set(`Le plafond par transaction est de ${formatAmount(method.perTransactionLimit, method.currency)}.`);
       return;
     }
@@ -92,7 +94,7 @@ export class PaymentDrawer {
       .pay(
         {
           method: method.code,
-          amount: this.amount,
+          amount,
           payerPhone: method.category === 'WALLET' ? this.phone : null,
           description: this.description.trim() || null,
         },

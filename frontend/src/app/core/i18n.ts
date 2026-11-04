@@ -236,11 +236,21 @@ const ARABIC: TranslationMap = {
   'Actions': 'الإجراءات',
 };
 
+interface Rendered {
+  source: string;
+  rendered: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class I18n {
   private readonly document = inject(DOCUMENT);
   private readonly preferences = inject(Preferences);
-  private readonly originals = new WeakMap<Node, string>();
+  /**
+   * Texte source (français) et dernier texte affiché par ce service. Si le texte affiché n'est plus celui-là,
+   * c'est Angular qui l'a changé (« Payer » → « Payer 125,00 MRU ») : il devient la nouvelle source.
+   */
+  private readonly texts = new WeakMap<Node, Rendered>();
+  private readonly attributes = new WeakMap<Element, Map<string, Rendered>>();
   private observer?: MutationObserver;
 
   constructor() {
@@ -260,27 +270,31 @@ export class I18n {
     while ((node = walker.nextNode())) textNodes.push(node as Text);
 
     for (const text of textNodes) {
-      if (!this.originals.has(text) || !this.originals.get(text)) this.originals.set(text, text.nodeValue ?? '');
-      const original = this.originals.get(text) ?? '';
-      const trimmed = original.trim();
+      const current = text.nodeValue ?? '';
+      let entry = this.texts.get(text);
+      if (!entry || entry.rendered !== current) {
+        entry = { source: current, rendered: current };
+        this.texts.set(text, entry);
+      }
+      const trimmed = entry.source.trim();
       if (!trimmed || text.parentElement?.closest('script,style')) continue;
       const translated = arabic ? this.translateText(trimmed) : trimmed;
-      const leading = original.slice(0, original.indexOf(trimmed));
-      const trailing = original.slice(original.indexOf(trimmed) + trimmed.length);
-      const next = leading + translated + trailing;
-      if (text.nodeValue !== next) text.nodeValue = next;
+      const leading = entry.source.slice(0, entry.source.indexOf(trimmed));
+      const trailing = entry.source.slice(entry.source.indexOf(trimmed) + trimmed.length);
+      entry.rendered = leading + translated + trailing;
+      if (current !== entry.rendered) text.nodeValue = entry.rendered;
     }
 
     for (const element of Array.from(this.document.body.querySelectorAll<HTMLElement>('*'))) {
       for (const attribute of ['aria-label', 'title', 'placeholder']) {
         const value = element.getAttribute(attribute);
         if (!value) continue;
-        // Clé data-* valide : « aria-label » → i18nAriaLabel (un tiret suivi d'une minuscule est refusé).
-        const key = `i18n${attribute.replace(/(^|-)([a-z])/g, (_, __, c: string) => c.toUpperCase())}`;
-        const original = element.dataset[key] ?? value;
-        element.dataset[key] = original;
-        const next = arabic ? this.translateText(original) : original;
-        if (value !== next) element.setAttribute(attribute, next);
+        let byName = this.attributes.get(element);
+        if (!byName) this.attributes.set(element, (byName = new Map()));
+        let entry = byName.get(attribute);
+        if (!entry || entry.rendered !== value) byName.set(attribute, (entry = { source: value, rendered: value }));
+        entry.rendered = arabic ? this.translateText(entry.source) : entry.source;
+        if (value !== entry.rendered) element.setAttribute(attribute, entry.rendered);
       }
     }
   }

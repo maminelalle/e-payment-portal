@@ -7,13 +7,24 @@ export const ADMIN = {
   password: process.env['E2E_ADMIN_PASSWORD'] ?? 'Admin#Demo2026',
 };
 
-export const ABONNE = {
-  email: process.env['E2E_ABONNE_EMAIL'] ?? 'contact@exemple.mr',
-  password: process.env['E2E_ABONNE_PASSWORD'] ?? 'Abonne#Demo2026',
-};
+/** Abonné de test : variables E2E_ABONNE_*, sinon celui créé par parcours.spec.ts, sinon le compte de démonstration. */
+const ABONNE_FILE = 'e2e/.auth/abonne.json';
+export const ABONNE: { email: string; password: string } = process.env['E2E_ABONNE_EMAIL']
+  ? { email: process.env['E2E_ABONNE_EMAIL'], password: process.env['E2E_ABONNE_PASSWORD'] ?? '' }
+  : existsSync(ABONNE_FILE)
+    ? JSON.parse(readFileSync(ABONNE_FILE, 'utf8'))
+    : { email: 'contact@exemple.mr', password: 'Abonne#Demo2026' };
+
+export function saveAbonne(account: { email: string; password: string }) {
+  mkdirSync('e2e/.auth', { recursive: true });
+  writeFileSync(ABONNE_FILE, JSON.stringify(account));
+  Object.assign(ABONNE, account);
+}
 
 /** Secret TOTP de l'admin de test : variable E2E_ADMIN_TOTP_SECRET, ou mémorisé lors de l'enrôlement. */
 const TOTP_FILE = 'e2e/.auth/totp-secret';
+/** Dernière fenêtre de 30 s utilisée : Keycloak refuse de revoir le même code, même d'un fichier de test à l'autre. */
+const TOTP_LAST = 'e2e/.auth/totp-last';
 
 /**
  * Connexion par la page Keycloak, puis retour sur l'espace du rôle.
@@ -38,15 +49,22 @@ export async function login(page: Page, account: { email: string; password: stri
     const secret = (await page.locator('#kc-totp-secret-key').innerText()).replace(/\s/g, '');
     mkdirSync('e2e/.auth', { recursive: true });
     writeFileSync(TOTP_FILE, secret);
-    await page.locator('#totp').fill(totp(secret));
+    await page.locator('#totp').fill(await freshTotp(secret));
     await page.locator('#saveTOTPBtn, input[type=submit]').first().click();
   } else if (next === 'otp') {
     const secret = process.env['E2E_ADMIN_TOTP_SECRET'] ?? (existsSync(TOTP_FILE) ? readFileSync(TOTP_FILE, 'utf8') : '');
     if (!secret) throw new Error('Code TOTP demandé : définir E2E_ADMIN_TOTP_SECRET');
-    await page.locator('#otp').fill(totp(secret));
+    await page.locator('#otp').fill(await freshTotp(secret));
     await page.locator('#kc-login').click();
   }
   await expect(page).toHaveURL(done, { timeout: 20_000 });
+}
+
+async function freshTotp(secret: string): Promise<string> {
+  const last = existsSync(TOTP_LAST) ? Number(readFileSync(TOTP_LAST, 'utf8')) : 0;
+  while (Math.floor(Date.now() / 30_000) <= last) await new Promise((resolve) => setTimeout(resolve, 1_000));
+  writeFileSync(TOTP_LAST, String(Math.floor(Date.now() / 30_000)));
+  return totp(secret);
 }
 
 /** Français et thème clair au premier chargement de chaque test. */

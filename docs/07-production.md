@@ -102,7 +102,8 @@ La base `keycloak` (comptes, MFA) est sauvegardée en même temps (`EXTRA_DB_NAM
 
 ## Tests de bout en bout (Playwright)
 
-Scénarios dans `frontend/e2e/` : pages publiques (statut, vérification de reçu, langue arabe, routes protégées),
+Scénarios dans `frontend/e2e/` : parcours complet d'un nouvel abonné (création et contrat par l'admin,
+invitation et mot de passe, signature avec le code reçu par email, contrat actif), pages publiques (statut, vérification de reçu, langue arabe, routes protégées),
 espace abonné (accueil, paiement Bankily et reçu, export CSV, arabe et mode sombre), espace admin (tableau de
 bord, état des fournisseurs, recherche Ctrl+K, compteurs, audit) et absence de défilement horizontal sur mobile.
 
@@ -114,10 +115,14 @@ npm run e2e
 # Recette HTTPS : administrateur de test créé dans Keycloak (la MFA reste active, le test calcule le TOTP)
 sh ../infra/keycloak/create-e2e-admin.sh e2e-admin@epayment.mr '<mot de passe>'
 E2E_BASE_URL=https://<recette> E2E_ADMIN_EMAIL=e2e-admin@epayment.mr E2E_ADMIN_PASSWORD='<mot de passe>' \
-  npx playwright test e2e/public.spec.ts e2e/admin.spec.ts e2e/responsive.spec.ts
+  npx playwright test
 ```
 
-Les scénarios abonné demandent un abonné avec un contrat actif (`E2E_ABONNE_EMAIL`, `E2E_ABONNE_PASSWORD`).
+Le parcours complet lit les emails dans Mailpit (`MAILPIT_URL`, http://localhost:8025 par défaut) et mémorise
+l'abonné créé dans `e2e/.auth/abonne.json` pour les scénarios abonné (sinon `E2E_ABONNE_EMAIL` et
+`E2E_ABONNE_PASSWORD`). Chaque passage crée un abonné « Société E2E … » : réservé à la recette.
+Nginx limite les envois de connexion (POST sur `/auth`, 30 par minute et par adresse IP, réponse 429) :
+entre deux passages complets rapprochés, attendre une minute.
 Rapport HTML : `frontend/e2e-report/`.
 
 ## Scan de sécurité (OWASP ZAP)
@@ -128,3 +133,8 @@ sh infra/security/zap-baseline.sh https://<recette>
 
 Scan passif (aucune attaque) ; rapports dans `infra/security/reports/`. Une alerte acceptée en connaissance de
 cause est ajoutée à `infra/security/zap-rules.tsv` avec sa justification.
+
+Dernier scan (04/11/2026, recette) : 0 échec, 63 contrôles réussis, 2 avertissements acceptés
+(`style-src 'unsafe-inline'` exigé par PrimeNG ; pas de Cross-Origin-Embedder-Policy, qui bloquerait les
+polices Google). Corrigés à la suite du scan : en-têtes de sécurité (Permissions-Policy, COOP, CORP) sur
+toutes les réponses via `frontend/nginx-security-headers.conf`, cache d'un an réservé aux fichiers versionnés.

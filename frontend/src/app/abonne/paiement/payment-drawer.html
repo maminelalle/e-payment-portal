@@ -94,7 +94,7 @@
         <p-button label="Retour à l'accueil" severity="secondary" [outlined]="true" styleClass="w-full" routerLink="/abonne" (onClick)="close()" />
       } @else if (!redirecting()) {
         <p-button
-          [label]="(method()?.category === 'CARD' ? 'Continuer vers le paiement' : 'Payer') + (amount ? ' ' + formatAmount(amount, method()?.currency) : '')"
+          [label]="(method()?.category === 'CARD' ? 'Continuer vers le paiement' : 'Payer') + (amount() ? ' ' + formatAmount(amount()!, method()?.currency) : '')"
           styleClass="w-full"
           [loading]="busy()"
           (onClick)="pay()"

@@ -15,13 +15,14 @@ test('accueil : situation du compte, contrat et moyens de paiement', async ({ pa
 
 test('paiement Bankily réussi, puis visible dans l’historique avec son reçu', async ({ page }) => {
   const payButton = page.getByRole('button', { name: 'Payer avec Bankily' });
-  await page.getByRole('heading', { name: 'Mes moyens de paiement' }).waitFor();
+  await page.locator('app-method-cards article').first().waitFor();
   test.skip(!(await payButton.isVisible()), 'Bankily n’est pas ouvert pour ce compte');
   await payButton.click();
   await page.locator('#amount').fill('125');
   await page.locator('#phone').fill('22000001');
   await page.getByRole('button', { name: /^Payer 125,00/ }).click();
-  await expect(page.getByRole('button', { name: 'Télécharger le reçu' })).toBeVisible({ timeout: 20_000 });
+  // Le bouton apparaît grisé pendant la confirmation : on attend qu'il soit actif (paiement réussi).
+  await expect(page.locator('.p-drawer').getByRole('button', { name: 'Télécharger le reçu' })).toBeEnabled({ timeout: 30_000 });
 
   await page.goto('/abonne/transactions');
   const firstRow = page.locator('app-transaction-table tbody tr').first();
@@ -34,7 +35,7 @@ test('paiement Bankily réussi, puis visible dans l’historique avec son reçu'
 
 test('export CSV de l’historique', async ({ page }) => {
   await page.goto('/abonne/transactions');
-  const exportButton = page.getByRole('button', { name: 'Exporter en CSV' });
+  const exportButton = page.getByRole('button', { name: 'Exporter (Excel, CSV)' });
   await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
   await page.waitForLoadState('networkidle');
   test.skip(await exportButton.isDisabled(), 'Aucune transaction à exporter');

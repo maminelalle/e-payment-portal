@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
-import { catchError, debounceTime, forkJoin, of, Subject, switchMap } from 'rxjs';
+import { catchError, debounceTime, forkJoin, map, of, Subject, switchMap } from 'rxjs';
 
 import { formatAmount } from '../shared/formatting';
 import { AdminApi } from './admin-api';
@@ -131,7 +131,7 @@ export class RechercheGlobale {
         debounceTime(200),
         switchMap((q) => {
           const pages = PAGES.filter((p) => normalize(p.title).includes(normalize(q)));
-          if (q.length < 2) return of(q ? pages : PAGES);
+          if (q.length < 2) return of({ q, hits: q ? pages : PAGES });
           this.loading.set(true);
           const none = { items: [], total: 0 };
           return forkJoin({
@@ -139,8 +139,9 @@ export class RechercheGlobale {
             contracts: this.api.searchContracts({ q, page: 0, size: 5 }).pipe(catchError(() => of(none))),
             transactions: this.api.transactions(0, 5, { q }).pipe(catchError(() => of(none))),
           }).pipe(
-            switchMap(({ subscribers, contracts, transactions }) =>
-              of<SearchHit[]>([
+            map(({ subscribers, contracts, transactions }) => ({
+              q,
+              hits: <SearchHit[]>[
                 ...subscribers.items.map((s) => ({
                   group: 'Abonnés', icon: 'pi pi-user', title: s.displayName, meta: s.reference, link: `/admin/abonnes/${s.id}`,
                 })),
@@ -154,12 +155,14 @@ export class RechercheGlobale {
                   link: '/admin/transactions', queryParams: { q: t.reference },
                 })),
                 ...pages,
-              ]),
-            ),
+              ],
+            })),
           );
         }),
       )
-      .subscribe((hits) => {
+      .subscribe(({ q, hits }) => {
+        // Réponse d'une saisie dépassée (« Ta » arrivé après « Transac ») : ignorée.
+        if (q !== this.query().trim()) return;
         this.hits.set(hits);
         this.active.set(0);
         this.loading.set(false);
