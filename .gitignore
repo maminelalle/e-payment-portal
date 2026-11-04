@@ -26,3 +26,15 @@ coverage/
 
 # Fichiers temporaires Office
 ~$*
+
+# Production : secrets, certificats et sauvegardes restent hors du dépôt
+infra/.env.prod
+infra/certs/*.pem
+infra/secrets/*
+!infra/secrets/README.md
+infra/backups/
+
+# Playwright
+frontend/e2e-report/
+frontend/test-results/
+frontend/e2e/.auth/

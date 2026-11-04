@@ -187,6 +187,10 @@ export class RechercheGlobale {
 
   protected onInput(value: string): void {
     this.query.set(value);
+    // Pages filtrées tout de suite : Entrée tapée avant la réponse du serveur ouvre déjà la bonne page.
+    const q = normalize(value.trim());
+    this.hits.set(q ? PAGES.filter((p) => normalize(p.title).includes(q)) : PAGES);
+    this.active.set(0);
     this.search$.next(value.trim());
   }
 

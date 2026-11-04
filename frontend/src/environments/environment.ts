@@ -1,7 +1,7 @@
-// Configuration de production (complétée en semaine 12 avec le domaine définitif).
+// Configuration de production : Keycloak est servi par le même domaine, sous /auth (voir nginx.conf.template).
 export const environment = {
   oidc: {
-    authority: 'http://localhost:8180/realms/epayment',
+    authority: `${window.location.origin}/auth/realms/epayment`,
     clientId: 'epayment-frontend',
   },
 };

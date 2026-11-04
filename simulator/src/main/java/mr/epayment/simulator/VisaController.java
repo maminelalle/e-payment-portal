@@ -146,7 +146,7 @@ class VisaController {
                   <label>Titulaire<input name="holder" placeholder="NOM PRÉNOM"></label>
                   <button type="submit">Payer %s</button>
                 </form>
-                <p><a href="/visa-gateway/pay/%s/annuler">Annuler et revenir au portail</a></p>
+                <p><a href="%s/annuler">Annuler et revenir au portail</a></p>
                 <details><summary>Cartes de test</summary>
                   <p>4111 1111 1111 1111 : accepté · 4000 0000 0000 0002 : refusé<br>
                   4000 0000 0000 9995 : fonds insuffisants · 4000 0000 0000 3220 : 3-D Secure (confirmation différée)</p>

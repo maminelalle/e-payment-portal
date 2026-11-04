@@ -112,11 +112,11 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [x] Écran du journal d'audit
 
 ### Semaine 12 — Recette et mise en ligne
-- [ ] Tests de bout en bout Playwright
-- [ ] Scan de sécurité OWASP ZAP et corrections
-- [ ] Configuration de production : Docker Compose, Nginx, HTTPS
-- [ ] Sauvegardes quotidiennes PostgreSQL + stockage S3
-- [ ] Guides administrateur et abonné (1 page chacun)
+- [~] Tests de bout en bout Playwright : 13 scénarios écrits ; public, admin (avec TOTP) et mobile validés sur la recette, scénarios abonné à lancer sur un compte avec contrat actif
+- [ ] Scan de sécurité OWASP ZAP et corrections (script prêt : infra/security/zap-baseline.sh)
+- [x] Configuration de production : Docker Compose, Nginx, HTTPS (pile complète testée en local sur https://localhost:8443)
+- [~] Sauvegardes quotidiennes PostgreSQL + documents S3 + base Keycloak : service planifié écrit, restauration à tester
+- [~] Guides administrateur et abonné (1 page chacun) : ébauches, nouveautés à ajouter
 - [ ] Démo finale — **jalon : version pilote en ligne**
 
 ### Améliorations proposées, non réalisées (à arbitrer)
