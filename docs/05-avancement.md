@@ -118,6 +118,12 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [~] Sauvegardes quotidiennes PostgreSQL + documents S3 + base Keycloak : service planifié écrit, restauration à tester
 - [~] Guides administrateur et abonné (1 page chacun) : ébauches, nouveautés à ajouter
 - [ ] Démo finale — **jalon : version pilote en ligne**
+- [x] Correctifs de recette (04/11) :
+  - connexion bloquée après réimport du realm : le compte local est rattaché au nouvel identifiant Keycloak si l'email est vérifié (audit ACCOUNT_RELINKED) ;
+  - changement de nom de l'admin : l'ancien nom de famille Keycloak est vidé, les erreurs du serveur sont affichées ;
+  - export Excel/CSV : indicateur de chargement et message d'erreur ;
+  - favicon remplacé par le logo E-Payment (icon.svg).
+  Vérifié dans le navigateur : profil, export, test des fournisseurs, connexion abonné.
 
 ### Améliorations proposées, non réalisées (à arbitrer)
 - [ ] Lien / QR code de paiement à envoyer à un client ; paiements récurrents ou programmés

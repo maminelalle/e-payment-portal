@@ -30,9 +30,10 @@ export class AdminProfil {
         this.saving = false;
         this.messages.add({ severity: 'success', summary: 'Profil mis à jour' });
       },
-      error: () => {
+      error: (error) => {
         this.saving = false;
-        this.messages.add({ severity: 'error', summary: 'Mise à jour impossible', detail: 'Vérifiez les informations saisies.' });
+        this.messages.add({ severity: 'error', summary: 'Mise à jour impossible',
+          detail: error?.error?.detail ?? 'Vérifiez les informations saisies.' });
       },
     });
   }

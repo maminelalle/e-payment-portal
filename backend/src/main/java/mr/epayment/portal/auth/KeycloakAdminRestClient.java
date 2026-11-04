@@ -104,9 +104,17 @@ class KeycloakAdminRestClient implements KeycloakAdminClient {
     public void updateUser(String userId, String email, String displayName) {
         http.put().uri("/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("email", email, "username", email, "firstName", displayName))
-                .retrieve()
-                .toBodilessEntity();
+                // Le nom complet tient dans firstName : lastName est vidé, sinon Keycloak l'ajouterait au nom.
+                .body(Map.of("email", email, "username", email, "firstName", displayName, "lastName", ""))
+                .exchange((request, response) -> {
+                    if (response.getStatusCode().isSameCodeAs(HttpStatus.CONFLICT)) {
+                        throw new ConflictException("Un autre compte utilise déjà l'email " + email + ".");
+                    }
+                    if (response.getStatusCode().isError()) {
+                        throw new IllegalStateException("Mise à jour du compte Keycloak impossible : " + response.getStatusCode());
+                    }
+                    return null;
+                });
     }
 
     @Override

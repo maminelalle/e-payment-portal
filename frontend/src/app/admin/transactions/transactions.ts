@@ -1,5 +1,6 @@
 import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 
@@ -25,7 +26,7 @@ const PAGE_SIZE = 20;
           @if (collected() > 0) { · {{ formatAmount(collected()) }} encaissés sur la période }
         </p>
       </div>
-      <p-button label="Exporter en CSV" icon="pi pi-file-export" severity="secondary" [outlined]="true"
+      <p-button label="Exporter (Excel, CSV)" icon="pi pi-file-excel" severity="secondary" [outlined]="true" [loading]="exporting()"
         [disabled]="!total()" (onClick)="exportCsv()" />
     </div>
     <app-transaction-filters [methods]="methods()" [initialReference]="q()" (changed)="applyFilter($event)" />
@@ -45,6 +46,8 @@ export class AdminTransactions implements OnInit {
   protected readonly total = signal(0);
   protected readonly collected = signal(0);
   protected readonly loading = signal(false);
+  protected readonly exporting = signal(false);
+  private readonly messages = inject(MessageService);
   protected readonly methods = signal<{ code: string; name: string }[]>([]);
   protected readonly formatAmount = formatAmount;
   private filter: TransactionFilter = {};
@@ -91,7 +94,17 @@ export class AdminTransactions implements OnInit {
   }
 
   protected exportCsv(): void {
-    this.api.transactionsCsv(this.filter).subscribe((blob) => downloadBlob(blob, 'transactions.csv'));
+    this.exporting.set(true);
+    this.api.transactionsCsv(this.filter).subscribe({
+      next: (blob) => {
+        this.exporting.set(false);
+        downloadBlob(blob, 'transactions.csv');
+      },
+      error: () => {
+        this.exporting.set(false);
+        this.messages.add({ severity: 'error', summary: 'Export impossible', detail: 'Réessayez dans quelques instants.' });
+      },
+    });
   }
 
   protected download(tx: Transaction): void {
