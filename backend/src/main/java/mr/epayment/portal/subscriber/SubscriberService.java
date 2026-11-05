@@ -173,13 +173,13 @@ public class SubscriberService {
 
     private void checkIdentifierUnique(SubscriberType type, SubscriberDetails details, UUID currentId) {
         if (type == SubscriberType.PHYSIQUE && (currentId == null
-                ? subscribers.existsByNni(details.nni())
-                : subscribers.existsByNniAndIdNot(details.nni(), currentId))) {
+                ? subscribers.existsByNniHash(SensitiveData.hash(details.nni()))
+                : subscribers.existsByNniHashAndIdNot(SensitiveData.hash(details.nni()), currentId))) {
             throw new ConflictException("Un abonné utilise déjà le NNI " + details.nni() + ".");
         }
         if (type == SubscriberType.MORALE && (currentId == null
-                ? subscribers.existsByNif(details.nif())
-                : subscribers.existsByNifAndIdNot(details.nif(), currentId))) {
+                ? subscribers.existsByNifHash(SensitiveData.hash(details.nif()))
+                : subscribers.existsByNifHashAndIdNot(SensitiveData.hash(details.nif()), currentId))) {
             throw new ConflictException("Un abonné utilise déjà le NIF " + details.nif() + ".");
         }
     }

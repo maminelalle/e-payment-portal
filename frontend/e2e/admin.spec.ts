@@ -106,3 +106,16 @@ test('catalogue : modifier un moyen, contrôle du formulaire d’ajout, fourniss
   await sedad.getByRole('switch').click();
   await expect(page.getByText(/pas encore raccordé au portail/)).toBeVisible();
 });
+
+test('modèles de contrat : versions, aperçu, au moins une version proposée', async () => {
+  await page.goto('/admin/contrats');
+  await page.getByRole('button', { name: 'Modèles' }).click();
+  await expect(page).toHaveURL(/\/admin\/contrats\/modeles/);
+  const standard = page.locator('.row').filter({ hasText: 'Contrat standard' });
+  await expect(standard).toContainText('Proposé');
+  const popup = page.waitForEvent('popup');
+  await standard.getByRole('button', { name: 'Aperçu' }).click();
+  await (await popup).close();
+  await standard.getByRole('button', { name: 'Archiver' }).click();
+  await expect(page.getByText(/seul modèle proposé/)).toBeVisible();
+});

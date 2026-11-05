@@ -29,13 +29,13 @@ interface SubscriberRepository extends JpaRepository<Subscriber, UUID> {
 
     boolean existsByEmailIgnoreCase(String email);
 
-    boolean existsByNni(String nni);
+    boolean existsByNniHash(String nniHash);
 
-    boolean existsByNif(String nif);
+    boolean existsByNifHash(String nifHash);
 
-    boolean existsByNniAndIdNot(String nni, UUID id);
+    boolean existsByNniHashAndIdNot(String nniHash, UUID id);
 
-    boolean existsByNifAndIdNot(String nif, UUID id);
+    boolean existsByNifHashAndIdNot(String nifHash, UUID id);
 
     @Query(value = "select nextval('subscriber_ref_seq')", nativeQuery = true)
     long nextReferenceNumber();

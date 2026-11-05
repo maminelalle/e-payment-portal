@@ -198,6 +198,29 @@ class ContractAdminTests {
         }
     }
 
+    @Test
+    void templatesAreListedPreviewedAndAtLeastOneStaysProposed() throws Exception {
+        String body = mvc.perform(get("/api/admin/modeles").with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.code == 'STANDARD')].version").value(1))
+                .andExpect(jsonPath("$[?(@.code == 'STANDARD')].status").value("ACTIVE"))
+                .andReturn().getResponse().getContentAsString();
+        String id = com.jayway.jsonpath.JsonPath.<java.util.List<String>>read(body, "$[?(@.code == 'STANDARD')].id")
+                .getFirst();
+
+        mvc.perform(get("/api/admin/modeles/{id}/apercu", id).with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"));
+        // Seule version proposée : l'archiver laisserait l'assistant sans modèle
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .patch("/api/admin/modeles/{id}/statut", id).with(admin())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
+                .andExpect(status().isUnprocessableContent());
+        mvc.perform(get("/api/admin/modeles").with(jwt().authorities(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ABONNE"))))
+                .andExpect(status().isForbidden());
+    }
+
     private static RequestPostProcessor admin() {
         return jwt().jwt(token -> token.claim("email", "admin@epayment.mr"))
                 .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));

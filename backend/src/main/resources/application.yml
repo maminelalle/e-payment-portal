@@ -93,6 +93,10 @@ epayment:
       base-url: ${VISA_BASE_URL:http://localhost:8090/visa-gateway/api/v1}
       api-key: ${VISA_API_KEY:visa-dev-api-key}
       webhook-secret: ${VISA_WEBHOOK_SECRET:visa-dev-webhook-secret}
+  security:
+    # Clé AES-256 (32 octets en base64) du chiffrement des NNI / NIF en base. Ne jamais la changer une fois des
+    # données chiffrées (sauvegardes comprises) : conserver-la avec les sauvegardes. Valeur de développement ici.
+    data-key: ${DATA_ENCRYPTION_KEY:ZGV2LW9ubHkta2V5LWRvLW5vdC11c2UtaW4tcHJvZCE=}
   receipts:
     # Clé HMAC du code de vérification imprimé dans le QR des reçus : à remplacer hors développement.
     verification-secret: ${RECEIPT_VERIFICATION_SECRET:dev-receipt-secret-a-remplacer}

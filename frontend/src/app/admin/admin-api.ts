@@ -7,6 +7,7 @@ import {
   AuditEntry,
   AuditFilter,
   Contract,
+  ContractTemplateSummary,
   ContractVersion,
   ContractStatus,
   ContractTemplate,
@@ -138,6 +139,19 @@ export class AdminApi {
   /** Avenant à un contrat actif : brouillon prérempli qui remplacera le contrat une fois signé et activé. */
   createAmendment(id: string): Observable<Contract> {
     return this.http.post<Contract>(`/api/admin/contrats/${id}/avenant`, null);
+  }
+
+  /** Toutes les versions de modèles, proposées ou archivées (écran Modèles). */
+  allContractTemplates(): Observable<ContractTemplateSummary[]> {
+    return this.http.get<ContractTemplateSummary[]>('/api/admin/modeles');
+  }
+
+  contractTemplatePreview(id: string): Observable<Blob> {
+    return this.http.get(`/api/admin/modeles/${id}/apercu`, { responseType: 'blob' });
+  }
+
+  changeContractTemplateStatus(id: string, active: boolean): Observable<ContractTemplateSummary> {
+    return this.http.patch<ContractTemplateSummary>(`/api/admin/modeles/${id}/statut`, { active });
   }
 
   /** Le contrat initial et ses avenants, dans l'ordre. */

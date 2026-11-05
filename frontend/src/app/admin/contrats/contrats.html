@@ -3,7 +3,10 @@
     <h1 class="page-title">Contrats</h1>
     <p class="page-subtitle">Le contrat signé et actif est la seule source des droits de l'abonné</p>
   </div>
-  <p-button label="Nouveau contrat" icon="pi pi-plus" routerLink="/admin/contrats/nouveau" />
+  <div class="header-actions">
+    <p-button label="Modèles" icon="pi pi-clone" severity="secondary" [outlined]="true" routerLink="/admin/contrats/modeles" />
+    <p-button label="Nouveau contrat" icon="pi pi-plus" routerLink="/admin/contrats/nouveau" />
+  </div>
 </div>
 
 <div class="toolbar">

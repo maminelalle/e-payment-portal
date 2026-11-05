@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import mr.epayment.portal.TestcontainersConfiguration;
@@ -46,6 +47,9 @@ class SubscriberAdminTests {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private SensitiveDataBackfill backfill;
 
     @MockitoBean
     private KeycloakAdminClient keycloak;
@@ -82,6 +86,28 @@ class SubscriberAdminTests {
         assertThat(jdbc.queryForList("select action from audit_log where details->>'reference' = "
                 + "(select reference from subscriber where email = ?)", String.class, email))
                 .contains("SUBSCRIBER_CREATED");
+    }
+
+    @Test
+    void nniIsEncryptedInTheDatabaseAndStillUnique() throws Exception {
+        String nni = randomDigits(10);
+        String id = createdId(createPhysique(uniqueEmail(), nni, "36 00 00 04"));
+
+        // En base : texte chiffré « v1:… » et empreinte ; jamais le NNI en clair. L'API le rend déchiffré.
+        Map<String, Object> row = jdbc.queryForMap("select nni, nni_hash from subscriber where id = ?::uuid", id);
+        assertThat((String) row.get("nni")).startsWith("v1:").doesNotContain(nni);
+        assertThat((String) row.get("nni_hash")).hasSize(64);
+        mvc.perform(get("/api/admin/abonnes/{id}", id).with(admin())).andExpect(jsonPath("$.nni").value(nni));
+
+        // Même NNI : refusé grâce à l'empreinte, sans déchiffrer les autres abonnés
+        createPhysique(uniqueEmail(), nni, "36 00 00 05").andExpect(status().isConflict());
+
+        // Ancienne valeur en clair (avant V16) : chiffrée par le rattrapage du démarrage
+        jdbc.update("update subscriber set nni = ?, nni_hash = null where id = ?::uuid", nni, id);
+        backfill.run(null);
+        assertThat(jdbc.queryForObject("select nni from subscriber where id = ?::uuid", String.class, id))
+                .startsWith("v1:");
+        mvc.perform(get("/api/admin/abonnes/{id}", id).with(admin())).andExpect(jsonPath("$.nni").value(nni));
     }
 
     @Test

@@ -37,6 +37,7 @@ const PAGE_SIZE = 10;
   templateUrl: './contrats.html',
   styles: `
     .clickable { cursor: pointer; }
+    .header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .badges { display: flex; align-items: center; gap: 4px; }
     .more {
       display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 6px;

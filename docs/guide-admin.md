@@ -19,6 +19,8 @@ La console d'administration Keycloak n'est pas accessible depuis Internet : tout
    Pour changer les moyens, plafonds ou dates d'un contrat actif : **Créer un avenant** sur sa fiche. L'avenant
    (CTR-…-A1) est prérempli ; ajustez-le, envoyez-le. Le contrat actuel reste en vigueur jusqu'à la signature ;
    à l'activation, il passe « Remplacé par avenant ». La fiche montre l'**historique des versions**.
+   **Contrats → Modèles** : versions du modèle de contrat, aperçu PDF, choix des versions proposées dans
+   l'assistant (une nouvelle version arrive avec une mise à jour du portail).
 3. **Transactions** : suivre les paiements et leur statut fournisseur, filtrer par abonné, statut, moyen ou
    période, télécharger les reçus, et **Exporter (Excel, CSV)** la liste filtrée.
 4. **Paramètres et audit** : rechercher les connexions, signatures et actions administratives.

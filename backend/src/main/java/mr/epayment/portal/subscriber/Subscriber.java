@@ -1,11 +1,14 @@
 package mr.epayment.portal.subscriber;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
@@ -28,9 +31,20 @@ class Subscriber {
     @Column(name = "display_name", nullable = false)
     private String displayName;
 
+    /** Chiffrés en base (AES-256-GCM) ; les empreintes servent à l'unicité sans déchiffrer. */
+    @Convert(converter = EncryptedConverter.class)
     private String nni;
 
+    @Convert(converter = EncryptedConverter.class)
     private String nif;
+
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "nni_hash", length = 64)
+    private String nniHash;
+
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "nif_hash", length = 64)
+    private String nifHash;
 
     @Column(nullable = false)
     private String phone;
@@ -112,6 +126,8 @@ class Subscriber {
         this.displayName = details.displayName();
         this.nni = type == SubscriberType.PHYSIQUE ? details.nni() : null;
         this.nif = type == SubscriberType.MORALE ? details.nif() : null;
+        this.nniHash = SensitiveData.hash(nni);
+        this.nifHash = SensitiveData.hash(nif);
         this.phone = details.phone();
         this.address = details.address();
         this.updatedAt = Instant.now();

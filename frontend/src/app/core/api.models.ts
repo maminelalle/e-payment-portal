@@ -147,6 +147,17 @@ export interface Contract {
   amendment: { number: number; replacesId: string; replacesReference: string } | null;
 }
 
+/** Version d'un modèle de contrat (écran « Modèles de contrat »). */
+export interface ContractTemplateSummary {
+  id: string;
+  code: string;
+  name: string;
+  version: number;
+  status: 'ACTIVE' | 'ARCHIVED';
+  createdAt: string | null;
+  contractCount: number;
+}
+
 /** Une version d'un contrat : l'initial (amendmentNumber 0) ou l'un de ses avenants. */
 export interface ContractVersion {
   id: string;
@@ -380,6 +391,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   CONTACT_CHANGE_CODE_EXPIRED: 'Code de changement de coordonnées expiré',
   SUBSCRIBER_CONTACT_UPDATED: 'Coordonnées modifiées par l’abonné',
   CONTRACT_AMENDMENT_CREATED: 'Avenant créé',
+  CONTRACT_TEMPLATE_ACTIVATED: 'Modèle de contrat proposé',
+  CONTRACT_TEMPLATE_ARCHIVED: 'Modèle de contrat archivé',
   CONTRACT_REPLACED: 'Contrat remplacé par un avenant',
   PAYMENT_METHOD_CREATED: 'Moyen de paiement ajouté',
   PAYMENT_METHOD_UPDATED: 'Moyen de paiement modifié',

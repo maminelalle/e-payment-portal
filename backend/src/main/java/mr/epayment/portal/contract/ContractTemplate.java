@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.UUID;
 
 /** Modèle de contrat versionné. Un modèle publié n'est jamais modifié : on crée une nouvelle version. */
@@ -25,6 +26,9 @@ class ContractTemplate {
 
     private String status;
 
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
     protected ContractTemplate() {
     }
 
@@ -38,6 +42,31 @@ class ContractTemplate {
 
     boolean isActive() {
         return "ACTIVE".equals(status);
+    }
+
+    /** Seul le statut change : le contenu d'une version publiée est figé (D14). */
+    void changeStatus(boolean active) {
+        this.status = active ? "ACTIVE" : "ARCHIVED";
+    }
+
+    String getCode() {
+        return code;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    int getVersion() {
+        return version;
+    }
+
+    String getStatus() {
+        return status;
+    }
+
+    Instant getCreatedAt() {
+        return createdAt;
     }
 
     TemplateView toView() {

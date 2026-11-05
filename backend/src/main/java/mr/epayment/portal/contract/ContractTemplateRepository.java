@@ -9,4 +9,7 @@ interface ContractTemplateRepository extends JpaRepository<ContractTemplate, UUI
 
     @Query("select t from ContractTemplate t where t.status = 'ACTIVE' order by t.name, t.version desc")
     List<ContractTemplate> findActive();
+
+    @Query("select t from ContractTemplate t order by t.name, t.version desc")
+    List<ContractTemplate> findAllOrdered();
 }

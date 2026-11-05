@@ -88,6 +88,9 @@ docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.prod exec 
 docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.prod start backend
 ```
 
+**Clé de chiffrement** : les NNI / NIF sont chiffrés en base avec `DATA_ENCRYPTION_KEY` (D30). Conservez cette clé
+avec les sauvegardes, hors du serveur : sans elle, les identifiants restaurés sont illisibles. Ne la changez jamais.
+
 La base `keycloak` (comptes, MFA) est sauvegardée en même temps (`EXTRA_DB_NAMES`) ; la restaurer avec
 `restore.sh /backups/db/keycloak-<date>.dump keycloak` (Keycloak arrêté).
 

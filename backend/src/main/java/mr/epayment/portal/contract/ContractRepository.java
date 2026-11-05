@@ -28,6 +28,8 @@ interface ContractRepository extends JpaRepository<Contract, UUID> {
 
     long countByStatus(ContractStatus status);
 
+    long countByTemplateId(UUID templateId);
+
     /** Avenants déjà numérotés d'un contrat initial (« CTR-2026-0001-A1 »…), annulés compris. */
     long countByReferenceStartingWith(String prefix);
 

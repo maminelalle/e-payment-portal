@@ -35,6 +35,11 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./contrats/contrats').then((m) => m.Contrats),
       },
       {
+        path: 'contrats/modeles',
+        title: 'Modèles de contrat · E-Payment',
+        loadComponent: () => import('./contrats/modeles').then((m) => m.Modeles),
+      },
+      {
         path: 'contrats/nouveau',
         title: 'Nouveau contrat · E-Payment',
         loadComponent: () => import('./contrats/contrat-assistant').then((m) => m.ContratAssistant),
