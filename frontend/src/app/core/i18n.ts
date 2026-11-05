@@ -82,6 +82,8 @@ const ARABIC: TranslationMap = {
   'Nombre par jour': 'العدد يومياً',
   'Répartition par moyen': 'التوزيع حسب وسيلة الدفع',
   'Répartition': 'التوزيع',
+  "Conditions d'utilisation :": 'شروط الاستخدام:',
+  "Règles d'acceptation :": 'قواعد القبول:',
   'Vos coordonnées, la sécurité de votre compte et vos notifications.': 'بيانات الاتصال وأمان حسابك وإشعاراتك.',
   "Un code de confirmation sera envoyé à votre email de connexion. Le changement ne s'applique qu'après sa saisie.":
     'سيتم إرسال رمز تأكيد إلى بريد تسجيل الدخول. لا يُطبَّق التغيير إلا بعد إدخاله.',

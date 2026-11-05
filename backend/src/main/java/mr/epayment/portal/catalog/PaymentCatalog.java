@@ -9,13 +9,18 @@ import mr.epayment.portal.audit.AuditEvent;
 import mr.epayment.portal.audit.AuditEvent.Outcome;
 import mr.epayment.portal.audit.AuditService;
 import mr.epayment.portal.document.DocumentStorage;
+import mr.epayment.portal.shared.BusinessRuleException;
+import mr.epayment.portal.shared.ConflictException;
 import mr.epayment.portal.shared.FieldValidationException;
 import mr.epayment.portal.shared.NotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Catalogue des moyens de paiement : consultation, activation / désactivation, logos. */
+/**
+ * Catalogue des moyens de paiement (conception §3.3) : ajout, modification, activation / désactivation, logos.
+ * Un moyen passe toujours par l'un des fournisseurs raccordés (adaptateur Bankily, Masrvi ou passerelle bancaire).
+ */
 @Service
 public class PaymentCatalog {
 
@@ -23,13 +28,58 @@ public class PaymentCatalog {
     private static final int MAX_LOGO_BYTES = 256 * 1024;
 
     private final PaymentMethodRepository methods;
+    private final PaymentProviderRepository providers;
     private final DocumentStorage storage;
     private final AuditService auditService;
 
-    PaymentCatalog(PaymentMethodRepository methods, DocumentStorage storage, AuditService auditService) {
+    PaymentCatalog(PaymentMethodRepository methods, PaymentProviderRepository providers, DocumentStorage storage,
+            AuditService auditService) {
         this.methods = methods;
+        this.providers = providers;
         this.storage = storage;
         this.auditService = auditService;
+    }
+
+    /** Fournisseurs auxquels un nouveau moyen peut être rattaché, raccordés d'abord. */
+    @Transactional(readOnly = true)
+    public List<PaymentMethodView.Provider> providers() {
+        return providers.findAllByOrderByName().stream()
+                .sorted((a, b) -> Boolean.compare(b.isEnabled(), a.isEnabled()))
+                .map(PaymentProvider::toView)
+                .toList();
+    }
+
+    /**
+     * Ajoute un moyen, désactivé. Son type (wallet ou carte) est celui du fournisseur ; le fournisseur doit être
+     * raccordé, sinon aucun paiement ne pourrait aboutir.
+     */
+    @Transactional
+    public PaymentMethodView create(String code, String providerCode, String currency, MethodDetails details) {
+        String normalizedCode = code.trim().toUpperCase(Locale.ROOT);
+        if (methods.findByCode(normalizedCode).isPresent()) {
+            throw new ConflictException("Un moyen de paiement utilise déjà le code " + normalizedCode + ".");
+        }
+        PaymentProvider provider = providers.findByCode(providerCode)
+                .orElseThrow(() -> new FieldValidationException(Map.of("providerCode", "Fournisseur inconnu.")));
+        if (!provider.isEnabled()) {
+            throw new FieldValidationException(Map.of("providerCode",
+                    provider.getName() + " n'est pas encore raccordé au portail."));
+        }
+        PaymentMethod method = methods.saveAndFlush(new PaymentMethod(normalizedCode, provider,
+                currency.trim().toUpperCase(Locale.ROOT), details));
+        audit("PAYMENT_METHOD_CREATED", normalizedCode, Map.of("provider", provider.getCode(),
+                "category", provider.getKind(), "name", details.name()));
+        return method.toView();
+    }
+
+    /** Nom, pastille, couleur et textes ; le code, le fournisseur et la devise ne changent pas. */
+    @Transactional
+    public PaymentMethodView update(String code, MethodDetails details) {
+        PaymentMethod method = find(code);
+        String previousName = method.getName();
+        method.update(details);
+        audit("PAYMENT_METHOD_UPDATED", code, Map.of("previousName", previousName, "name", details.name()));
+        return method.toView();
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +181,10 @@ public class PaymentCatalog {
         PaymentMethod method = methods.findByCode(code)
                 .orElseThrow(() -> new NotFoundException("Moyen de paiement inconnu : " + code));
         PaymentMethodStatus previous = method.getStatus();
+        if (status == PaymentMethodStatus.ACTIVE && !method.getProvider().isEnabled()) {
+            throw new BusinessRuleException(method.getName() + " ne peut pas être activé : son fournisseur ("
+                    + method.getProvider().getName() + ") n'est pas encore raccordé au portail.");
+        }
         method.changeStatus(status);
         auditService.record(AuditEvent.of(SecurityContextHolder.getContext().getAuthentication(), STATUS_CHANGED,
                 "PAYMENT_METHOD", code, Outcome.SUCCESS, Map.of("from", previous.name(), "to", status.name())));

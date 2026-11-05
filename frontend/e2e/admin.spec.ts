@@ -76,3 +76,33 @@ test('journal d’audit : libellés traduits', async () => {
   await expect(page.getByText('Connexion').first()).toBeVisible();
   await expect(page.locator('td', { hasText: /^\s*LOGIN\s*$/ })).toHaveCount(0);
 });
+
+test('catalogue : modifier un moyen, contrôle du formulaire d’ajout, fournisseur non raccordé', async () => {
+  await page.goto('/admin/moyens');
+  const mastercard = page.locator('article.method').filter({ has: page.getByRole('heading', { name: 'Mastercard' }) });
+  const conditions = `Cartes Mastercard acceptées en MRU (vérifié le ${Date.now()}).`;
+  await mastercard.getByRole('button', { name: 'Modifier' }).click();
+  await page.locator('#method-conditions').fill(conditions);
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(mastercard).toContainText(conditions);
+  // Remise à vide : le catalogue de démonstration ne garde pas le texte du test.
+  await mastercard.getByRole('button', { name: 'Modifier' }).click();
+  await page.locator('#method-conditions').fill('');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(mastercard).not.toContainText('vérifié le');
+
+  // Ajout : code invalide refusé avant tout envoi ; le fournisseur non raccordé n'est pas proposé.
+  await page.getByRole('button', { name: 'Ajouter un moyen' }).click();
+  await page.locator('#method-code').fill('1-mauvais');
+  await page.locator('#method-name').fill('Essai');
+  await page.getByRole('button', { name: 'Ajouter le moyen' }).click();
+  await expect(page.getByText('2 à 30 caractères')).toBeVisible();
+  await expect(page.getByText('Choisissez le fournisseur.')).toBeVisible();
+  await page.getByRole('button', { name: 'Annuler' }).click();
+
+  // Sedad : son fournisseur n'est pas raccordé, l'activation est refusée avec la raison.
+  const sedad = page.locator('article.method').filter({ has: page.getByRole('heading', { name: 'Sedad' }) });
+  await expect(sedad).toContainText('Fournisseur non raccordé');
+  await sedad.getByRole('switch').click();
+  await expect(page.getByText(/pas encore raccordé au portail/)).toBeVisible();
+});

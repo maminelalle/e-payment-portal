@@ -25,6 +25,8 @@ class PaymentProvider {
     @Column(name = "credentials_ref")
     private String credentialsRef;
 
+    private String kind;
+
     private String status;
 
     @Column(name = "health_status")
@@ -37,6 +39,23 @@ class PaymentProvider {
     }
 
     PaymentMethodView.Provider toView() {
-        return new PaymentMethodView.Provider(code, name, status, healthStatus, lastHealthCheckAt);
+        return new PaymentMethodView.Provider(code, name, kind, status, healthStatus, lastHealthCheckAt);
+    }
+
+    String getCode() {
+        return code;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    String getKind() {
+        return kind;
+    }
+
+    /** Raccordé : un adaptateur existe et le fournisseur est en service (Sedad ne l'est pas encore). */
+    boolean isEnabled() {
+        return "ENABLED".equals(status);
     }
 }

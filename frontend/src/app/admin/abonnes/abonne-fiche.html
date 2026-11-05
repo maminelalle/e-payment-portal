@@ -158,7 +158,7 @@
     </form>
     <ng-template #footer>
       <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="editOpen.set(false)" />
-      <p-button label="Enregistrer" type="submit" form="edit-subscriber" [loading]="busy()" />
+      <p-button label="Enregistrer" [loading]="busy()" (onClick)="saveEdit()" />
     </ng-template>
   </p-dialog>
 }

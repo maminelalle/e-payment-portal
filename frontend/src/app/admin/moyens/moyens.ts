@@ -5,13 +5,14 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
-import { ApiProblem, PaymentMethod, ProviderHealth } from '../../core/api.models';
+import { ApiProblem, PaymentMethod, PaymentProviderInfo, ProviderHealth } from '../../core/api.models';
 import { MethodLogo } from '../../shared/method-logo';
 import { AdminApi } from '../admin-api';
+import { MethodForm } from './method-form';
 
 @Component({
   selector: 'app-moyens',
-  imports: [FormsModule, ButtonModule, ToggleSwitchModule, MethodLogo],
+  imports: [FormsModule, ButtonModule, ToggleSwitchModule, MethodLogo, MethodForm],
   templateUrl: './moyens.html',
   styleUrl: './moyens.scss',
 })
@@ -28,9 +29,33 @@ export class Moyens {
   protected readonly providers = signal<ProviderHealth[]>([]);
   protected readonly checking = signal(false);
 
+  /** Formulaire d'ajout (editing = null) ou de modification. */
+  protected readonly formOpen = signal(false);
+  protected readonly editing = signal<PaymentMethod | null>(null);
+  protected readonly catalogProviders = signal<PaymentProviderInfo[]>([]);
+
   constructor() {
     this.api.paymentMethods().subscribe((methods) => this.methods.set(methods));
     this.api.providerStatus().subscribe({ next: (s) => this.providers.set(s.providers), error: () => {} });
+    this.api.paymentProviders().subscribe({ next: (p) => this.catalogProviders.set(p), error: () => {} });
+  }
+
+  protected openForm(method: PaymentMethod | null): void {
+    this.editing.set(method);
+    this.formOpen.set(true);
+  }
+
+  protected saved({ method, created }: { method: PaymentMethod; created: boolean }): void {
+    if (created) {
+      this.methods.update((list) => [...(list ?? []), method]);
+      this.messages.add({
+        severity: 'success',
+        summary: `${method.name} ajouté`,
+        detail: 'Il est désactivé : ajoutez son logo puis activez-le.',
+      });
+    } else {
+      this.replace(method, `${method.name} mis à jour`);
+    }
   }
 
   /** Disponibilité en direct (sonde du fournisseur) ; à défaut, dernier état connu du catalogue. */
@@ -147,10 +172,11 @@ export class Moyens {
           summary: `${updated.name} ${active ? 'activé' : 'désactivé'}`,
         });
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.pending.set(null);
         this.revision.update((n) => n + 1);
-        this.messages.add({ severity: 'error', summary: 'Modification impossible' });
+        const problem = error.error as ApiProblem | null;
+        this.messages.add({ severity: 'error', summary: 'Modification impossible', detail: problem?.detail });
       },
     });
   }

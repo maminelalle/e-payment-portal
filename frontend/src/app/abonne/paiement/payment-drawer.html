@@ -72,6 +72,12 @@
       @if (m.instructions) {
         <p class="info"><i class="pi pi-info-circle"></i> {{ m.instructions }}</p>
       }
+      @if (m.conditions) {
+        <p class="muted hint">
+          <strong>{{ m.category === 'CARD' ? "Règles d'acceptation" : "Conditions d'utilisation" }} :</strong>
+          {{ m.conditions }}
+        </p>
+      }
       <p class="muted hint">
         @if (m.category === 'WALLET') {
           Démo : un montant en ,13 est refusé, en ,51 « solde insuffisant », en ,99 confirmé après 60 s.

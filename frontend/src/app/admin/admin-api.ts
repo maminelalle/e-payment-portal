@@ -15,7 +15,9 @@ import {
   filterParams,
   NewSubscriber,
   PaymentMethod,
+  PaymentMethodDetails,
   PaymentMethodStatus,
+  PaymentProviderInfo,
   Subscriber,
   SubscriberDetails,
   SubscriberStatus,
@@ -185,5 +187,19 @@ export class AdminApi {
 
   changePaymentMethodStatus(code: string, status: PaymentMethodStatus): Observable<PaymentMethod> {
     return this.http.patch<PaymentMethod>(`/api/admin/moyens/${code}/statut`, { status });
+  }
+
+  paymentProviders(): Observable<PaymentProviderInfo[]> {
+    return this.http.get<PaymentProviderInfo[]>('/api/admin/moyens/fournisseurs');
+  }
+
+  /** Nouveau moyen, créé désactivé ; son type (wallet ou carte) est celui du fournisseur. */
+  createPaymentMethod(code: string, providerCode: string, currency: string, details: PaymentMethodDetails):
+      Observable<PaymentMethod> {
+    return this.http.post<PaymentMethod>('/api/admin/moyens', { code, providerCode, currency, details });
+  }
+
+  updatePaymentMethod(code: string, details: PaymentMethodDetails): Observable<PaymentMethod> {
+    return this.http.put<PaymentMethod>(`/api/admin/moyens/${code}`, details);
   }
 }

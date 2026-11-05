@@ -65,15 +65,31 @@ export interface PaymentMethod {
   logoUrl: string | null;
   description: string | null;
   instructions: string | null;
+  /** Conditions d'utilisation (wallet) ou règles d'acceptation (carte), affichées à l'abonné. */
+  conditions: string | null;
   currency: string;
   status: PaymentMethodStatus;
-  provider: {
-    code: string;
-    name: string;
-    status: string;
-    healthStatus: 'UP' | 'DOWN' | 'UNKNOWN';
-    lastHealthCheckAt: string | null;
-  };
+  provider: PaymentProviderInfo;
+}
+
+/** Fournisseur technique ; un moyen ne peut être ajouté que sur un fournisseur raccordé (status ENABLED). */
+export interface PaymentProviderInfo {
+  code: string;
+  name: string;
+  kind: 'WALLET' | 'CARD';
+  status: string;
+  healthStatus: 'UP' | 'DOWN' | 'UNKNOWN';
+  lastHealthCheckAt: string | null;
+}
+
+/** Champs modifiables d'un moyen (création et modification). */
+export interface PaymentMethodDetails {
+  name: string;
+  shortLabel: string;
+  color: string;
+  description: string | null;
+  instructions: string | null;
+  conditions: string | null;
 }
 
 export type ContractStatus =
@@ -147,6 +163,7 @@ export interface EntitledMethod {
   logoUrl: string | null;
   description: string | null;
   instructions: string | null;
+  conditions: string | null;
   currency: string;
   perTransactionLimit: number;
   monthlyLimit: number;
@@ -343,6 +360,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   CONTACT_CHANGE_CODE_REJECTED: 'Code de changement de coordonnées refusé',
   CONTACT_CHANGE_CODE_EXPIRED: 'Code de changement de coordonnées expiré',
   SUBSCRIBER_CONTACT_UPDATED: 'Coordonnées modifiées par l’abonné',
+  PAYMENT_METHOD_CREATED: 'Moyen de paiement ajouté',
+  PAYMENT_METHOD_UPDATED: 'Moyen de paiement modifié',
   PAYMENT_METHOD_STATUS_CHANGED: 'Moyen de paiement activé / désactivé',
   PAYMENT_METHOD_LOGO_CHANGED: 'Logo de moyen modifié',
   PAYMENT_METHOD_LOGO_REMOVED: 'Logo de moyen retiré',

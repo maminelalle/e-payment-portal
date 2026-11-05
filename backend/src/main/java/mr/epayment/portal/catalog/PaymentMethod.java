@@ -15,7 +15,10 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-/** Moyen de paiement du catalogue (Bankily, Masrvi, Visa). */
+/**
+ * Moyen de paiement du catalogue (Bankily, Masrvi, Visa…). Le code, le fournisseur et la devise sont fixés à la
+ * création : contrats, droits et paiements en dépendent. Le reste se modifie à tout moment.
+ */
 @Entity
 @Table(name = "payment_method")
 class PaymentMethod {
@@ -51,6 +54,8 @@ class PaymentMethod {
 
     private String instructions;
 
+    private String conditions;
+
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(length = 3)
     private String currency;
@@ -65,6 +70,39 @@ class PaymentMethod {
     private long version;
 
     protected PaymentMethod() {
+    }
+
+    /** Nouveau moyen : désactivé, l'admin le vérifie (logo, textes) avant de l'ouvrir. */
+    PaymentMethod(String code, PaymentProvider provider, String currency, MethodDetails details) {
+        this.id = UUID.randomUUID();
+        this.code = code;
+        this.provider = provider;
+        this.category = provider.getKind();
+        this.currency = currency;
+        this.status = PaymentMethodStatus.INACTIVE;
+        apply(details);
+    }
+
+    void update(MethodDetails details) {
+        apply(details);
+    }
+
+    private void apply(MethodDetails details) {
+        this.name = details.name();
+        this.shortLabel = details.shortLabel();
+        this.color = details.color();
+        this.description = details.description();
+        this.instructions = details.instructions();
+        this.conditions = details.conditions();
+        this.updatedAt = Instant.now();
+    }
+
+    String getName() {
+        return name;
+    }
+
+    PaymentProvider getProvider() {
+        return provider;
     }
 
     String getCode() {
@@ -107,6 +145,6 @@ class PaymentMethod {
         String logoUrl = logoObjectKey == null ? null
                 : "/api/public/moyens/" + code + "/logo?v=" + logoUpdatedAt.toEpochMilli();
         return new PaymentMethodView(id, code, name, category, shortLabel, color, logoUrl, description, instructions,
-                currency, status, provider.toView());
+                conditions, currency, status, provider.toView());
     }
 }

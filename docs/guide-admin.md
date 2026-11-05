@@ -33,8 +33,11 @@ ses paiements ; la désactivation ferme son accès.
   une transaction (`TRX-`) ou une page. Flèches pour choisir, Entrée pour ouvrir.
 - **État des fournisseurs** : visible en bas du menu. **Moyens de paiement → Tester les connexions** relance
   la vérification de Bankily, Masrvi et de la passerelle Visa / Mastercard.
-- **Moyens de paiement** : activer ou désactiver un moyen, changer son logo (PNG, JPEG ou WebP, 256 Ko,
-  format carré conseillé : un logo très large devient petit dans la vignette).
+- **Moyens de paiement** : **Ajouter un moyen** (sur un fournisseur raccordé ; il est créé désactivé),
+  **Modifier** son nom, sa pastille, sa couleur, ses instructions et ses conditions (visibles par l'abonné),
+  l'activer ou le désactiver, changer son logo (PNG, JPEG ou WebP, 256 Ko, format carré conseillé : un logo
+  très large devient petit dans la vignette). Un moyen dont le fournisseur n'est pas raccordé (Sedad) ne peut
+  pas être activé.
 - **Notifications** (cloche) : contrats à traiter, fournisseur indisponible, paiements échoués à répétition
   et montants inhabituels pour un abonné.
 - **Mon profil** : modifier son nom et son email, changer son mot de passe.

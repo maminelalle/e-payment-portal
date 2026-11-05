@@ -21,6 +21,7 @@ public record EntitledMethod(
         String logoUrl,
         String description,
         String instructions,
+        String conditions,
         String currency,
         BigDecimal perTransactionLimit,
         BigDecimal monthlyLimit,

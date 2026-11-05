@@ -74,3 +74,24 @@ dd {
     width: 100%;
   }
 }
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.conditions {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.not-connected {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--warning);
+}

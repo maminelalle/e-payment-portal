@@ -177,7 +177,7 @@
   <ng-template #footer>
     <div class="drawer-footer">
       <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="drawerOpen.set(false)" />
-      <p-button label="Créer l'abonné" type="submit" form="new-subscriber" [loading]="saving()" />
+      <p-button label="Créer l'abonné" [loading]="saving()" (onClick)="create()" />
     </div>
   </ng-template>
 </p-drawer>

@@ -3,8 +3,11 @@
     <h1 class="page-title">Moyens de paiement</h1>
     <p class="page-subtitle">Catalogue des wallets et cartes proposés dans les contrats</p>
   </div>
-  <p-button label="Tester les connexions" icon="pi pi-sync" severity="secondary" [outlined]="true"
-            [loading]="checking()" (onClick)="checkProviders()" />
+  <div class="header-actions">
+    <p-button label="Tester les connexions" icon="pi pi-sync" severity="secondary" [outlined]="true"
+              [loading]="checking()" (onClick)="checkProviders()" />
+    <p-button label="Ajouter un moyen" icon="pi pi-plus" (onClick)="openForm(null)" />
+  </div>
 </div>
 
 @if (methods(); as list) {
@@ -53,8 +56,22 @@
         @if (m.instructions) {
           <p class="instructions"><i class="pi pi-info-circle" aria-hidden="true"></i> {{ m.instructions }}</p>
         }
+        @if (m.conditions) {
+          <p class="conditions">
+            <strong>{{ m.category === 'CARD' ? "Règles d'acceptation" : "Conditions d'utilisation" }} :</strong>
+            {{ m.conditions }}
+          </p>
+        }
+        @if (m.provider.status !== 'ENABLED') {
+          <p class="not-connected">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            Fournisseur non raccordé : ce moyen ne peut pas être activé.
+          </p>
+        }
 
         <div class="logo-actions">
+          <p-button label="Modifier" icon="pi pi-pencil" size="small" severity="secondary" [outlined]="true"
+                    [disabled]="pending() === m.code" (onClick)="openForm(m)" />
           <input
             #logoInput
             type="file"
@@ -87,3 +104,5 @@
     }
   </div>
 }
+
+<app-method-form [(visible)]="formOpen" [method]="editing()" [providers]="catalogProviders()" (saved)="saved($event)" />

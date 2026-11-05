@@ -31,6 +31,12 @@ import { MethodLogo } from '../../shared/method-logo';
               Mensuel : {{ formatAmount(m.monthlyLimit, m.currency) }}<br />
               {{ m.instructions }}
             </p>
+            @if (m.conditions) {
+              <p class="muted small">
+                <strong>{{ m.category === 'CARD' ? "Règles d'acceptation" : "Conditions d'utilisation" }} :</strong>
+                {{ m.conditions }}
+              </p>
+            }
           }
           <p-button
             [label]="m.category === 'CARD' ? 'Payer par carte' : 'Payer avec ' + m.name"

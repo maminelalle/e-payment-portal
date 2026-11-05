@@ -18,12 +18,18 @@ test('l’admin crée l’abonné et lui envoie son contrat', async ({ page }) =
   await resetPreferences(page);
   const api = await adminApi(page);
 
-  const created = await post(api, '/api/admin/abonnes', {
-    type: 'MORALE',
-    email: abonne.email,
-    details: { displayName: `Société E2E ${stamp}`, nif: stamp, phone: `+2224${stamp.slice(-7)}`, address: 'Nouakchott' },
-  });
-  expect(created.invitationSent).toBe(true);
+  // Création de l'abonné par l'écran (formulaire « Nouvel abonné »), le reste par l'API.
+  await page.goto('/admin/abonnes');
+  await page.getByRole('button', { name: 'Nouvel abonné' }).click();
+  await page.locator('#displayName').fill(`Société E2E ${stamp}`);
+  await page.locator('#nif').fill(stamp);
+  await page.locator('#phone').fill(`4${stamp.slice(-7)}`);
+  await page.locator('#email').fill(abonne.email);
+  await page.locator('#address').fill('Nouakchott');
+  await page.getByRole('button', { name: "Créer l'abonné" }).click();
+  await expect(page.getByText(`Invitation envoyée à ${abonne.email}.`)).toBeVisible({ timeout: 15_000 });
+  const search = await (await api.get('/api/admin/abonnes', { params: { q: abonne.email } })).json();
+  const created = { subscriber: { id: search.content[0].id as string } };
 
   const [template] = await (await api.get('/api/admin/contrats/modeles')).json();
   const draft = await post(api, '/api/admin/contrats', { subscriberId: created.subscriber.id, templateId: template.id });

@@ -15,10 +15,14 @@ public record PaymentMethodView(
         String logoUrl,
         String description,
         String instructions,
+        /** Conditions d'utilisation (wallet) ou règles d'acceptation (carte), affichées à l'abonné. */
+        String conditions,
         String currency,
         PaymentMethodStatus status,
         Provider provider) {
 
-    public record Provider(String code, String name, String status, String healthStatus, Instant lastHealthCheckAt) {
+    /** @param kind WALLET ou CARD : le type des moyens rattachés à ce fournisseur */
+    public record Provider(String code, String name, String kind, String status, String healthStatus,
+            Instant lastHealthCheckAt) {
     }
 }
