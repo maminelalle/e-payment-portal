@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,7 +45,10 @@ const PAGE_SIZE = 10;
   templateUrl: './abonnes.html',
   styleUrl: './abonnes.scss',
 })
-export class Abonnes {
+export class Abonnes implements OnInit {
+  /** Filtre de statut ouvert depuis l'URL (?statut=SUSPENDED, lien du tableau de bord). */
+  readonly statut = input<string>();
+
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
@@ -109,6 +112,11 @@ export class Abonnes {
     this.loadSummary();
     this.applyTypeRules('MORALE');
     this.form.controls.type.valueChanges.pipe(takeUntilDestroyed()).subscribe((type) => this.applyTypeRules(type));
+  }
+
+  ngOnInit(): void {
+    const statut = this.statut();
+    if (statut && statut in SUBSCRIBER_STATUS_LABELS) this.statusFilter = statut as SubscriberStatus;
   }
 
   protected onLazyLoad(event: TableLazyLoadEvent): void {

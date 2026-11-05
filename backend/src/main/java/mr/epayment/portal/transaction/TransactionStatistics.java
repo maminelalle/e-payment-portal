@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,24 @@ public class TransactionStatistics {
                 Timestamp.from(from), Timestamp.from(to), subscriberId, subscriberId);
     }
 
+    /** Nombre et montant des transactions de la période pour chaque statut, statuts sans transaction compris. */
+    public List<StatusCount> perStatus(Instant from, Instant to) {
+        Map<TransactionStatus, StatusCount> rows = new EnumMap<>(TransactionStatus.class);
+        for (TransactionStatus status : TransactionStatus.values()) {
+            rows.put(status, new StatusCount(status, 0, BigDecimal.ZERO));
+        }
+        jdbc.query("""
+                select status, count(*) as total, coalesce(sum(amount), 0) as amount
+                from payment_transaction
+                where created_at >= ? and created_at < ?
+                group by status
+                """, rs -> {
+            TransactionStatus status = TransactionStatus.valueOf(rs.getString("status"));
+            rows.put(status, new StatusCount(status, rs.getLong("total"), rs.getBigDecimal("amount")));
+        }, Timestamp.from(from), Timestamp.from(to));
+        return List.copyOf(rows.values());
+    }
+
     /**
      * Montant engagé par moyen depuis {@code since} : paiements réussis et en cours, comme pour le contrôle du
      * plafond mensuel (un paiement en cours peut encore réussir).
@@ -91,5 +110,9 @@ public class TransactionStatistics {
     }
 
     public record MethodCount(UUID methodId, long count, BigDecimal collected) {
+    }
+
+    /** @param amount montant total des transactions de ce statut (pas seulement encaissé) */
+    public record StatusCount(TransactionStatus status, long count, BigDecimal amount) {
     }
 }

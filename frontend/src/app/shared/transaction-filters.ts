@@ -35,6 +35,9 @@ export class TransactionFilters implements OnInit {
   readonly methods = input<{ code: string; name: string }[]>([]);
   /** Référence déjà saisie à l'ouverture (lien « TRX-… » du tableau de bord). */
   readonly initialReference = input<string | undefined>();
+  /** Statut et début de période déjà choisis à l'ouverture (liens du tableau de bord). */
+  readonly initialStatus = input<TransactionStatus | null>(null);
+  readonly initialFrom = input<string | undefined>();
   readonly changed = output<TransactionFilter>();
 
   protected readonly statuses = Object.entries(TRANSACTION_STATUS_LABELS)
@@ -47,6 +50,9 @@ export class TransactionFilters implements OnInit {
 
   ngOnInit(): void {
     this.reference = this.initialReference() ?? '';
+    this.status = this.initialStatus();
+    const from = this.initialFrom();
+    if (from) this.period = [new Date(from + 'T00:00:00'), new Date()];
   }
 
   protected emitWhenRangeComplete(): void {

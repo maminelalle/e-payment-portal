@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -47,7 +47,10 @@ const PAGE_SIZE = 10;
     .name { font-weight: 600; }
   `,
 })
-export class Contrats {
+export class Contrats implements OnInit {
+  /** Filtre de statut ouvert depuis l'URL (?statut=EXPIRED, lien du tableau de bord). */
+  readonly statut = input<string>();
+
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
 
@@ -94,6 +97,11 @@ export class Contrats {
         },
         error: () => this.loading.set(false),
       });
+  }
+
+  ngOnInit(): void {
+    const statut = this.statut();
+    if (statut && statut in CONTRACT_STATUS_LABELS) this.statusFilter = statut as ContractStatus;
   }
 
   protected onLazyLoad(event: TableLazyLoadEvent): void {

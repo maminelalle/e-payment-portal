@@ -21,6 +21,34 @@ test('tableau de bord et état des fournisseurs', async () => {
   await expect(page.getByLabel('État des fournisseurs')).toContainText('Bankily');
 });
 
+test('tableau de bord : statuts des abonnés, contrats et transactions, liens filtrés', async () => {
+  await page.goto('/admin');
+  for (const title of ['Abonnés', 'Contrats', 'Transactions']) {
+    await expect(page.getByRole('heading', { level: 2, name: title, exact: true })).toBeVisible();
+  }
+  const overview = page.locator('section.overview');
+  await expect(overview.locator('li')).toHaveCount(4 + 7 + 5);
+
+  // Répartition par type puis par fournisseur.
+  await page.getByRole('button', { name: 'Type' }).click();
+  await page.getByRole('button', { name: 'Fournisseur' }).click();
+
+  // Un statut ouvre la liste déjà filtrée.
+  await overview.getByRole('link', { name: /Actif/ }).first().click();
+  await expect(page).toHaveURL(/\/admin\/abonnes\?statut=ACTIVE/);
+  await expect(page.locator('p-table tbody')).not.toContainText('Suspendu');
+
+  await page.goto('/admin');
+  await overview.getByRole('link', { name: /Brouillon/ }).click();
+  await expect(page).toHaveURL(/\/admin\/contrats\?statut=DRAFT/);
+  await expect(page.locator('p-table tbody')).not.toContainText('Actif');
+
+  await page.goto('/admin');
+  await overview.getByRole('link', { name: /Réussie/ }).click();
+  await expect(page).toHaveURL(/\/admin\/transactions\?statut=SUCCEEDED&du=/);
+  await expect(page.locator('app-transaction-table tbody')).not.toContainText('Échouée');
+});
+
 test('recherche globale Ctrl+K vers la liste des transactions', async () => {
   await page.goto('/admin');
   await page.getByRole('heading', { name: 'Tableau de bord' }).waitFor();

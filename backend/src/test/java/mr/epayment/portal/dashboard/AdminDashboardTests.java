@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import java.time.LocalDate;
+import java.util.List;
 import mr.epayment.portal.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +51,33 @@ class AdminDashboardTests {
                         + "where created_at >= date_trunc('month', now() at time zone 'UTC') at time zone 'UTC'",
                         Long.class));
 
+        // Conception §3.1 : abonnés et contrats par statut, tous les statuts présents (à 0 si besoin).
+        for (String status : List.of("PENDING", "ACTIVE", "SUSPENDED", "DISABLED")) {
+            assertThat(((Number) JsonPath.read(body, "$.subscribersByStatus." + status)).longValue()).isEqualTo(
+                    jdbc.queryForObject("select count(*) from subscriber where status = ?", Long.class, status));
+        }
+        for (String status : List.of("DRAFT", "PENDING_SIGNATURE", "SIGNED", "ACTIVE", "SUSPENDED", "EXPIRED",
+                "TERMINATED")) {
+            assertThat(((Number) JsonPath.read(body, "$.contractsByStatus." + status)).longValue()).isEqualTo(
+                    jdbc.queryForObject("select count(*) from contract where status = ?", Long.class, status));
+        }
+        // Transactions de la période : par statut (6 statuts), par moyen, par type et par fournisseur, mêmes totaux.
+        List<Integer> byStatus = JsonPath.read(body, "$.transactionsByStatus[*].count");
+        assertThat(byStatus).hasSize(6);
+        long periodTotal = jdbc.queryForObject("select count(*) from payment_transaction "
+                + "where created_at >= (current_date - 29)::timestamp at time zone 'UTC'", Long.class);
+        assertThat(sum(byStatus)).isEqualTo(periodTotal);
+        assertThat(sum(JsonPath.<List<Integer>>read(body, "$.perMethod[*].count"))).isEqualTo(periodTotal);
+        assertThat(sum(JsonPath.<List<Integer>>read(body, "$.perCategory[*].count"))).isEqualTo(periodTotal);
+        assertThat(sum(JsonPath.<List<Integer>>read(body, "$.perProvider[*].count"))).isEqualTo(periodTotal);
+
         mvc.perform(get("/api/admin/tableau-de-bord?jours=7").with(jwt()
                         .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andExpect(jsonPath("$.perDay.length()").value(7));
+    }
+
+    private static long sum(List<? extends Number> values) {
+        return values.stream().mapToLong(Number::longValue).sum();
     }
 
     @Test

@@ -81,6 +81,10 @@ const ARABIC: TranslationMap = {
   'Volume des transactions': 'حجم المعاملات',
   'Nombre par jour': 'العدد يومياً',
   'Répartition par moyen': 'التوزيع حسب وسيلة الدفع',
+  'Répartition': 'التوزيع',
+  'Cartes bancaires': 'البطاقات البنكية',
+  'Wallets': 'المحافظ الإلكترونية',
+  'Passerelle bancaire': 'البوابة البنكية',
   'Aucune transaction sur la période.': 'لا توجد معاملات خلال هذه الفترة.',
   'Contrats à traiter': 'العقود المطلوب معالجتها',
   'Voir tout': 'عرض الكل',
@@ -303,6 +307,10 @@ export class I18n {
     if (ARABIC[text]) return ARABIC[text];
     if (text.startsWith('Bonjour, ')) return `مرحباً، ${text.slice('Bonjour, '.length)}`;
     if (text.startsWith('Reste ')) return `المتبقي ${text.slice('Reste '.length)}`;
+    const total = text.match(/^([\d\s  ]+) au total$/);
+    if (total) return `المجموع ${total[1]!.trim()}`;
+    const lastDays = text.match(/^(\d+) derniers jours$/);
+    if (lastDays) return `آخر ${lastDays[1]} يومًا`;
     if (text.startsWith('Plafond atteint')) return 'تم بلوغ الحد: سيتم رفض المدفوعات الجديدة حتى الشهر المقبل';
     return text;
   }

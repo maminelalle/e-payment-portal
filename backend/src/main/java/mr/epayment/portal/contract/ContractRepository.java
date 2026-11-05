@@ -28,6 +28,15 @@ interface ContractRepository extends JpaRepository<Contract, UUID> {
 
     long countByStatus(ContractStatus status);
 
+    @Query("select c.status as status, count(c) as total from Contract c group by c.status")
+    List<StatusCount> countPerStatus();
+
+    interface StatusCount {
+        ContractStatus getStatus();
+
+        long getTotal();
+    }
+
     List<Contract> findTop5ByStatusInOrderByUpdatedAtDesc(Collection<ContractStatus> statuses);
 
     /** Contrats en vigueur dont la date de fin est dépassée (job quotidien d'expiration). */

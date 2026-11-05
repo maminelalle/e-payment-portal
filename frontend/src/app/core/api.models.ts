@@ -254,6 +254,21 @@ export interface AdminDashboard {
   perMethod: MethodShare[];
   contractsToProcess: ContractToProcess[];
   latestTransactions: Transaction[];
+  /** État actuel, tous les statuts présents (0 si aucun). */
+  subscribersByStatus: Record<SubscriberStatus, number>;
+  contractsByStatus: Record<ContractStatus, number>;
+  /** Sur la période choisie : nombre et montant total par statut. */
+  transactionsByStatus: { status: TransactionStatus; count: number; amount: number }[];
+  /** Sur la période choisie : wallets / cartes, et par fournisseur. */
+  perCategory: GroupShare[];
+  perProvider: GroupShare[];
+}
+
+export interface GroupShare {
+  code: string;
+  name: string;
+  count: number;
+  collected: number;
 }
 
 export interface MonthFigure {

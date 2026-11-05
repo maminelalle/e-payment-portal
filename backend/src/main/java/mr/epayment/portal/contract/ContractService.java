@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -283,6 +284,17 @@ public class ContractService {
     @Transactional(readOnly = true)
     public long countByStatus(ContractStatus status) {
         return contracts.countByStatus(status);
+    }
+
+    /** Nombre de contrats pour chaque statut, statuts sans contrat compris (à 0). */
+    @Transactional(readOnly = true)
+    public Map<ContractStatus, Long> countPerStatus() {
+        Map<ContractStatus, Long> counts = new EnumMap<>(ContractStatus.class);
+        for (ContractStatus status : ContractStatus.values()) {
+            counts.put(status, 0L);
+        }
+        contracts.countPerStatus().forEach(row -> counts.put(row.getStatus(), row.getTotal()));
+        return counts;
     }
 
     /** Contrats qui attendent une action (brouillon à envoyer, signature attendue, contrat signé à activer). */

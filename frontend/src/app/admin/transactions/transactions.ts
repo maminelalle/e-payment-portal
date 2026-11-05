@@ -1,10 +1,10 @@
-import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 
-import { Transaction, TransactionFilter } from '../../core/api.models';
+import { Transaction, TRANSACTION_STATUS_LABELS, TransactionFilter, TransactionStatus } from '../../core/api.models';
 import { downloadBlob } from '../../shared/download';
 import { formatAmount } from '../../shared/formatting';
 import { TransactionFilters } from '../../shared/transaction-filters';
@@ -29,7 +29,7 @@ const PAGE_SIZE = 20;
       <p-button label="Exporter (Excel, CSV)" icon="pi pi-file-excel" severity="secondary" [outlined]="true" [loading]="exporting()"
         [disabled]="!total()" (onClick)="exportCsv()" />
     </div>
-    <app-transaction-filters [methods]="methods()" [initialReference]="q()" (changed)="applyFilter($event)" />
+    <app-transaction-filters [methods]="methods()" [initialReference]="q()" [initialStatus]="status()" [initialFrom]="du()" (changed)="applyFilter($event)" />
     <app-transaction-table [transactions]="rows()" [showSubscriber]="true"
       emptyText="Aucune transaction ne correspond à ces critères." (receipt)="download($event)" />
     @if (rows().length < total()) {
@@ -42,6 +42,13 @@ export class AdminTransactions implements OnInit {
   private readonly api = inject(AdminApi);
   /** ?q=TRX-… : ouverture déjà filtrée sur une référence. */
   readonly q = input<string>();
+  /** Statut et début de période depuis l'URL (?statut=FAILED&du=2026-10-07, liens du tableau de bord). */
+  readonly statut = input<string>();
+  readonly du = input<string>();
+  protected readonly status = computed(() => {
+    const statut = this.statut();
+    return statut && statut in TRANSACTION_STATUS_LABELS ? (statut as TransactionStatus) : null;
+  });
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
   protected readonly collected = signal(0);
@@ -75,7 +82,7 @@ export class AdminTransactions implements OnInit {
   }
 
   ngOnInit(): void {
-    this.filter = { q: this.q() || null };
+    this.filter = { q: this.q() || null, statut: this.status(), du: this.du() || null };
     this.reload$.next();
   }
 

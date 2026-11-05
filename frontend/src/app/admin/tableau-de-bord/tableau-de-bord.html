@@ -33,6 +33,63 @@
     </div>
   </section>
 
+  <section class="overview">
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Abonnés</h2>
+        <span class="muted">{{ count(subscriberTotal()) }} au total</span>
+      </div>
+      <ul class="status-bars">
+        @for (r of subscriberRows(); track r.status) {
+          <li>
+            <a [routerLink]="['/admin/abonnes']" [queryParams]="{ statut: r.status }">
+              <app-status-tag [status]="r.status" />
+              <span class="bar" aria-hidden="true"><span [style.width.%]="r.bar"></span></span>
+              <strong class="num">{{ count(r.count) }}</strong>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Contrats</h2>
+        <span class="muted">{{ count(contractTotal()) }} au total</span>
+      </div>
+      <ul class="status-bars">
+        @for (r of contractRows(); track r.status) {
+          <li>
+            <a [routerLink]="['/admin/contrats']" [queryParams]="{ statut: r.status }">
+              <app-contract-status-tag [status]="r.status" />
+              <span class="bar" aria-hidden="true"><span [style.width.%]="r.bar"></span></span>
+              <strong class="num">{{ count(r.count) }}</strong>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="card panel">
+      <div class="panel-head">
+        <h2>Transactions</h2>
+        <span class="muted">{{ d.days }} derniers jours</span>
+      </div>
+      <ul class="status-bars">
+        @for (r of transactionRows(); track r.status) {
+          <li>
+            <a [routerLink]="['/admin/transactions']" [queryParams]="{ statut: r.status, du: periodStart() }"
+               [title]="amount(r.amount ?? 0)">
+              <span [class]="'status-pill ' + tones[r.status]">{{ labels[r.status] }}</span>
+              <span class="bar" aria-hidden="true"><span [style.width.%]="r.bar"></span></span>
+              <strong class="num">{{ count(r.count) }}</strong>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
+
   <section class="charts">
     <div class="card panel">
       <div class="panel-head">
@@ -47,10 +104,34 @@
 
     <div class="card panel">
       <div class="panel-head">
-        <h2>Répartition par moyen</h2>
+        <h2>Répartition</h2>
+        <p-selectbutton [options]="breakdowns" optionLabel="label" optionValue="value" [allowEmpty]="false"
+                        [ngModel]="breakdown()" (ngModelChange)="breakdown.set($event)" size="small"
+                        ariaLabelledBy="breakdown-label" />
+        <span id="breakdown-label" class="sr-only">Répartir les transactions par</span>
       </div>
       @if (periodTotal() === 0) {
         <p class="muted empty">Aucune transaction sur la période.</p>
+      } @else if (breakdown() !== 'method') {
+        <table class="group-bars">
+          <caption class="sr-only">
+            Transactions par {{ breakdown() === 'category' ? 'type de moyen' : 'fournisseur' }} sur {{ d.days }} jours
+          </caption>
+          <thead class="sr-only">
+            <tr><th scope="col">{{ breakdown() === 'category' ? 'Type' : 'Fournisseur' }}</th><th scope="col">Part</th>
+              <th scope="col">Transactions</th><th scope="col">Encaissé</th></tr>
+          </thead>
+          <tbody>
+            @for (g of groupRows(); track g.code) {
+              <tr>
+                <th scope="row">{{ g.name }}</th>
+                <td class="bar-cell"><span class="bar"><span [style.width.%]="g.bar"></span></span></td>
+                <td class="num"><strong>{{ g.percent }} %</strong><span class="muted"> · {{ count(g.count) }}</span></td>
+                <td class="num muted">{{ amount(g.collected) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
       } @else {
         <div class="donut-wrap">
           <div class="donut">

@@ -130,6 +130,15 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
   - nginx : limite de débit de la connexion sur les seuls POST (réponse 429), en-têtes de sécurité sur toutes les réponses ;
   - sauvegarde : image reconstruite, la base Keycloak est bien incluse.
 
+### Écarts avec le document de conception (relecture du 05/11)
+- [x] Tableau de bord admin (§3.1) : abonnés par statut (total, actifs, suspendus), contrats par statut (brouillon → résilié), transactions par statut (réussies, échouées, en attente, remboursées) et par fournisseur — fait le 05/11 : 3 blocs de statuts (chaque ligne ouvre la liste filtrée), répartition par moyen / type / fournisseur ; tests backend et E2E
+- [ ] Avenant (§6.1, §11, H3) : remplacer un contrat actif par un nouveau, lié à l'original, avec historique des versions (aujourd'hui : résilier puis recréer)
+- [ ] Catalogue (§3.3) : ajouter un moyen et modifier sa description, ses instructions et ses conditions (aujourd'hui : activer/désactiver et logo seulement)
+- [ ] Profil abonné (§4.5) : mettre à jour ses coordonnées (téléphone, adresse) avec vérification
+- [ ] Modèles de contrat (§3.4) : gestion depuis l'écran admin — volontairement limitée (D14 : modèles livrés par migration, Thymeleaf exécute du code) ; au minimum, choisir entre plusieurs modèles/versions
+- [ ] Chiffrement des données sensibles en base (§9 : NNI/NIF) — à arbitrer
+- Hors périmètre du stage (D12, « après les 3 mois ») : vraies API fournisseurs, SMS, remboursements et contestations, coffre-fort de secrets, rôles admin fins
+
 ### Améliorations proposées, non réalisées (à arbitrer)
 - [ ] Lien / QR code de paiement à envoyer à un client ; paiements récurrents ou programmés
 - [ ] Relevés mensuels en PDF ; moyens et montants favoris
