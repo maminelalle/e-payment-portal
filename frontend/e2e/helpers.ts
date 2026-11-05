@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, request as playwrightRequest, type Page } from '@playwright/test';
 import { createHmac } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -92,4 +92,23 @@ export function totp(base32: string, time = Date.now()): string {
   const offset = hmac[hmac.length - 1]! & 0xf;
   const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
   return String(code).padStart(6, '0');
+}
+
+/** Boîte mail de test (Mailpit) : MAILPIT_URL, http://localhost:8025 par défaut. */
+const MAILPIT = process.env['MAILPIT_URL'] ?? 'http://localhost:8025';
+
+interface MailpitMessage { ID: string; Subject: string; Created: string; Text: string }
+
+/** Attend un email reçu par « to » dont le sujet correspond, envoyé après « since ». */
+export async function waitForMail(to: string, subject: RegExp, since = new Date(0)): Promise<MailpitMessage> {
+  const mailpit = await playwrightRequest.newContext({ baseURL: MAILPIT });
+  for (let i = 0; i < 30; i++) {
+    const search = await (await mailpit.get('/api/v1/search', { params: { query: `to:"${to}"` } })).json();
+    const hit = (search.messages as MailpitMessage[]).find(
+      (m) => subject.test(m.Subject) && new Date(m.Created) >= new Date(since.getTime() - 1_000),
+    );
+    if (hit) return (await mailpit.get(`/api/v1/message/${hit.ID}`)).json();
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+  throw new Error(`Aucun email « ${subject} » reçu par ${to}`);
 }

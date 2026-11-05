@@ -79,6 +79,12 @@ public class SubscriberAccounts {
         user.changeEnabled(enabled);
     }
 
+    /** Téléphone du compte local, aligné sur celui de l'abonné après un changement confirmé. */
+    @Transactional
+    public void changePhone(UUID userId, String phone) {
+        find(userId).changePhone(phone);
+    }
+
     /** Sessions ouvertes du compte, la plus récemment utilisée d'abord. */
     @Transactional(readOnly = true)
     public List<AccountSession> sessions(UUID userId) {

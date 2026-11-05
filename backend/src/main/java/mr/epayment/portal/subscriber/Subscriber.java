@@ -77,6 +77,16 @@ class Subscriber {
         apply(details);
     }
 
+    /** Changement par l'abonné lui-même, après vérification du code : seulement le téléphone et l'adresse. */
+    void changeContact(String phone, String address) {
+        if (status == SubscriberStatus.DISABLED) {
+            throw new BusinessRuleException("Un abonné désactivé ne peut plus être modifié.");
+        }
+        this.phone = phone;
+        this.address = address;
+        this.updatedAt = Instant.now();
+    }
+
     void activate() {
         if (status != SubscriberStatus.PENDING && status != SubscriberStatus.SUSPENDED) {
             throw transitionRefused("activer");

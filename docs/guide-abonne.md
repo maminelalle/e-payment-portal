@@ -34,6 +34,9 @@ La page publique **/statut** indique si un moyen de paiement est momentanément 
 
 ## Profil et préférences
 
-Le profil permet de consulter ses coordonnées, changer son mot de passe, fermer une session ouverte sur un
-autre appareil et choisir les emails de résultat de paiement. Les emails de contrat et les codes de signature
-restent obligatoires. L'en-tête permet de passer en arabe (عربي) et en mode sombre.
+Le profil permet de consulter ses coordonnées et de **modifier son téléphone et son adresse** : un code est
+envoyé à l'email de connexion, le changement s'applique après sa saisie et un avis est envoyé par email (le nom,
+le NIF ou NNI et l'email se modifient auprès de l'administrateur). Il permet aussi de changer son mot de passe,
+de fermer une session ouverte sur un autre appareil et de choisir les emails de résultat de paiement. Les emails
+de contrat et les codes restent obligatoires. L'en-tête permet de passer en arabe (عربي) et en mode sombre ;
+sur téléphone, la langue se choisit dans le menu.

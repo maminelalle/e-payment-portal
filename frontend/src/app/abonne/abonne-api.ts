@@ -7,6 +7,7 @@ import {
   EntitledMethod,
   NotificationPreferences,
   SentNotification,
+  Subscriber,
   SubscriberDashboard,
   SubscriberProfile,
   Transaction,
@@ -20,6 +21,15 @@ import { mapPage, UiPage } from '../shared/pagination';
 export interface OtpChallenge {
   signatureId: string;
   /** Email masqué : c••••••@exemple.mr */
+  sentTo: string;
+  expiresAt: string;
+  resendAvailableAt: string;
+  maxAttempts: number;
+}
+
+/** Réponse à une demande de changement de coordonnées (même principe que la signature). */
+export interface ContactChallenge {
+  changeId: string;
   sentTo: string;
   expiresAt: string;
   resendAvailableAt: string;
@@ -53,6 +63,16 @@ export class AbonneApi {
   /** Moyens ouverts par le contrat en vigueur (et eux seuls). */
   profile(): Observable<SubscriberProfile> {
     return this.http.get<SubscriberProfile>('/api/abonne/profil');
+  }
+
+  /** Changement de téléphone et d'adresse, étape 1 : un code part à l'email du compte. */
+  requestContactChange(phone: string, address: string | null): Observable<ContactChallenge> {
+    return this.http.post<ContactChallenge>('/api/abonne/profil/coordonnees', { phone, address });
+  }
+
+  /** Étape 2 : le code reçu applique le changement. */
+  confirmContactChange(changeId: string, code: string): Observable<Subscriber> {
+    return this.http.post<Subscriber>(`/api/abonne/profil/coordonnees/${changeId}/confirmation`, { code });
   }
 
   endSession(sessionId: string): Observable<void> {

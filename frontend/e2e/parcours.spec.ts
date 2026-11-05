@@ -1,6 +1,6 @@
 import { expect, request as playwrightRequest, test, type APIRequestContext, type Page } from '@playwright/test';
 
-import { ADMIN, login, resetPreferences, saveAbonne } from './helpers';
+import { ADMIN, login, resetPreferences, saveAbonne, waitForMail } from './helpers';
 
 /**
  * Parcours complet d'un nouvel abonné, sur une base vide :
@@ -9,7 +9,6 @@ import { ADMIN, login, resetPreferences, saveAbonne } from './helpers';
  * Les emails sont lus dans Mailpit (MAILPIT_URL, http://localhost:8025 par défaut).
  * Le compte créé est mémorisé (e2e/.auth/abonne.json) pour les scénarios abonné.
  */
-const MAILPIT = process.env['MAILPIT_URL'] ?? 'http://localhost:8025';
 const stamp = Date.now().toString().slice(-8);
 const abonne = { email: `e2e-abonne-${stamp}@exemple.mr`, password: `Abonne#E2e${stamp}` };
 
@@ -102,21 +101,6 @@ async function post(api: APIRequestContext, url: string, data: unknown) {
   const response = await api.post(url, { data });
   expect(response.ok(), `${url} → ${response.status()} ${await response.text()}`).toBe(true);
   return response.json();
-}
-
-interface MailpitMessage { ID: string; Subject: string; Created: string; Text: string }
-
-async function waitForMail(to: string, subject: RegExp, since = new Date(0)): Promise<MailpitMessage> {
-  const mailpit = await playwrightRequest.newContext({ baseURL: MAILPIT });
-  for (let i = 0; i < 30; i++) {
-    const search = await (await mailpit.get('/api/v1/search', { params: { query: `to:"${to}"` } })).json();
-    const hit = (search.messages as MailpitMessage[]).find(
-      (m) => subject.test(m.Subject) && new Date(m.Created) >= new Date(since.getTime() - 1_000),
-    );
-    if (hit) return (await mailpit.get(`/api/v1/message/${hit.ID}`)).json();
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  }
-  throw new Error(`Aucun email « ${subject} » reçu par ${to}`);
 }
 
 /** Date du jour à Nouakchott (UTC), décalée de quelques jours au besoin, au format AAAA-MM-JJ. */

@@ -2,7 +2,8 @@
 /* E-Payment — composants. Toutes les valeurs viennent de tokens.css (var(--…)).
    Propriétés logiques (inline-start/end) partout : le même CSS sert le FR (ltr) et l'AR (rtl). */
 
-[dir="rtl"], :lang(ar) { font-family: var(--font-arabic); }
+/* Sur la racine seulement : le texte en hérite, les icônes (.pi) gardent leur propre police. */
+html[dir="rtl"], html:lang(ar) { font-family: var(--font-arabic); }
 .ep-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
 .ep-num { font-variant-numeric: tabular-nums; }
 .ep-ltr { direction: ltr; unicode-bidi: isolate; }

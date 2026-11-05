@@ -37,6 +37,16 @@
       </a>
     }
   </nav>
+  <!-- Sur téléphone, le choix de langue de l'en-tête est masqué : il est proposé ici. -->
+  <div class="mobile-lang">
+    <span class="muted">Langue</span>
+    <div class="ep-lang" role="group" aria-label="Langue">
+      <button type="button" [attr.aria-pressed]="preferences.language() === 'fr'" lang="fr"
+              (click)="preferences.setLanguage('fr')">FR</button>
+      <button type="button" [attr.aria-pressed]="preferences.language() === 'ar'" lang="ar"
+              (click)="preferences.setLanguage('ar')">عربي</button>
+    </div>
+  </div>
 </p-drawer>
 
 <p-toast position="top-right" />

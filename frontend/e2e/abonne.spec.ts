@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { ABONNE, login, resetPreferences } from './helpers';
+import { ABONNE, login, resetPreferences, waitForMail } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await resetPreferences(page);
@@ -51,4 +51,30 @@ test('passage en arabe et en mode sombre depuis l’en-tête', async ({ page }) 
   await page.getByRole('button', { name: 'FR' }).click();
   await page.getByRole('button', { name: 'Mode sombre' }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
+});
+
+test('profil : nouveau téléphone et nouvelle adresse confirmés par le code reçu par email', async ({ page }) => {
+  // Valeurs différentes à chaque passage : renvoyer les mêmes coordonnées est refusé.
+  const digits = `4${String(Date.now()).slice(-7)}`;
+  const address = `Lot ${digits.slice(-3)}, Tevragh Zeina, Nouakchott`;
+  await page.goto('/abonne/profil');
+  await page.getByRole('button', { name: 'Modifier mon téléphone et mon adresse' }).click();
+  await page.locator('#contact-phone').fill(digits);
+  await page.locator('#contact-address').fill(address);
+  const since = new Date();
+  await page.getByRole('button', { name: 'Recevoir mon code' }).click();
+
+  const mail = await waitForMail(ABONNE.email, /confirmation/i, since);
+  const code = mail.Text.match(/\b\d{6}\b/)?.[0];
+  expect(code, 'code de confirmation').toBeTruthy();
+  await page.locator('p-inputotp input').first().click();
+  await page.keyboard.type(code!);
+  await page.getByRole('button', { name: 'Confirmer' }).click();
+
+  await expect(page.getByText('Coordonnées modifiées').first()).toBeVisible();
+  const details = page.locator('dl.details');
+  await expect(details).toContainText(`${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, 6)} ${digits.slice(6)}`);
+  await expect(details).toContainText(address);
+  // Avis de sécurité en tête de « Derniers emails reçus » (les passages précédents en ont laissé d'autres).
+  await expect(page.getByText('Vos coordonnées E-Payment ont été modifiées').first()).toBeVisible();
 });

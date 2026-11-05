@@ -101,3 +101,19 @@ nav {
     order: 3;
   }
 }
+
+.mobile-lang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+/* Téléphone : espacement réduit, sinon le bouton menu sort de l'écran (390 px). */
+@media (max-width: 480px) {
+  .topbar-inner {
+    gap: var(--space-2);
+  }
+}

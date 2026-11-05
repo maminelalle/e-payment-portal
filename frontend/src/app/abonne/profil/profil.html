@@ -32,10 +32,14 @@
         <dt>Adresse</dt>
         <dd>{{ p.subscriber.address || '—' }}</dd>
       </dl>
+      <p-button label="Modifier mon téléphone et mon adresse" icon="pi pi-pencil" severity="secondary"
+                [outlined]="true" size="small" (onClick)="editingContact.set(true)" />
       <p class="hint muted">
         <i class="pi pi-info-circle"></i>
-        Ces informations figurent sur votre contrat : pour les modifier, contactez votre gestionnaire.
+        Le nom, le NIF ou NNI et l'email de connexion figurent sur votre contrat : pour les modifier, contactez
+        votre gestionnaire.
       </p>
+      <app-contact-dialog [(visible)]="editingContact" [subscriber]="p.subscriber" (saved)="contactSaved($event)" />
     </section>
 
     <section class="card block">

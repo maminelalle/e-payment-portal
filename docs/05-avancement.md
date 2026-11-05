@@ -134,7 +134,7 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [x] Tableau de bord admin (§3.1) : abonnés par statut (total, actifs, suspendus), contrats par statut (brouillon → résilié), transactions par statut (réussies, échouées, en attente, remboursées) et par fournisseur — fait le 05/11 : 3 blocs de statuts (chaque ligne ouvre la liste filtrée), répartition par moyen / type / fournisseur ; tests backend et E2E
 - [ ] Avenant (§6.1, §11, H3) : remplacer un contrat actif par un nouveau, lié à l'original, avec historique des versions (aujourd'hui : résilier puis recréer)
 - [ ] Catalogue (§3.3) : ajouter un moyen et modifier sa description, ses instructions et ses conditions (aujourd'hui : activer/désactiver et logo seulement)
-- [ ] Profil abonné (§4.5) : mettre à jour ses coordonnées (téléphone, adresse) avec vérification
+- [x] Profil abonné (§4.5) : mettre à jour ses coordonnées (téléphone, adresse) avec vérification — fait le 05/11 (D27) : code par email (5 min, 3 essais, 1 demande par minute), audit avant/après, avis de sécurité par email. Trouvé et corrigé au passage : débordement de l'en-tête abonné sur téléphone, choix de langue absent sur mobile, icônes remplacées par des carrés en arabe
 - [ ] Modèles de contrat (§3.4) : gestion depuis l'écran admin — volontairement limitée (D14 : modèles livrés par migration, Thymeleaf exécute du code) ; au minimum, choisir entre plusieurs modèles/versions
 - [ ] Chiffrement des données sensibles en base (§9 : NNI/NIF) — à arbitrer
 - Hors périmètre du stage (D12, « après les 3 mois ») : vraies API fournisseurs, SMS, remboursements et contestations, coffre-fort de secrets, rôles admin fins

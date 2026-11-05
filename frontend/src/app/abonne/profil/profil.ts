@@ -1,16 +1,17 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
-import { AccountSession, SentNotification, SubscriberProfile } from '../../core/api.models';
+import { AccountSession, SentNotification, Subscriber, SubscriberProfile } from '../../core/api.models';
 import { formatPhone } from '../../shared/formatting';
 import { Session } from '../../core/session';
 import { StatusTag } from '../../shared/status-tag';
 import { AbonneApi } from '../abonne-api';
+import { ContactDialog } from './contact-dialog';
 
 const TEMPLATE_LABELS: Record<string, string> = {
   CONTRACT_AVAILABLE: 'Contrat disponible',
@@ -18,15 +19,17 @@ const TEMPLATE_LABELS: Record<string, string> = {
   PAYMENT_SUCCEEDED: 'Paiement réussi',
   PAYMENT_FAILED: 'Paiement échoué',
   SIGNATURE_CODE: 'Code de signature',
+  CONTACT_CHANGE_CODE: 'Code de confirmation',
+  CONTACT_CHANGED: 'Coordonnées modifiées',
 };
 
 /**
- * Profil abonné (écran B5) : coordonnées (lecture seule), mot de passe (chez Keycloak), sessions ouvertes,
- * préférences et historique des notifications.
+ * Profil abonné (écran B5) : coordonnées (téléphone et adresse modifiables avec un code reçu par email),
+ * mot de passe (chez Keycloak), sessions ouvertes, préférences et historique des notifications.
  */
 @Component({
   selector: 'app-profil',
-  imports: [DatePipe, FormsModule, ButtonModule, ConfirmDialogModule, ToggleSwitchModule, StatusTag],
+  imports: [DatePipe, FormsModule, ButtonModule, ConfirmDialogModule, ToggleSwitchModule, StatusTag, ContactDialog],
   providers: [ConfirmationService],
   templateUrl: './profil.html',
   styleUrl: './profil.scss',
@@ -34,6 +37,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
 export class Profil {
   private readonly api = inject(AbonneApi);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly messages = inject(MessageService);
   protected readonly session = inject(Session);
   protected readonly formatPhone = formatPhone;
 
@@ -43,6 +47,7 @@ export class Profil {
   protected readonly savingPreferences = signal(false);
   protected readonly closing = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
+  protected readonly editingContact = signal(false);
 
   constructor() {
     this.loadProfile();
@@ -56,6 +61,12 @@ export class Profil {
 
   protected isCurrent(s: AccountSession): boolean {
     return s.id === this.profile()?.currentSessionId;
+  }
+
+  protected contactSaved(subscriber: Subscriber): void {
+    this.profile.update((p) => (p ? { ...p, subscriber: { ...p.subscriber, ...subscriber } } : p));
+    this.api.notifications().subscribe((n) => this.notifications.set(n));
+    this.messages.add({ severity: 'success', summary: 'Coordonnées modifiées', detail: 'Un avis vous a été envoyé par email.' });
   }
 
   protected changePassword(): void {

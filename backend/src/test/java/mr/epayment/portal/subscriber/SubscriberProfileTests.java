@@ -1,6 +1,9 @@
 package mr.epayment.portal.subscriber;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,6 +22,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import mr.epayment.portal.TestcontainersConfiguration;
 import mr.epayment.portal.auth.KeycloakAdminClient;
 import mr.epayment.portal.auth.KeycloakAdminClient.UserSession;
+import mr.epayment.portal.subscriber.ContactCodeSender.ContactCodeMessage;
+import org.mockito.ArgumentCaptor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +55,12 @@ class SubscriberProfileTests {
 
     @MockitoBean
     private JavaMailSender mailSender;
+
+    @MockitoBean
+    private ContactCodeSender contactCodes;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private String subject;
 
@@ -105,6 +117,82 @@ class SubscriberProfileTests {
         mvc.perform(get("/api/abonne/notifications").with(subscriber(LAPTOP)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void contactChangeIsAppliedOnlyWithTheEmailedCode() throws Exception {
+        String changeId = requestContactChange("22 33 44 55", "Tevragh Zeina, Nouakchott")
+                .replaceAll(".*\"changeId\":\"([^\"]+)\".*", "$1");
+        mvc.perform(get("/api/abonne/profil").with(subscriber(LAPTOP)))
+                .andExpect(jsonPath("$.subscriber.phone").value("+22222000001"));
+
+        mvc.perform(confirm(changeId, "000000")).andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.startsWith("Code incorrect.")))
+                .andExpect(jsonPath("$.remainingAttempts").value(2));
+        mvc.perform(confirm(changeId, lastCode()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("+22222334455"))
+                .andExpect(jsonPath("$.address").value("Tevragh Zeina, Nouakchott"));
+
+        verify(contactCodes).notifyChanged(any(), anyString(), eq("Société Profil"), eq("+22222334455"),
+                eq("Tevragh Zeina, Nouakchott"));
+        assertThat(jdbc.queryForList("select action from audit_log where actor_subject = ? order by id", String.class,
+                subject)).containsSubsequence("CONTACT_CHANGE_CODE_SENT", "CONTACT_CHANGE_CODE_REJECTED",
+                "SUBSCRIBER_CONTACT_UPDATED");
+        // Une demande confirmée ne sert pas deux fois.
+        mvc.perform(confirm(changeId, lastCode())).andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void contactChangeIsBlockedAfterThreeWrongCodesAndChecksTheInput() throws Exception {
+        mvc.perform(post("/api/abonne/profil/coordonnees").with(subscriber(LAPTOP))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"12345\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.phone").exists());
+        mvc.perform(post("/api/abonne/profil/coordonnees").with(subscriber(LAPTOP))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"22000001\"}"))
+                .andExpect(status().isUnprocessableContent());
+
+        String changeId = requestContactChange("44556677", null)
+                .replaceAll(".*\"changeId\":\"([^\"]+)\".*", "$1");
+        // Un autre abonné ne peut pas confirmer cette demande.
+        mvc.perform(post("/api/abonne/profil/coordonnees/{id}/confirmation", changeId)
+                        .with(jwt().jwt(t -> t.subject(UUID.randomUUID().toString()))
+                                .authorities(new SimpleGrantedAuthority("ROLE_ABONNE")))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"" + lastCode() + "\"}"))
+                .andExpect(status().is4xxClientError());
+        for (int i = 0; i < 3; i++) {
+            mvc.perform(confirm(changeId, "999999")).andExpect(status().isUnprocessableContent());
+        }
+        mvc.perform(confirm(changeId, lastCode())).andExpect(status().isUnprocessableContent());
+        mvc.perform(get("/api/abonne/profil").with(subscriber(LAPTOP)))
+                .andExpect(jsonPath("$.subscriber.phone").value("+22222000001"));
+        // Nouvelle demande trop tôt : refusée (un code par minute).
+        mvc.perform(post("/api/abonne/profil/coordonnees").with(subscriber(LAPTOP))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"44556677\"}"))
+                .andExpect(status().isUnprocessableContent());
+    }
+
+    private String requestContactChange(String phone, String address) throws Exception {
+        String body = address == null ? "{\"phone\":\"%s\"}".formatted(phone)
+                : "{\"phone\":\"%s\",\"address\":\"%s\"}".formatted(phone, address);
+        return mvc.perform(post("/api/abonne/profil/coordonnees").with(subscriber(LAPTOP))
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sentTo").value(org.hamcrest.Matchers.startsWith("p••••••@")))
+                .andExpect(jsonPath("$.maxAttempts").value(3))
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    private org.springframework.test.web.servlet.RequestBuilder confirm(String changeId, String code) {
+        return post("/api/abonne/profil/coordonnees/{id}/confirmation", changeId).with(subscriber(LAPTOP))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"" + code + "\"}");
+    }
+
+    private String lastCode() {
+        ArgumentCaptor<ContactCodeMessage> captor = ArgumentCaptor.forClass(ContactCodeMessage.class);
+        verify(contactCodes, org.mockito.Mockito.atLeastOnce()).sendCode(captor.capture());
+        return captor.getValue().code();
     }
 
     private RequestPostProcessor subscriber(String sessionId) {
