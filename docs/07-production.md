@@ -94,6 +94,36 @@ avec les sauvegardes, hors du serveur : sans elle, les identifiants restaurés s
 La base `keycloak` (comptes, MFA) est sauvegardée en même temps (`EXTRA_DB_NAMES`) ; la restaurer avec
 `restore.sh /backups/db/keycloak-<date>.dump keycloak` (Keycloak arrêté).
 
+## Conservation et archivage (conception §7.2 et §9)
+
+| Donnée | Durée de conservation | Où | Règle |
+|--------|-----------------------|----|-------|
+| Contrat envoyé (PDF + empreinte SHA-256) | toute la vie du portail | stockage S3 `contrats/<réf>/` | figé à l'envoi, empreinte revérifiée à chaque lecture ; jamais supprimé (seul un brouillon peut l'être) |
+| Contrat signé (PDF scellé PAdES) et preuve de signature (horodatage, IP, navigateur, empreintes avant / après) | toute la vie du portail | S3 + table `signature` | jamais supprimés, y compris après résiliation, expiration ou remplacement par avenant |
+| Droits, transactions, reçus PDF | toute la vie du portail | tables `subscriber_entitlement`, `payment_transaction`, S3 `recus/` | jamais supprimés : un droit change de statut, une transaction garde son contrat d'origine |
+| Journal d'audit | toute la vie du portail | table `audit_log` | ajout seul ; aucune donnée de carte, aucun secret, aucun code à usage unique |
+| Emails envoyés | toute la vie du portail | table `notification` | le corps des emails contenant un code n'est pas conservé |
+| Codes à usage unique (signature, coordonnées) | 5 minutes de validité | tables `signature`, `subscriber_contact_change` | seule l'empreinte HMAC est stockée |
+| Sauvegardes quotidiennes (bases portail et Keycloak, documents) | 30 jours (`BACKUP_RETENTION_DAYS`) | volume `backups` + copie externe `OFFSITE_S3_*` | restauration testée (voir ci-dessus) ; à garder avec `DATA_ENCRYPTION_KEY` |
+
+Les durées légales (signature électronique, paiements, données personnelles) restent à confirmer avec les
+responsables juridiques et conformité (conception §9.1) ; la plateforme ne supprime rien d'elle-même, une purge
+éventuelle sera ajoutée une fois ces durées fixées.
+
+## Paramètres d'intégration des fournisseurs (conception §3.3)
+
+Chaque fournisseur est raccordé par configuration, jamais en base (aucun secret dans `payment_provider`, seulement
+la référence `credentials_ref`). Passer du simulateur aux vraies API = changer ces variables :
+
+| Fournisseur | Adresse de l'API | Clé d'API | Secret des webhooks (HMAC) |
+|-------------|------------------|-----------|-----------------------------|
+| Bankily | `BANKILY_BASE_URL` | `BANKILY_API_KEY` | `BANKILY_WEBHOOK_SECRET` |
+| Masrvi | `MASRVI_BASE_URL` | `MASRVI_API_KEY` | `MASRVI_WEBHOOK_SECRET` |
+| Passerelle bancaire (Visa, Mastercard) | `VISA_BASE_URL` | `VISA_API_KEY` | `VISA_WEBHOOK_SECRET` |
+
+Tolérance d'horodatage des webhooks : 5 minutes. Dans l'écran **Moyens de paiement**, l'admin rattache un moyen à
+un fournisseur raccordé, saisit ses textes et conditions, et suit la disponibilité (« Tester les connexions »).
+
 ## Contrôles avant mise en ligne
 
 - `backend/mvnw verify` avec Docker disponible.

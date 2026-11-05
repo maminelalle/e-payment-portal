@@ -12,7 +12,8 @@ La console d'administration Keycloak n'est pas accessible depuis Internet : tout
 ## Parcours courant
 
 1. **Abonnés** : créer l'abonné (personne physique ou morale). Il reçoit un email d'invitation pour choisir
-   son mot de passe (lien valable 72 h, à renvoyer depuis sa fiche si besoin).
+   son mot de passe (lien valable 72 h, à renvoyer depuis sa fiche si besoin). Sa fiche montre ses contrats,
+   ses **moyens de paiement autorisés** (plafonds, validité) et ses dernières transactions.
 2. **Contrats** : créer le contrat, choisir les dates, la commission, les moyens ouverts et leurs plafonds
    (par opération et par mois), puis l'**envoyer pour signature**. Le contrat devient actif dès que l'abonné
    l'a signé avec le code reçu par email.

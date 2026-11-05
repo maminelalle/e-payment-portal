@@ -82,6 +82,29 @@
     </section>
 
     <section class="card section wide">
+      <h2>Moyens de paiement autorisés</h2>
+      @for (m of methods(); track m.code) {
+        <div class="method-row">
+          <app-method-logo [method]="m" [size]="32" />
+          <span class="method-main">
+            <strong>{{ m.name }}</strong>
+            <span class="muted">
+              {{ formatAmount(m.perTransactionLimit, m.currency) }} / opération ·
+              {{ formatAmount(m.monthlyLimit, m.currency) }} / mois · jusqu'au {{ formatDate(m.validTo) }}
+            </span>
+          </span>
+          @if (m.available) {
+            <span class="status-pill success">Utilisable</span>
+          } @else {
+            <span class="status-pill warning">{{ m.unavailableReason }}</span>
+          }
+        </div>
+      } @empty {
+        <p class="muted">Aucun moyen ouvert : ils le seront à l'activation d'un contrat signé.</p>
+      }
+    </section>
+
+    <section class="card section wide">
       <h2>Dernières transactions</h2>
       <app-transaction-table [transactions]="transactions()" (receipt)="downloadReceipt($event)" />
     </section>

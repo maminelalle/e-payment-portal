@@ -38,3 +38,4 @@ infra/backups/
 frontend/e2e-report/
 frontend/test-results/
 frontend/e2e/.auth/
+frontend/e2e-demo/comptes-demo.txt

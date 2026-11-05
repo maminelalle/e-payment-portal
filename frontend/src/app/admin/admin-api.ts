@@ -159,6 +159,11 @@ export class AdminApi {
     return this.http.get<ContractVersion[]>(`/api/admin/contrats/${id}/versions`);
   }
 
+  /** Moyens que le contrat en vigueur de l'abonné lui ouvre (fiche abonné). */
+  subscriberMethods(subscriberId: string): Observable<EntitledMethod[]> {
+    return this.http.get<EntitledMethod[]>(`/api/admin/abonnes/${subscriberId}/moyens`);
+  }
+
   contractEntitlements(id: string): Observable<EntitledMethod[]> {
     return this.http.get<EntitledMethod[]>(`/api/admin/contrats/${id}/droits`);
   }

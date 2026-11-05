@@ -8,11 +8,12 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 
-import { Contract, Subscriber, SUBSCRIBER_TYPE_LABELS, Transaction } from '../../core/api.models';
+import { Contract, EntitledMethod, Subscriber, SUBSCRIBER_TYPE_LABELS, Transaction } from '../../core/api.models';
 import { downloadBlob } from '../../shared/download';
 import { TransactionTable } from '../../shared/transaction-table';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
-import { formatIsoDate, formatPhone } from '../../shared/formatting';
+import { formatAmount, formatIsoDate, formatPhone } from '../../shared/formatting';
+import { MethodLogo } from '../../shared/method-logo';
 import { applyServerErrors, fieldError } from '../../shared/form-errors';
 import { StatusTag } from '../../shared/status-tag';
 import { AdminApi } from '../admin-api';
@@ -22,6 +23,7 @@ type StatusAction = 'activer' | 'suspendre' | 'desactiver';
 @Component({
   selector: 'app-abonne-fiche',
   imports: [
+    MethodLogo,
     DatePipe,
     FormsModule,
     ReactiveFormsModule,
@@ -51,6 +53,9 @@ export class AbonneFiche {
   protected readonly subscriber = signal<Subscriber | null>(null);
   protected readonly contracts = signal<Contract[]>([]);
   protected readonly transactions = signal<Transaction[]>([]);
+  /** Moyens ouverts par le contrat en vigueur (conception §3.2). */
+  protected readonly methods = signal<EntitledMethod[]>([]);
+  protected readonly formatAmount = formatAmount;
   protected readonly formatDate = formatIsoDate;
   protected readonly notFound = signal(false);
   protected readonly busy = signal(false);
@@ -208,6 +213,7 @@ export class AbonneFiche {
     });
     this.api.searchContracts({ abonne: id, page: 0, size: 20 }).subscribe((page) => this.contracts.set(page.items));
     this.api.transactions(0, 5, { abonne: id }).subscribe((page) => this.transactions.set(page.items));
+    this.api.subscriberMethods(id).subscribe({ next: (m) => this.methods.set(m), error: () => this.methods.set([]) });
   }
 
   private fail(error: { error?: { detail?: string } }): void {

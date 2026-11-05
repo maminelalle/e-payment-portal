@@ -96,3 +96,18 @@ dd {
   background: #fee2e2;
   color: #b91c1c;
 }
+
+.method-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-block-start: 1px solid var(--border);
+}
+
+.method-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}

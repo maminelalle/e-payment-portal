@@ -117,7 +117,7 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [x] Configuration de production : Docker Compose, Nginx, HTTPS (pile complète testée en local sur https://localhost:8443)
 - [x] Sauvegardes quotidiennes PostgreSQL + documents S3 + base Keycloak ; restauration testée (base temporaire, mêmes nombres de lignes)
 - [x] Guides administrateur et abonné (1 page chacun), à jour des nouveautés
-- [ ] Démo finale — **jalon : version pilote en ligne**
+- [~] Démo finale — **jalon : version pilote en ligne** : scénario prêt (docs/09-demo.md), données de démonstration créées sur la recette (3 abonnés, 11 paiements), tableau de conformité à la conception (docs/08-conformite-conception.md) ; reste à la présenter puis fusionner semaine-12 dans main
 - [x] Correctifs de recette (04/11) :
   - connexion bloquée après réimport du realm : le compte local est rattaché au nouvel identifiant Keycloak si l'email est vérifié (audit ACCOUNT_RELINKED) ;
   - changement de nom de l'admin : l'ancien nom de famille Keycloak est vidé, les erreurs du serveur sont affichées ;
@@ -130,7 +130,7 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
   - nginx : limite de débit de la connexion sur les seuls POST (réponse 429), en-têtes de sécurité sur toutes les réponses ;
   - sauvegarde : image reconstruite, la base Keycloak est bien incluse.
 
-### Écarts avec le document de conception (relecture du 05/11)
+### Écarts avec le document de conception (relecture du 05/11) — tous traités, voir docs/08-conformite-conception.md
 - [x] Tableau de bord admin (§3.1) : abonnés par statut (total, actifs, suspendus), contrats par statut (brouillon → résilié), transactions par statut (réussies, échouées, en attente, remboursées) et par fournisseur — fait le 05/11 : 3 blocs de statuts (chaque ligne ouvre la liste filtrée), répartition par moyen / type / fournisseur ; tests backend et E2E
 - [x] Avenant (§6.1, §11, H3) : remplacer un contrat actif par un nouveau, lié à l'original, avec historique des versions — fait le 05/11 (D29) : « Créer un avenant » sur un contrat actif (brouillon prérempli, CTR-…-A1), signature par l'abonné, à l'activation l'original passe « Remplacé » et ses droits sont révoqués dans la même transaction ; suspension reportée ; PDF « Avenant n°… au contrat … » ; historique des versions sur la fiche ; plafonds mensuels continus ; tests backend (2) et E2E de bout en bout
 - [x] Catalogue (§3.3) : ajouter un moyen et modifier sa description, ses instructions et ses conditions — fait le 05/11 (D28) : ajout sur un fournisseur raccordé (créé désactivé), modification du nom, de la pastille, de la couleur et des textes, conditions d'utilisation / règles d'acceptation affichées à l'abonné, activation refusée si le fournisseur n'est pas raccordé (Sedad). Trouvé et corrigé au passage : les boutons « Créer l'abonné » et « Enregistrer » (fiche abonné) ne faisaient rien (attribut form ignoré par p-button) ; le parcours E2E crée désormais l'abonné par l'écran
