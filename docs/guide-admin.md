@@ -28,7 +28,6 @@ ses paiements ; la désactivation ferme son accès.
 - **Tableau de bord** : indicateurs du mois, abonnés et contrats par statut, transactions de la période par
   statut, répartition par moyen, par type (wallet ou carte) et par fournisseur. Cliquer sur un statut ouvre
   la liste correspondante déjà filtrée (par exemple les abonnés suspendus).
-
 - **Recherche globale** : `Ctrl K` (ou le champ en haut de page) trouve un abonné, un contrat (`CTR-`),
   une transaction (`TRX-`) ou une page. Flèches pour choisir, Entrée pour ouvrir.
 - **État des fournisseurs** : visible en bas du menu. **Moyens de paiement → Tester les connexions** relance
