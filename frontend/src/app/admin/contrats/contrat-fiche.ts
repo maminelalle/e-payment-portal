@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 
-import { ApiProblem, Contract, EntitledMethod } from '../../core/api.models';
+import { ApiProblem, Contract, ContractVersion, EntitledMethod } from '../../core/api.models';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatAmount, formatIsoDate } from '../../shared/formatting';
 import { AdminApi } from '../admin-api';
@@ -31,6 +31,8 @@ export class ContratFiche {
   protected readonly notFound = signal(false);
   protected readonly busy = signal(false);
   protected readonly entitlements = signal<EntitledMethod[]>([]);
+  /** Le contrat initial et ses avenants (affiché dès qu'il y a au moins un avenant). */
+  protected readonly versions = signal<ContractVersion[]>([]);
   protected readonly pdfUrl = signal<SafeResourceUrl | null>(null);
   private rawPdfUrl: string | null = null;
 
@@ -58,6 +60,32 @@ export class ContratFiche {
             this.busy.set(false);
             this.messages.add({ severity: 'success', summary: `Contrat ${sent.reference} envoyé pour signature` });
             this.show(sent);
+          },
+          error: (error) => this.fail(error),
+        });
+      },
+    });
+  }
+
+  /** Avenant : brouillon prérempli, ouvert directement dans l'assistant pour être ajusté. */
+  protected amend(): void {
+    const c = this.contract();
+    if (!c) return;
+    this.confirmation.confirm({
+      header: 'Créer un avenant',
+      message: `Un brouillon d'avenant reprenant les moyens, plafonds et dates de ${c.reference} va être créé. `
+        + `Une fois signé et activé, il remplacera ce contrat ; d'ici là, ${c.reference} reste en vigueur.`,
+      acceptLabel: "Créer l'avenant",
+      rejectLabel: 'Annuler',
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => {
+        this.busy.set(true);
+        this.api.createAmendment(c.id).subscribe({
+          next: (draft) => {
+            this.busy.set(false);
+            this.messages.add({ severity: 'success', summary: `Avenant ${draft.reference} créé`,
+              detail: 'Ajustez les moyens, plafonds et dates, puis envoyez-le pour signature.' });
+            this.router.navigate(['/admin/contrats', draft.id, 'modifier']);
           },
           error: (error) => this.fail(error),
         });
@@ -138,6 +166,7 @@ export class ContratFiche {
 
   private loadEntitlements(id: string): void {
     this.api.contractEntitlements(id).subscribe((list) => this.entitlements.set(list));
+    this.api.contractVersions(id).subscribe({ next: (v) => this.versions.set(v), error: () => this.versions.set([]) });
   }
 
   private show(contract: Contract): void {

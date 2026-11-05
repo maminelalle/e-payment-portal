@@ -14,7 +14,9 @@ public enum ContractStatus {
     ACTIVE,
     SUSPENDED,
     EXPIRED,
-    TERMINATED;
+    TERMINATED,
+    /** Remplacé par un avenant signé et activé ; ses droits sont révoqués, son historique conservé. */
+    REPLACED;
 
     /** Statuts qui empêchent d'envoyer un autre contrat au même abonné (hypothèse H3). */
     static final Set<ContractStatus> IN_PROGRESS = EnumSet.of(PENDING_SIGNATURE, SIGNED, ACTIVE,

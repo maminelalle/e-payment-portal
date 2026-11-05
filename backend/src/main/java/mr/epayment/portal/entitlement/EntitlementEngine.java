@@ -16,6 +16,7 @@ import mr.epayment.portal.catalog.PaymentCatalog;
 import mr.epayment.portal.catalog.PaymentMethodStatus;
 import mr.epayment.portal.catalog.PaymentMethodView;
 import mr.epayment.portal.contract.ContractService;
+import mr.epayment.portal.contract.ContractStatus;
 import mr.epayment.portal.contract.ContractView;
 import mr.epayment.portal.entitlement.Entitlement.Status;
 import mr.epayment.portal.entitlement.PaymentAuthorization.Refusal;
@@ -62,7 +63,17 @@ public class EntitlementEngine {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ContractView activateContract(UUID contractId) {
+        // Avenant : le contrat remplacé perd ses droits ; s'il était suspendu, l'avenant l'est aussi.
+        ContractView before = contracts.get(contractId);
+        ContractView replaced = before.amendment() != null && before.status() == ContractStatus.SIGNED
+                ? contracts.get(before.amendment().replacesId())
+                : null;
         ContractView contract = contracts.activate(contractId);
+        if (replaced != null && (replaced.status() == ContractStatus.ACTIVE
+                || replaced.status() == ContractStatus.SUSPENDED)) {
+            moveEntitlements(replaced, null, Status.REVOKED, "Remplacé par l'avenant " + contract.reference(),
+                    "ENTITLEMENTS_REVOKED");
+        }
         Map<String, PaymentMethodView> byCode = catalogByCode();
         int created = 0;
         for (ContractView.Method method : contract.methods()) {
@@ -74,6 +85,9 @@ public class EntitlementEngine {
         if (created > 0) {
             audit("ENTITLEMENTS_OPENED", contract, Map.of("created", created, "methods",
                     contract.methods().stream().map(ContractView.Method::code).toList()));
+        }
+        if (replaced != null && replaced.status() == ContractStatus.SUSPENDED) {
+            return suspendContract(contractId, "Suspension reprise du contrat " + replaced.reference());
         }
         return contract;
     }

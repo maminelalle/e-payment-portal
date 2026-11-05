@@ -1,7 +1,16 @@
 <div class="page-header">
   <div>
-    <h1 class="page-title">{{ contract() ? 'Contrat ' + contract()!.reference : 'Nouveau contrat' }}</h1>
-    <p class="page-subtitle">Les moyens cochés seront les seuls accessibles à l'abonné après signature.</p>
+    <h1 class="page-title">
+      {{ contract() ? (contract()!.amendment ? 'Avenant ' : 'Contrat ') + contract()!.reference : 'Nouveau contrat' }}
+    </h1>
+    <p class="page-subtitle">
+      @if (contract()?.amendment; as amendment) {
+        Avenant n°{{ amendment.number }} au contrat {{ amendment.replacesReference }} : prérempli avec ses moyens,
+        plafonds et dates. Une fois signé et activé, il le remplacera.
+      } @else {
+        Les moyens cochés seront les seuls accessibles à l'abonné après signature.
+      }
+    </p>
   </div>
 </div>
 

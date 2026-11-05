@@ -122,3 +122,42 @@
   font-size: 0.65rem;
   border-radius: 6px;
 }
+
+.amendment-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
+.versions {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 8px;
+    align-items: center;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  li.current {
+    background: var(--brand-soft);
+  }
+
+  .ref {
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .detail {
+    grid-column: 1 / -1;
+    font-size: 12px;
+  }
+}

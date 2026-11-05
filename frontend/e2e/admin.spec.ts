@@ -27,7 +27,7 @@ test('tableau de bord : statuts des abonnés, contrats et transactions, liens fi
     await expect(page.getByRole('heading', { level: 2, name: title, exact: true })).toBeVisible();
   }
   const overview = page.locator('section.overview');
-  await expect(overview.locator('li')).toHaveCount(4 + 7 + 5);
+  await expect(overview.locator('li')).toHaveCount(4 + 8 + 5);
 
   // Répartition par type puis par fournisseur.
   await page.getByRole('button', { name: 'Type' }).click();

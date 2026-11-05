@@ -202,3 +202,13 @@ h3 {
 .success .check .pi {
   font-size: 1.6rem;
 }
+
+.amendment-note {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-inline-start: 3px solid var(--brand);
+  color: var(--ink-muted);
+}

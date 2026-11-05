@@ -16,6 +16,9 @@ La console d'administration Keycloak n'est pas accessible depuis Internet : tout
 2. **Contrats** : créer le contrat, choisir les dates, la commission, les moyens ouverts et leurs plafonds
    (par opération et par mois), puis l'**envoyer pour signature**. Le contrat devient actif dès que l'abonné
    l'a signé avec le code reçu par email.
+   Pour changer les moyens, plafonds ou dates d'un contrat actif : **Créer un avenant** sur sa fiche. L'avenant
+   (CTR-…-A1) est prérempli ; ajustez-le, envoyez-le. Le contrat actuel reste en vigueur jusqu'à la signature ;
+   à l'activation, il passe « Remplacé par avenant ». La fiche montre l'**historique des versions**.
 3. **Transactions** : suivre les paiements et leur statut fournisseur, filtrer par abonné, statut, moyen ou
    période, télécharger les reçus, et **Exporter (Excel, CSV)** la liste filtrée.
 4. **Paramètres et audit** : rechercher les connexions, signatures et actions administratives.

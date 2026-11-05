@@ -37,6 +37,14 @@ class Contract {
     @Column(name = "template_id", nullable = false)
     private UUID templateId;
 
+    /** Contrat que cet avenant remplacera à son activation ; null pour un contrat initial. */
+    @Column(name = "parent_contract_id", updatable = false)
+    private UUID parentContractId;
+
+    /** 0 pour le contrat initial, n pour l'avenant n°n. */
+    @Column(name = "amendment_number", nullable = false, updatable = false)
+    private int amendmentNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ContractStatus status;
@@ -110,6 +118,23 @@ class Contract {
         this.updatedAt = createdAt;
     }
 
+    /**
+     * Avenant au contrat {@code parent} : brouillon prérempli avec ses moyens, plafonds, commission et fin de
+     * validité ; il prend effet à son activation (au plus tôt aujourd'hui).
+     */
+    static Contract amendmentOf(Contract parent, String reference, int number, UUID templateId, LocalDate today,
+            String createdBy) {
+        Contract amendment = new Contract(reference, parent.subscriberId, templateId, createdBy);
+        amendment.parentContractId = parent.id;
+        amendment.amendmentNumber = number;
+        amendment.startDate = parent.startDate.isAfter(today) ? parent.startDate : today;
+        amendment.endDate = parent.endDate;
+        amendment.commissionRate = parent.commissionRate;
+        parent.methods.forEach(m -> amendment.methods.add(
+                new IncludedMethod(m.paymentMethodId(), m.perTransactionLimit(), m.monthlyLimit())));
+        return amendment;
+    }
+
     /** Un brouillon peut être complété en plusieurs fois ; les contrôles complets ont lieu à l'envoi. */
     void updateDraft(UUID templateId, LocalDate startDate, LocalDate endDate, BigDecimal commissionRate,
             List<IncludedMethod> methods) {
@@ -166,10 +191,20 @@ class Contract {
         changeStatus(ContractStatus.ACTIVE);
     }
 
-    /** Résiliation : possible tant que le contrat n'est pas déjà terminé (expiré ou résilié). */
+    /** Remplacé par l'avenant {@code amendmentReference}, activé : le contrat n'est plus en vigueur. */
+    void replaceBy(String amendmentReference) {
+        if (status != ContractStatus.ACTIVE && status != ContractStatus.SUSPENDED) {
+            throw new BusinessRuleException("Le contrat " + reference + " n'est pas en vigueur.");
+        }
+        changeStatus(ContractStatus.REPLACED);
+        this.terminatedAt = updatedAt;
+        this.terminationReason = "Remplacé par l'avenant " + amendmentReference;
+    }
+
+    /** Résiliation : possible tant que le contrat n'est pas déjà terminé (expiré, résilié ou remplacé). */
     void terminate(String reason) {
         if (status == ContractStatus.DRAFT || status == ContractStatus.EXPIRED
-                || status == ContractStatus.TERMINATED) {
+                || status == ContractStatus.TERMINATED || status == ContractStatus.REPLACED) {
             throw new BusinessRuleException("Impossible de résilier le contrat " + reference + " au statut "
                     + status + ".");
         }
@@ -234,6 +269,14 @@ class Contract {
 
     UUID getTemplateId() {
         return templateId;
+    }
+
+    UUID getParentContractId() {
+        return parentContractId;
+    }
+
+    int getAmendmentNumber() {
+        return amendmentNumber;
     }
 
     ContractStatus getStatus() {

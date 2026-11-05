@@ -14,7 +14,13 @@
       <h1 class="page-title">Mon contrat</h1>
       <p class="page-subtitle">
         @switch (c.status) {
-          @case ('PENDING_SIGNATURE') { Lisez votre contrat puis signez-le pour activer vos moyens de paiement. }
+          @case ('PENDING_SIGNATURE') {
+            @if (c.amendment) {
+              Lisez cet avenant puis signez-le : il remplacera votre contrat actuel, qui reste en vigueur d'ici là.
+            } @else {
+              Lisez votre contrat puis signez-le pour activer vos moyens de paiement.
+            }
+          }
           @case ('SIGNED') { Contrat signé : vos moyens de paiement seront ouverts dès son activation. }
           @case ('ACTIVE') { Votre contrat est actif. }
           @default { Consultez votre contrat. }
@@ -23,6 +29,17 @@
     </div>
     <app-contract-status-tag [status]="c.status" />
   </div>
+
+  @if (c.amendment) {
+    <p class="card amendment-note">
+      <i class="pi pi-copy" aria-hidden="true"></i>
+      <span>
+        <strong>Avenant n°{{ c.amendment.number }}</strong> au contrat <bdi class="ep-ref">{{ c.amendment.replacesReference }}</bdi> :
+        ses moyens de paiement, plafonds et dates remplacent ceux du contrat précédent. Vos paiements passés restent
+        dans votre historique.
+      </span>
+    </p>
+  }
 
   <div class="layout">
     <section class="card document">

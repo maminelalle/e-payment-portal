@@ -99,7 +99,9 @@ export type ContractStatus =
   | 'ACTIVE'
   | 'SUSPENDED'
   | 'EXPIRED'
-  | 'TERMINATED';
+  | 'TERMINATED'
+  /** Remplacé par un avenant signé et activé. */
+  | 'REPLACED';
 
 export interface ContractTemplate {
   id: string;
@@ -141,6 +143,22 @@ export interface Contract {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  /** Avenant : son numéro et le contrat qu'il remplace ; null pour un contrat initial. */
+  amendment: { number: number; replacesId: string; replacesReference: string } | null;
+}
+
+/** Une version d'un contrat : l'initial (amendmentNumber 0) ou l'un de ses avenants. */
+export interface ContractVersion {
+  id: string;
+  reference: string;
+  amendmentNumber: number;
+  status: ContractStatus;
+  startDate: string | null;
+  endDate: string | null;
+  signedAt: string | null;
+  activatedAt: string | null;
+  endedAt: string | null;
+  methodCount: number;
 }
 
 export interface DraftChanges {
@@ -244,6 +262,7 @@ export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   SUSPENDED: 'Suspendu',
   EXPIRED: 'Expiré',
   TERMINATED: 'Résilié',
+  REPLACED: 'Remplacé par avenant',
 };
 
 export const SUBSCRIBER_STATUS_LABELS: Record<SubscriberStatus, string> = {
@@ -360,6 +379,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   CONTACT_CHANGE_CODE_REJECTED: 'Code de changement de coordonnées refusé',
   CONTACT_CHANGE_CODE_EXPIRED: 'Code de changement de coordonnées expiré',
   SUBSCRIBER_CONTACT_UPDATED: 'Coordonnées modifiées par l’abonné',
+  CONTRACT_AMENDMENT_CREATED: 'Avenant créé',
+  CONTRACT_REPLACED: 'Contrat remplacé par un avenant',
   PAYMENT_METHOD_CREATED: 'Moyen de paiement ajouté',
   PAYMENT_METHOD_UPDATED: 'Moyen de paiement modifié',
   PAYMENT_METHOD_STATUS_CHANGED: 'Moyen de paiement activé / désactivé',

@@ -13,6 +13,14 @@
         <a [routerLink]="['/admin/abonnes', c.subscriber.id]">{{ c.subscriber.displayName }}</a> ·
         {{ c.template.name }} v{{ c.template.version }} · créé le {{ c.createdAt | date: 'dd/MM/yyyy' }} par {{ c.createdBy }}
       </p>
+      @if (c.amendment) {
+        <p class="amendment-line">
+          <i class="pi pi-copy" aria-hidden="true"></i>
+          Avenant n°{{ c.amendment.number }} · remplace
+          <a [routerLink]="['/admin/contrats', c.amendment.replacesId]">{{ c.amendment.replacesReference }}</a>
+          {{ c.status === 'ACTIVE' || c.status === 'SUSPENDED' || c.status === 'EXPIRED' ? '' : 'à son activation' }}
+        </p>
+      }
     </div>
     <div class="actions">
       @if (c.status === 'DRAFT') {
@@ -25,6 +33,7 @@
           <p-button label="Activer" icon="pi pi-check" (onClick)="lifecycle('activer')" [loading]="busy()" />
         }
         @case ('ACTIVE') {
+          <p-button label="Créer un avenant" icon="pi pi-copy" severity="secondary" [outlined]="true" (onClick)="amend()" [disabled]="busy()" />
           <p-button label="Suspendre" icon="pi pi-pause" severity="warn" [outlined]="true" (onClick)="lifecycle('suspendre')" [disabled]="busy()" />
         }
         @case ('SUSPENDED') {
@@ -101,6 +110,24 @@
         }
       } @else if (c.status === 'SIGNED') {
         <p class="info">Signé : les droits s'ouvrent à l'activation (automatique, ou bouton « Activer »).</p>
+      }
+
+      @if (versions().length > 1) {
+        <h3>Historique des versions</h3>
+        <ol class="versions">
+          @for (v of versions(); track v.id) {
+            <li [class.current]="v.id === c.id">
+              <a [routerLink]="['/admin/contrats', v.id]" class="ref">{{ v.reference }}</a>
+              <app-contract-status-tag [status]="v.status" />
+              <span class="muted detail">
+                {{ v.amendmentNumber === 0 ? 'Contrat initial' : 'Avenant n°' + v.amendmentNumber }}
+                @if (v.activatedAt) { · en vigueur du {{ v.activatedAt | date: 'dd/MM/yyyy' }} }
+                @if (v.endedAt) { au {{ v.endedAt | date: 'dd/MM/yyyy' }} }
+                · {{ v.methodCount }} moyen{{ v.methodCount > 1 ? 's' : '' }}
+              </span>
+            </li>
+          }
+        </ol>
       }
 
       @if (c.pdfSha256) {

@@ -27,7 +27,12 @@ public record ContractView(
         String terminationReason,
         String createdBy,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        /** Avenant : son numéro et le contrat qu'il remplace ; null pour un contrat initial. */
+        Amendment amendment) {
+
+    public record Amendment(int number, UUID replacesId, String replacesReference) {
+    }
 
     public record Party(UUID id, String reference, String displayName, String email, String status) {
     }

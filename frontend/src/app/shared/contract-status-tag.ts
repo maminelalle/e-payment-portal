@@ -10,6 +10,7 @@ const TONES: Record<ContractStatus, string> = {
   SUSPENDED: 'danger',
   EXPIRED: 'neutral',
   TERMINATED: 'neutral',
+  REPLACED: 'neutral',
 };
 
 /** Pastille de statut de contrat (« Brouillon », « En attente de signature », « À activer »… de la maquette A1). */

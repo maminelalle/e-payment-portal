@@ -22,16 +22,21 @@
     <div class="text">
       @switch (c?.status) {
         @case ('ACTIVE') {
-          <strong>Votre contrat est actif</strong>
+          <strong>{{ c!.amendment ? 'Votre contrat (avenant n°' + c!.amendment.number + ') est actif' : 'Votre contrat est actif' }}</strong>
           <span class="muted"><bdi class="ep-ref">{{ c!.reference }}</bdi> · valable du <bdi>{{ formatDate(c!.startDate) }}</bdi> au <bdi>{{ formatDate(c!.endDate) }}</bdi></span>
         }
         @case ('PENDING_SIGNATURE') {
-          <strong>Votre contrat est prêt à être signé</strong>
-          <span class="muted">{{ c!.reference }} · signez-le pour ouvrir vos moyens de paiement</span>
+          @if (c!.amendment) {
+            <strong>Un avenant à votre contrat est prêt à être signé</strong>
+            <span class="muted"><bdi class="ep-ref">{{ c!.reference }}</bdi> · votre contrat <bdi class="ep-ref">{{ c!.amendment.replacesReference }}</bdi> reste en vigueur jusqu'à sa signature</span>
+          } @else {
+            <strong>Votre contrat est prêt à être signé</strong>
+            <span class="muted">{{ c!.reference }} · signez-le pour ouvrir vos moyens de paiement</span>
+          }
         }
         @case ('SIGNED') {
-          <strong>Contrat signé, en attente d'activation</strong>
-          <span class="muted">{{ c!.reference }} · vos moyens seront disponibles dès son activation</span>
+          <strong>{{ c!.amendment ? 'Avenant signé, en attente d’activation' : 'Contrat signé, en attente d’activation' }}</strong>
+          <span class="muted">{{ c!.reference }} · {{ c!.amendment ? 'il remplacera votre contrat dès son activation' : 'vos moyens seront disponibles dès son activation' }}</span>
         }
         @case ('SUSPENDED') {
           <strong>Votre contrat est suspendu</strong>
@@ -49,7 +54,7 @@
     </div>
     @if (c) {
       <p-button
-        [label]="c.status === 'PENDING_SIGNATURE' ? 'Signer mon contrat' : 'Voir le contrat'"
+        [label]="c.status === 'PENDING_SIGNATURE' ? (c.amendment ? 'Signer l’avenant' : 'Signer mon contrat') : 'Voir le contrat'"
         [outlined]="c.status !== 'PENDING_SIGNATURE'"
         severity="secondary"
         routerLink="/abonne/contrat"

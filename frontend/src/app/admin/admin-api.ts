@@ -7,6 +7,7 @@ import {
   AuditEntry,
   AuditFilter,
   Contract,
+  ContractVersion,
   ContractStatus,
   ContractTemplate,
   CreatedSubscriber,
@@ -132,6 +133,16 @@ export class AdminApi {
   /** Cycle de vie après signature : chaque action ouvre ou ferme les droits de l'abonné. */
   contractLifecycle(id: string, action: 'activer' | 'suspendre' | 'reprendre' | 'resilier', motif?: string) {
     return this.http.post<Contract>(`/api/admin/contrats/${id}/${action}`, motif ? { motif } : null);
+  }
+
+  /** Avenant à un contrat actif : brouillon prérempli qui remplacera le contrat une fois signé et activé. */
+  createAmendment(id: string): Observable<Contract> {
+    return this.http.post<Contract>(`/api/admin/contrats/${id}/avenant`, null);
+  }
+
+  /** Le contrat initial et ses avenants, dans l'ordre. */
+  contractVersions(id: string): Observable<ContractVersion[]> {
+    return this.http.get<ContractVersion[]>(`/api/admin/contrats/${id}/versions`);
   }
 
   contractEntitlements(id: string): Observable<EntitledMethod[]> {

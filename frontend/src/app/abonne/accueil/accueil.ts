@@ -87,6 +87,7 @@ export class Accueil {
       SUSPENDED: 4,
       EXPIRED: 4,
       TERMINATED: 4,
+      REPLACED: 4,
     };
     return steps[status];
   }

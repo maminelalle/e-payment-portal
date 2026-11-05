@@ -80,6 +80,19 @@ class ContractAdminController {
         service.deleteDraft(id);
     }
 
+    /** Avenant à un contrat actif : brouillon prérempli, qui remplacera le contrat une fois signé et activé. */
+    @PostMapping("/{id}/avenant")
+    @ResponseStatus(HttpStatus.CREATED)
+    ContractView amend(@PathVariable UUID id) {
+        return service.createAmendment(id);
+    }
+
+    /** Le contrat initial et ses avenants, dans l'ordre. */
+    @GetMapping("/{id}/versions")
+    List<ContractVersion> versions(@PathVariable UUID id) {
+        return service.versions(id);
+    }
+
     @PostMapping("/{id}/envoyer")
     ContractView send(@PathVariable UUID id) {
         return service.sendForSignature(id);

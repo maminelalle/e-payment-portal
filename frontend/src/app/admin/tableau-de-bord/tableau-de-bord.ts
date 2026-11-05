@@ -33,7 +33,7 @@ const GRID = '#f1f5f9';
 /** Ordre de lecture des statuts : du cas courant aux cas de sortie. */
 const SUBSCRIBER_ORDER: SubscriberStatus[] = ['ACTIVE', 'PENDING', 'SUSPENDED', 'DISABLED'];
 const CONTRACT_ORDER: ContractStatus[] = [
-  'ACTIVE', 'PENDING_SIGNATURE', 'SIGNED', 'DRAFT', 'SUSPENDED', 'EXPIRED', 'TERMINATED',
+  'ACTIVE', 'PENDING_SIGNATURE', 'SIGNED', 'DRAFT', 'SUSPENDED', 'EXPIRED', 'TERMINATED', 'REPLACED',
 ];
 /** « Créée » est un état de quelques secondes : compté avec « En attente ». */
 const TRANSACTION_ORDER: TransactionStatus[] = ['SUCCEEDED', 'FAILED', 'PENDING', 'CANCELLED', 'REFUNDED'];

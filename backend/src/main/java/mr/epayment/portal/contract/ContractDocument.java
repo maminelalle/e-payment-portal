@@ -27,8 +27,9 @@ final class ContractDocument {
     private ContractDocument() {
     }
 
+    /** @param replaces référence du contrat remplacé, pour un avenant ; sinon null */
     static Map<String, Object> variables(Contract contract, SubscriberView subscriber,
-            Map<UUID, PaymentMethodView> catalog, boolean draft) {
+            Map<UUID, PaymentMethodView> catalog, boolean draft, String replaces) {
         Map<String, Object> contractVars = new HashMap<>();
         contractVars.put("reference", contract.getReference());
         contractVars.put("startDate", format(contract.getStartDate()));
@@ -36,6 +37,8 @@ final class ContractDocument {
         contractVars.put("commission", contract.getCommissionRate() == null ? null
                 : decimal(contract.getCommissionRate()) + " %");
         contractVars.put("draft", draft);
+        contractVars.put("amendment", replaces == null ? null
+                : Map.of("number", contract.getAmendmentNumber(), "replaces", replaces));
 
         boolean legalEntity = subscriber.type() == SubscriberType.MORALE;
         Map<String, Object> subscriberVars = new HashMap<>();

@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.HexFormat;
@@ -12,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -52,6 +54,9 @@ public class ContractService {
 
     private static final Logger log = LoggerFactory.getLogger(ContractService.class);
     private static final int MAX_PAGE_SIZE = 100;
+    /** Avenant pas encore terminé : il bloque la création d'un autre avenant au même contrat. */
+    private static final Set<ContractStatus> OPEN_AMENDMENT = Set.of(ContractStatus.DRAFT,
+            ContractStatus.PENDING_SIGNATURE, ContractStatus.SIGNED);
 
     private final ContractRepository contracts;
     private final ContractTemplateRepository templates;
@@ -93,6 +98,58 @@ public class ContractService {
         Contract contract = contracts.save(new Contract(reference, subscriberId, templateId, actorLabel()));
         audit("CONTRACT_DRAFT_CREATED", contract, Map.of("subscriber", subscriber.reference()));
         return toView(contract);
+    }
+
+    /**
+     * Avenant à un contrat actif : brouillon prérempli (moyens, plafonds, commission, fin de validité), numéroté
+     * à la suite (CTR-2026-0001-A1, -A2…). Un seul avenant ouvert (brouillon, à signer, signé) à la fois.
+     */
+    @Transactional
+    public ContractView createAmendment(UUID contractId) {
+        Contract parent = find(contractId);
+        if (parent.getStatus() != ContractStatus.ACTIVE) {
+            throw new BusinessRuleException("Un avenant se crée sur un contrat actif ; " + parent.getReference()
+                    + " est " + parent.getStatus() + ".");
+        }
+        contracts.findByParentContractIdAndStatusIn(parent.getId(), OPEN_AMENDMENT).stream().findFirst()
+                .ifPresent(open -> {
+                    throw new ConflictException("L'avenant " + open.getReference() + " est déjà en cours pour ce "
+                            + "contrat : terminez-le ou supprimez-le avant d'en créer un autre.");
+                });
+        String root = parent.getReference().replaceFirst("-A\\d+$", "");
+        int number = (int) contracts.countByReferenceStartingWith(root + "-A") + 1;
+        UUID templateId = templates.findById(parent.getTemplateId()).filter(ContractTemplate::isActive)
+                .map(ContractTemplate::getId)
+                .orElseGet(() -> templates.findActive().stream().findFirst()
+                        .orElseThrow(() -> new NotFoundException("Aucun modèle de contrat actif.")).getId());
+        Contract amendment = contracts.save(Contract.amendmentOf(parent, root + "-A" + number, number, templateId,
+                LocalDate.now(ContractDocument.ZONE), actorLabel()));
+        audit("CONTRACT_AMENDMENT_CREATED", amendment, Map.of("replaces", parent.getReference()));
+        return toView(amendment);
+    }
+
+    /** Versions d'un contrat : l'initial puis ses avenants, dans l'ordre (fiche contrat). */
+    @Transactional(readOnly = true)
+    public List<ContractVersion> versions(UUID contractId) {
+        Contract contract = find(contractId);
+        Map<UUID, Contract> all = contracts.findBySubscriberIdOrderByCreatedAt(contract.getSubscriberId()).stream()
+                .collect(Collectors.toMap(Contract::getId, Function.identity()));
+        UUID root = rootOf(contract, all);
+        return all.values().stream()
+                .filter(c -> rootOf(c, all).equals(root))
+                .sorted(Comparator.comparingInt(Contract::getAmendmentNumber).thenComparing(Contract::getCreatedAt))
+                .map(c -> new ContractVersion(c.getId(), c.getReference(), c.getAmendmentNumber(), c.getStatus(),
+                        c.getStartDate(), c.getEndDate(), c.getSignedAt(), c.getActivatedAt(), c.getTerminatedAt(),
+                        c.getMethods().size()))
+                .toList();
+    }
+
+    private static UUID rootOf(Contract contract, Map<UUID, Contract> all) {
+        Contract current = contract;
+        while (current.getParentContractId() != null && all.containsKey(current.getParentContractId())) {
+            current = all.get(current.getParentContractId());
+        }
+        return current.getId();
     }
 
     /** Étapes 2 et 3 : moyens inclus, plafonds, dates et commission. Les moyens doivent être actifs. */
@@ -226,6 +283,7 @@ public class ContractService {
         Contract contract = find(id);
         if (contract.getStatus() == ContractStatus.SIGNED) {
             readVerified(contract.getSignedPdfObjectKey(), contract.getSignedPdfSha256(), contract.getReference());
+            replaceParentOf(contract);
         }
         if (contract.activate()) {
             audit("CONTRACT_ACTIVATED", contract, Map.of());
@@ -234,6 +292,22 @@ public class ContractService {
                     subscriber.email(), subscriber.displayName()));
         }
         return toView(contract);
+    }
+
+    /**
+     * Avenant activé : le contrat qu'il remplace, s'il est encore en vigueur, passe « remplacé ». Écrit avant
+     * l'activation de l'avenant : la base n'admet qu'un contrat en vigueur par abonné.
+     */
+    private void replaceParentOf(Contract amendment) {
+        if (amendment.getParentContractId() == null) {
+            return;
+        }
+        Contract parent = find(amendment.getParentContractId());
+        if (parent.getStatus() == ContractStatus.ACTIVE || parent.getStatus() == ContractStatus.SUSPENDED) {
+            parent.replaceBy(amendment.getReference());
+            contracts.flush();
+            audit("CONTRACT_REPLACED", parent, Map.of("replacedBy", amendment.getReference()));
+        }
     }
 
     @Transactional
@@ -356,7 +430,9 @@ public class ContractService {
                 result.getContent().stream().map(Contract::getSubscriberId).collect(Collectors.toSet()));
         Map<UUID, PaymentMethodView> methods = catalogById();
         Map<UUID, TemplateView> templateViews = templateViews();
-        return PageResponse.of(result, c -> toView(c, parties.get(c.getSubscriberId()), methods, templateViews));
+        Map<UUID, String> parents = parentReferences(result.getContent());
+        return PageResponse.of(result, c -> toView(c, parties.get(c.getSubscriberId()), methods, templateViews,
+                parents));
     }
 
     private void checkReadyToSend(Contract contract, SubscriberView subscriber) {
@@ -387,7 +463,9 @@ public class ContractService {
             throw new BusinessRuleException("L'abonné " + subscriber.displayName() + " est "
                     + subscriber.status() + " : impossible de lui envoyer un contrat.");
         }
+        // Un avenant coexiste avec le contrat qu'il remplacera ; tout autre contrat en cours bloque l'envoi.
         contracts.findBySubscriberIdAndStatusIn(subscriber.id(), ContractStatus.IN_PROGRESS).stream()
+                .filter(other -> !other.getId().equals(contract.getParentContractId()))
                 .findFirst()
                 .ifPresent(other -> {
                     throw new ConflictException("L'abonné a déjà le contrat " + other.getReference() + " ("
@@ -397,8 +475,10 @@ public class ContractService {
 
     private byte[] renderPdf(Contract contract, SubscriberView subscriber, boolean draft) {
         ContractTemplate template = templates.findById(contract.getTemplateId()).orElseThrow();
+        String replaces = contract.getParentContractId() == null ? null
+                : find(contract.getParentContractId()).getReference();
         return pdfRenderer.renderPdf(template.getContentHtml(),
-                ContractDocument.variables(contract, subscriber, catalogById(), draft));
+                ContractDocument.variables(contract, subscriber, catalogById(), draft, replaces));
     }
 
     private void requireActiveTemplate(UUID templateId) {
@@ -412,11 +492,20 @@ public class ContractService {
     }
 
     private ContractView toView(Contract contract) {
-        return toView(contract, subscribers.get(contract.getSubscriberId()), catalogById(), templateViews());
+        return toView(contract, subscribers.get(contract.getSubscriberId()), catalogById(), templateViews(),
+                parentReferences(List.of(contract)));
+    }
+
+    /** Références des contrats remplacés par ces avenants. */
+    private Map<UUID, String> parentReferences(List<Contract> list) {
+        Set<UUID> ids = list.stream().map(Contract::getParentContractId).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        return ids.isEmpty() ? Map.of() : contracts.findAllById(ids).stream()
+                .collect(Collectors.toMap(Contract::getId, Contract::getReference));
     }
 
     private static ContractView toView(Contract c, SubscriberView subscriber, Map<UUID, PaymentMethodView> methods,
-            Map<UUID, TemplateView> templateViews) {
+            Map<UUID, TemplateView> templateViews, Map<UUID, String> parentReferences) {
         var party = new ContractView.Party(subscriber.id(), subscriber.reference(), subscriber.displayName(),
                 subscriber.email(), subscriber.status().name());
         var included = c.getMethods().stream().map(m -> {
@@ -428,7 +517,9 @@ public class ContractService {
                 c.getStartDate(), c.getEndDate(), c.getCommissionRate(), included, c.getPdfSha256(), c.getSentAt(),
                 c.getSignedPdfSha256(), c.getSignedAt(), c.getActivatedAt(), c.getTerminatedAt(),
                 c.getTerminationReason(),
-                c.getCreatedBy(), c.getCreatedAt(), c.getUpdatedAt());
+                c.getCreatedBy(), c.getCreatedAt(), c.getUpdatedAt(),
+                c.getParentContractId() == null ? null : new ContractView.Amendment(c.getAmendmentNumber(),
+                        c.getParentContractId(), parentReferences.get(c.getParentContractId())));
     }
 
     private Map<UUID, PaymentMethodView> catalogById() {

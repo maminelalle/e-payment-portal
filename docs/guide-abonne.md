@@ -15,6 +15,10 @@
 3. Saisir le code à 6 chiffres reçu par email (valable 5 minutes) et cliquer sur **Signer le contrat**.
 4. Le contrat devient actif : le PDF signé, avec cachet visible et scellement PAdES, est téléchargeable.
 
+Si votre gestionnaire modifie votre contrat, vous recevez un **avenant** à signer de la même façon. Votre contrat
+actuel reste valable jusqu'à cette signature ; l'avenant le remplace ensuite, et vos paiements passés restent dans
+votre historique.
+
 ## Payer
 
 1. Sur l'**Accueil**, choisir un moyen ouvert par le contrat (**Payer avec Bankily**, **Payer par carte**…).

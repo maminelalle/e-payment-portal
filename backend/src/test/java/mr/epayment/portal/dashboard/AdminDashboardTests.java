@@ -57,7 +57,7 @@ class AdminDashboardTests {
                     jdbc.queryForObject("select count(*) from subscriber where status = ?", Long.class, status));
         }
         for (String status : List.of("DRAFT", "PENDING_SIGNATURE", "SIGNED", "ACTIVE", "SUSPENDED", "EXPIRED",
-                "TERMINATED")) {
+                "TERMINATED", "REPLACED")) {
             assertThat(((Number) JsonPath.read(body, "$.contractsByStatus." + status)).longValue()).isEqualTo(
                     jdbc.queryForObject("select count(*) from contract where status = ?", Long.class, status));
         }

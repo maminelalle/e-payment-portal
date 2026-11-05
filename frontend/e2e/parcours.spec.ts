@@ -14,6 +14,9 @@ const abonne = { email: `e2e-abonne-${stamp}@exemple.mr`, password: `Abonne#E2e$
 
 test.describe.configure({ mode: 'serial' });
 
+/** Contrat initial, transmis du premier scénario au scénario de l'avenant. */
+let contractId = '';
+
 test('l’admin crée l’abonné et lui envoie son contrat', async ({ page }) => {
   await resetPreferences(page);
   const api = await adminApi(page);
@@ -48,6 +51,7 @@ test('l’admin crée l’abonné et lui envoie son contrat', async ({ page }) =
   expect(updated.status(), await updated.text()).toBe(200);
   const sent = await post(api, `/api/admin/contrats/${draft.id}/envoyer`, {});
   expect(sent.status).toBe('PENDING_SIGNATURE');
+  contractId = draft.id;
 });
 
 test('l’abonné choisit son mot de passe depuis l’invitation', async ({ page }) => {
@@ -69,6 +73,68 @@ test('l’abonné choisit son mot de passe depuis l’invitation', async ({ page
 test('l’abonné signe son contrat avec le code reçu par email, puis peut payer', async ({ page }) => {
   await resetPreferences(page);
   await login(page, abonne, '/abonne');
+  await signCurrentContract(page);
+
+  await page.goto('/abonne');
+  await expect(page.getByRole('button', { name: 'Payer avec Bankily' })).toBeEnabled();
+});
+
+test('avenant : l’admin le crée depuis la fiche, l’abonné le signe, il remplace le contrat', async ({ page }) => {
+  test.setTimeout(180_000);
+  await resetPreferences(page);
+  const api = await adminApi(page);
+
+  // Création depuis la fiche du contrat actif → assistant ouvert sur l'avenant prérempli
+  await page.goto(`/admin/contrats/${contractId}`);
+  const reference = (await page.locator('h1.page-title').innerText()).trim();
+  await page.getByRole('button', { name: 'Créer un avenant' }).click();
+  await page.getByRole('button', { name: "Créer l'avenant" }).click();
+  await expect(page).toHaveURL(/\/admin\/contrats\/[0-9a-f-]{36}\/modifier/);
+  await expect(page.locator('h1.page-title')).toContainText(`Avenant ${reference}-A1`);
+  const amendmentId = page.url().split('/').at(-2)!;
+
+  // Nouveaux moyens : Bankily et Masrvi (plus de carte), puis envoi
+  const amendment = await (await api.get(`/api/admin/contrats/${amendmentId}`)).json();
+  const updated = await api.put(`/api/admin/contrats/${amendmentId}`, {
+    data: {
+      templateId: amendment.template.id,
+      startDate: amendment.startDate,
+      endDate: amendment.endDate,
+      commissionRate: 1.5,
+      methods: [
+        { code: 'BANKILY', perTransactionLimit: 50000, monthlyLimit: 500000 },
+        { code: 'MASRVI', perTransactionLimit: 50000, monthlyLimit: 500000 },
+      ],
+    },
+  });
+  expect(updated.status(), await updated.text()).toBe(200);
+  await post(api, `/api/admin/contrats/${amendmentId}/envoyer`, {});
+
+  // Abonné : l'avenant est annoncé, l'ancien contrat reste utilisable jusqu'à la signature
+  const subscriber = await page.context().browser()!.newPage();
+  await resetPreferences(subscriber);
+  await login(subscriber, abonne, '/abonne');
+  await expect(subscriber.getByText('Un avenant à votre contrat est prêt à être signé')).toBeVisible();
+  await expect(subscriber.getByRole('button', { name: 'Payer par carte' })).toBeVisible();
+  await subscriber.goto('/abonne/contrat');
+  await expect(subscriber.getByText('Avenant n°1')).toBeVisible();
+  await signCurrentContract(subscriber);
+  // L'activation suit la validation de la signature : on recharge jusqu'à voir les nouveaux moyens.
+  await expect(async () => {
+    await subscriber.goto('/abonne');
+    await expect(subscriber.getByRole('button', { name: 'Payer avec Masrvi' })).toBeEnabled({ timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
+  await expect(subscriber.getByRole('button', { name: 'Payer par carte' })).toHaveCount(0);
+  await subscriber.close();
+
+  // Admin : l'original est remplacé, l'historique montre les deux versions
+  await page.goto(`/admin/contrats/${contractId}`);
+  await expect(page.getByText('Remplacé par avenant').first()).toBeVisible();
+  await expect(page.locator('ol.versions li')).toHaveCount(2);
+});
+
+/** Signature du contrat (ou de l'avenant) en attente, avec le code reçu par email. */
+async function signCurrentContract(page: Page) {
   await page.goto('/abonne/contrat');
   await page.getByRole('button', { name: 'Signer électroniquement' }).click();
   await page.getByText('J’ai lu le contrat', { exact: false }).or(page.getByText("J'ai lu le contrat")).first().click();
@@ -82,10 +148,7 @@ test('l’abonné signe son contrat avec le code reçu par email, puis peut paye
   await page.keyboard.type(code!);
   await page.getByRole('button', { name: 'Signer le contrat' }).click();
   await expect(page.getByText(/Actif|signé/i).first()).toBeVisible({ timeout: 15_000 });
-
-  await page.goto('/abonne');
-  await expect(page.getByRole('button', { name: 'Payer avec Bankily' })).toBeEnabled();
-});
+}
 
 /** Connexion admin dans le navigateur, puis appels API avec le jeton de la session (comme le portail). */
 async function adminApi(page: Page): Promise<APIRequestContext> {

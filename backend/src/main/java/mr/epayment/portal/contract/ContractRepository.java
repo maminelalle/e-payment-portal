@@ -28,6 +28,13 @@ interface ContractRepository extends JpaRepository<Contract, UUID> {
 
     long countByStatus(ContractStatus status);
 
+    /** Avenants déjà numérotés d'un contrat initial (« CTR-2026-0001-A1 »…), annulés compris. */
+    long countByReferenceStartingWith(String prefix);
+
+    List<Contract> findByParentContractIdAndStatusIn(UUID parentContractId, Collection<ContractStatus> statuses);
+
+    List<Contract> findBySubscriberIdOrderByCreatedAt(UUID subscriberId);
+
     @Query("select c.status as status, count(c) as total from Contract c group by c.status")
     List<StatusCount> countPerStatus();
 
