@@ -86,6 +86,7 @@ class AdminDashboardController {
                 contracts.countByStatus(ContractStatus.PENDING_SIGNATURE),
                 new MonthFigure(month.count(), previous.count()),
                 new MonthFigure(month.collected(), previous.collected()),
+                new MonthFigure(month.commissions(), previous.commissions()),
                 days,
                 statistics.perDay(null, firstDay, today).stream()
                         .map(d -> new DayPoint(d.day(), d.count(), d.collected())).toList(),
@@ -118,7 +119,7 @@ class AdminDashboardController {
     }
 
     record AdminDashboard(long activeSubscribers, long newSubscribersThisMonth, long contractsPendingSignature,
-            MonthFigure transactionsThisMonth, MonthFigure collectedThisMonth, int days, List<DayPoint> perDay,
+            MonthFigure transactionsThisMonth, MonthFigure collectedThisMonth, MonthFigure commissionsThisMonth, int days, List<DayPoint> perDay,
             List<MethodShare> perMethod, List<ContractToProcess> contractsToProcess,
             List<TransactionView> latestTransactions, Map<SubscriberStatus, Long> subscribersByStatus,
             Map<ContractStatus, Long> contractsByStatus, List<StatusCount> transactionsByStatus,

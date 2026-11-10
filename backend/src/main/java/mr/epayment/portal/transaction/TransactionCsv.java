@@ -29,19 +29,21 @@ final class TransactionCsv {
     static byte[] write(List<TransactionView> rows, boolean withSubscriber) {
         StringBuilder csv = new StringBuilder("﻿");
         line(csv, withSubscriber
-                ? List.of("Référence", "Date", "Abonné", "Référence abonné", "Moyen", "Montant", "Devise", "Statut",
-                        "Motif", "Référence fournisseur", "Raison de l'échec")
-                : List.of("Référence", "Date", "Moyen", "Montant", "Devise", "Statut", "Motif",
+                ? List.of("Référence", "Date", "Abonné", "Référence abonné", "Moyen", "Montant", "Commission",
+                        "Devise", "Statut", "Motif", "Référence fournisseur", "Raison de l'échec")
+                : List.of("Référence", "Date", "Moyen", "Montant", "Commission", "Devise", "Statut", "Motif",
                         "Référence fournisseur", "Raison de l'échec"));
         for (TransactionView t : rows) {
             String date = DATE_TIME.format(t.createdAt());
             String amount = Amounts.format(t.amount());
+            String commission = t.commissionAmount() == null ? "" : Amounts.format(t.commissionAmount());
             String status = LABELS.get(t.status());
             line(csv, withSubscriber
                     ? List.of(t.reference(), date, nn(t.subscriberName()), nn(t.subscriberReference()), t.methodName(),
-                            amount, t.currency(), status, nn(t.description()), nn(t.providerReference()),
+                            amount, commission, t.currency(), status, nn(t.description()), nn(t.providerReference()),
                             nn(t.failureMessage()))
-                    : List.of(t.reference(), date, t.methodName(), amount, t.currency(), status, nn(t.description()),
+                    : List.of(t.reference(), date, t.methodName(), amount, commission, t.currency(), status,
+                            nn(t.description()),
                             nn(t.providerReference()), nn(t.failureMessage())));
         }
         return csv.toString().getBytes(StandardCharsets.UTF_8);

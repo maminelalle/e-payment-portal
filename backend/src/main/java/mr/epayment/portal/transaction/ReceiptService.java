@@ -84,6 +84,10 @@ class ReceiptService {
         vars.put("description", tx.getDescription());
         vars.put("providerReference", tx.getProviderReference());
         vars.put("contract", contracts.get(tx.getContractId()).reference());
+        // Commission prévue au contrat (article 4), calculée sur ce paiement réussi.
+        vars.put("commission", tx.getCommissionAmount() == null ? null
+                : Amounts.format(tx.getCommissionAmount()) + " " + tx.getCurrency() + " ("
+                        + Amounts.format(tx.getCommissionRate()) + " %)");
         vars.put("qr", verification.qrDataUri(tx));
         vars.put("verificationCode", verification.code(tx.getReference(), tx.getAmount()));
         return Map.of("tx", vars, "issuedAt", DATE.format(Instant.now()));

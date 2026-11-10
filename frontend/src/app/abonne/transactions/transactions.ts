@@ -24,6 +24,7 @@ const PAGE_SIZE = 20;
         <p class="page-subtitle">
           {{ total() }} paiement{{ total() > 1 ? 's' : '' }}
           @if (collected() > 0) { · {{ formatAmount(collected()) }} payés sur la période }
+          @if (commissions() > 0) { · {{ formatAmount(commissions()) }} de commissions (contrat) }
         </p>
       </div>
       <p-button label="Exporter (Excel, CSV)" icon="pi pi-file-excel" severity="secondary" [outlined]="true" [loading]="exporting()"
@@ -32,7 +33,7 @@ const PAGE_SIZE = 20;
     <div class="filters">
       <app-transaction-filters [methods]="methods()" (changed)="applyFilter($event)" />
     </div>
-    <app-transaction-table [transactions]="rows()" emptyText="Aucun paiement ne correspond à ces critères."
+    <app-transaction-table [transactions]="rows()" [showCommission]="true" emptyText="Aucun paiement ne correspond à ces critères."
       (receipt)="download($event)" />
     @if (rows().length < total()) {
       <p-button label="Afficher plus" severity="secondary" [outlined]="true" (onClick)="more()" [loading]="loading()" styleClass="more" />
@@ -48,6 +49,7 @@ export class AbonneTransactions {
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
   protected readonly collected = signal(0);
+  protected readonly commissions = signal(0);
   protected readonly formatAmount = formatAmount;
   protected readonly loading = signal(false);
   protected readonly exporting = signal(false);
@@ -64,7 +66,10 @@ export class AbonneTransactions {
         debounceTime(250),
         switchMap(() => {
           this.loading.set(true);
-          this.api.paymentTotals(this.filter).subscribe({ next: (t) => this.collected.set(t.collected), error: () => this.collected.set(0) });
+          this.api.paymentTotals(this.filter).subscribe({
+            next: (t) => { this.collected.set(t.collected); this.commissions.set(t.commissions); },
+            error: () => { this.collected.set(0); this.commissions.set(0); },
+          });
           return this.api.payments(0, PAGE_SIZE, this.filter);
         }),
         takeUntilDestroyed(inject(DestroyRef)),

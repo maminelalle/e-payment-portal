@@ -32,11 +32,12 @@ public class TransactionStatistics {
                 select count(*) as total,
                        count(*) filter (where status = 'SUCCEEDED') as succeeded,
                        count(*) filter (where status = 'FAILED') as failed,
-                       coalesce(sum(amount) filter (where status = 'SUCCEEDED'), 0) as collected
+                       coalesce(sum(amount) filter (where status = 'SUCCEEDED'), 0) as collected,
+                       coalesce(sum(commission_amount), 0) as commissions
                 from payment_transaction
                 where created_at >= ? and created_at < ? and (cast(? as uuid) is null or subscriber_id = ?)
                 """, (rs, i) -> new Totals(rs.getLong("total"), rs.getLong("succeeded"), rs.getLong("failed"),
-                        rs.getBigDecimal("collected")),
+                        rs.getBigDecimal("collected"), rs.getBigDecimal("commissions")),
                 Timestamp.from(from), Timestamp.from(to), subscriberId, subscriberId);
     }
 
@@ -103,7 +104,8 @@ public class TransactionStatistics {
         return engaged;
     }
 
-    public record Totals(long count, long succeeded, long failed, BigDecimal collected) {
+    /** @param commissions commissions dues sur les paiements réussis (contrats, article 4) */
+    public record Totals(long count, long succeeded, long failed, BigDecimal collected, BigDecimal commissions) {
     }
 
     public record DayCount(LocalDate day, long count, BigDecimal collected) {

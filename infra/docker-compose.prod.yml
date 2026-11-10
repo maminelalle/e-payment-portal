@@ -27,7 +27,10 @@ services:
 
   keycloak:
     <<: *restart
-    image: quay.io/keycloak/keycloak:26.8.1
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    image: epayment-keycloak:26.8.1-vonage
     command: start --import-realm
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
@@ -54,8 +57,20 @@ services:
       MAIL_USER: ${MAIL_USER}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       MAIL_STARTTLS: ${MAIL_STARTTLS}
+      VONAGE_API_KEY: ${VONAGE_API_KEY}
+      VONAGE_API_SECRET: ${VONAGE_API_SECRET}
+      VONAGE_BRAND: ${VONAGE_BRAND}
+      VONAGE_ADMIN_PHONE: ${VONAGE_ADMIN_PHONE}
+      VONAGE_WHATSAPP_APPLICATION_ID: ${VONAGE_WHATSAPP_APPLICATION_ID}
+      VONAGE_WHATSAPP_PRIVATE_KEY_PATH: ${VONAGE_WHATSAPP_PRIVATE_KEY_PATH}
+      VONAGE_WHATSAPP_FROM: ${VONAGE_WHATSAPP_FROM}
+      VONAGE_WHATSAPP_TEMPLATE_NAME: ${VONAGE_WHATSAPP_TEMPLATE_NAME}
+      VONAGE_WHATSAPP_TEMPLATE_LANGUAGE: ${VONAGE_WHATSAPP_TEMPLATE_LANGUAGE}
+      VONAGE_WHATSAPP_SANDBOX: ${VONAGE_WHATSAPP_SANDBOX:-false}
+      VONAGE_MESSAGES_URL: ${VONAGE_MESSAGES_URL:-https://api.nexmo.com/v1/messages}
     volumes:
       - ./keycloak/prod/epayment-realm.json:/opt/keycloak/data/import/epayment-realm.json:ro
+      - ./secrets/vonage-private.key:/run/secrets/vonage-private.key:ro
     depends_on:
       postgres:
         condition: service_healthy

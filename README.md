@@ -33,6 +33,7 @@ docs/        Cadrage, modèle de données, contrats d'API, maquettes
 
 | Document | Contenu |
 |----------|---------|
+| [docs/00-guide-comprehension-projet.md](docs/00-guide-comprehension-projet.md) | Guide complet : architecture, interface, flux métier, base de données et exemples |
 | [docs/00-decisions.md](docs/00-decisions.md) | Hypothèses métier et décisions techniques |
 | [docs/01-ecrans.md](docs/01-ecrans.md) | Inventaire des écrans et charte graphique |
 | [docs/02-modele-donnees.md](docs/02-modele-donnees.md) | Modèle de données (13 entités) |
@@ -84,11 +85,13 @@ Comptes de démonstration du realm `epayment` :
 2. L'email d'invitation « Mettre à jour votre compte » arrive dans Mailpit (http://localhost:8025) ; le lien (valable 72 h) permet de définir le mot de passe.
 3. L'abonné se connecte sur http://localhost. L'admin l'**active** depuis sa fiche ; **Suspendre** bloque la connexion et ferme ses sessions.
 
-Le realm livré exige un code TOTP pour le rôle ADMIN (Google Authenticator, FreeOTP, Microsoft Authenticator…). Pour tester plus vite **en local**, on peut le couper puis le remettre (le fichier du realm n'est pas modifié) :
+Le realm livré exige maintenant un OTP WhatsApp Vonage pour le rôle ADMIN. Les variables `VONAGE_*` restent uniquement dans `infra/.env.prod` et ne doivent jamais être commitées. Le numéro administrateur doit être au format international `+222XXXXXXXX`. Le nom du modèle approuvé est configuré par `VONAGE_WHATSAPP_TEMPLATE_NAME`.
+
+Pour tester plus vite **en local**, on peut couper puis remettre la MFA (le fichier du realm n'est pas modifié) :
 
 ```bash
-bash infra/keycloak/mfa-admin.sh off   # admin : mot de passe seul (TOTP existants retirés)
-bash infra/keycloak/mfa-admin.sh on    # TOTP exigé à nouveau (pour la démo)
+bash infra/keycloak/mfa-admin.sh off   # admin : mot de passe seul
+bash infra/keycloak/mfa-admin.sh on    # OTP WhatsApp exigé à nouveau
 ```
 
 Le realm n'est importé qu'au premier démarrage. Après modification de `infra/keycloak/epayment-realm.json`, supprimer le realm `epayment` dans la console puis `docker restart epayment-keycloak-1`.

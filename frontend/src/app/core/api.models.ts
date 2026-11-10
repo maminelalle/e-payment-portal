@@ -232,6 +232,9 @@ export interface Transaction {
   subscriberName: string;
   createdAt: string;
   completedAt: string | null;
+  /** Taux du contrat (null : aucune commission) et commission due sur un paiement réussi (article 4). */
+  commissionRate: number | null;
+  commissionAmount: number | null;
 }
 
 /** Filtres de l'historique des transactions (tous facultatifs ; dates au format yyyy-MM-dd). */
@@ -296,6 +299,8 @@ export interface AdminDashboard {
   /** Mois en cours comparé à la même durée écoulée du mois précédent. */
   transactionsThisMonth: MonthFigure;
   collectedThisMonth: MonthFigure;
+  /** Commissions dues sur les paiements réussis du mois (contrats, article 4). */
+  commissionsThisMonth: MonthFigure;
   days: number;
   perDay: DayPoint[];
   perMethod: MethodShare[];
@@ -486,6 +491,8 @@ export interface NotificationPreferences {
 export interface TransactionTotals {
   count: number;
   collected: number;
+  /** Commissions dues sur les paiements réussis de la recherche. */
+  commissions: number;
 }
 
 /** Transaction suspecte détectée sur les 7 derniers jours. */

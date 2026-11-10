@@ -165,7 +165,7 @@ public class EntitlementEngine {
         }
         return new PaymentAuthorization(true, null, null, entitlement.getContractId(), method.id(), method.name(),
                 method.category(), method.provider().code(), method.currency(), entitlement.getPerTransactionLimit(),
-                entitlement.getMonthlyLimit());
+                entitlement.getMonthlyLimit(), contracts.get(entitlement.getContractId()).commissionRate());
     }
 
     /** « Mes moyens de paiement » : uniquement les droits ouverts par le contrat en vigueur. */

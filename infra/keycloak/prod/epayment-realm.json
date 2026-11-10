@@ -49,7 +49,7 @@
   "authenticationFlows": [
     {
       "alias": "browser-mfa-admin",
-      "description": "Connexion navigateur : mot de passe pour tous, code TOTP en plus pour le rôle ADMIN",
+      "description": "Connexion navigateur : mot de passe pour tous, code SMS Vonage en plus pour le rôle ADMIN",
       "providerId": "basic-flow",
       "topLevel": true,
       "builtIn": false,
@@ -72,7 +72,7 @@
     },
     {
       "alias": "browser-mfa-admin forms",
-      "description": "Identifiant et mot de passe, puis OTP conditionnel",
+      "description": "Identifiant et mot de passe, puis OTP SMS conditionnel",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
@@ -95,7 +95,7 @@
     },
     {
       "alias": "browser-mfa-admin otp admin",
-      "description": "Code TOTP exigé si l'utilisateur a le rôle ADMIN (configuration au premier passage)",
+      "description": "Code SMS Vonage exigé si l'utilisateur a le rôle ADMIN",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
@@ -109,7 +109,7 @@
           "userSetupAllowed": false
         },
         {
-          "authenticator": "auth-otp-form",
+          "authenticator": "vonage-sms-otp",
           "requirement": "REQUIRED",
           "priority": 20,
           "autheticatorFlow": false,

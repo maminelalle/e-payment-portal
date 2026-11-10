@@ -33,5 +33,8 @@ public record TransactionView(
         String subscriberReference,
         String subscriberName,
         Instant createdAt,
-        Instant completedAt) {
+        Instant completedAt,
+        /** Taux du contrat (null : aucune commission) et commission due sur un paiement réussi. */
+        BigDecimal commissionRate,
+        BigDecimal commissionAmount) {
 }

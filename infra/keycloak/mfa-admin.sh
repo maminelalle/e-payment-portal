@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Active ou désactive le code TOTP des administrateurs sur le Keycloak LOCAL (développement uniquement).
+# Active ou désactive l'OTP SMS des administrateurs sur le Keycloak LOCAL (développement uniquement).
 #   bash infra/keycloak/mfa-admin.sh off   # connexion admin par mot de passe seul
-#   bash infra/keycloak/mfa-admin.sh on    # TOTP exigé pour le rôle ADMIN (comportement du realm livré)
+#   bash infra/keycloak/mfa-admin.sh on    # OTP SMS exigé pour le rôle ADMIN (comportement du realm livré)
 # Le fichier epayment-realm.json n'est pas modifié : un nouvel import réactive toujours la MFA.
 set -euo pipefail
 
@@ -32,9 +32,9 @@ if [ "$MODE" = off ]; then
     for cred in $(curl -sf -H "$AUTH" "$API/users/$id/credentials" | grep -o '"id":"[^"]*","type":"otp"' | cut -d'"' -f4); do
       curl -sf -X DELETE -H "$AUTH" "$API/users/$id/credentials/$cred"
     done
-    echo "  $name : TOTP retiré"
+    echo "  $name : anciennes informations MFA retirées"
   done
   echo "MFA admin DÉSACTIVÉE en local. Pour la réactiver : bash $0 on"
 else
-  echo "MFA admin ACTIVÉE : chaque administrateur enregistrera un code TOTP à sa prochaine connexion."
+  echo "MFA admin ACTIVÉE : l'OTP SMS Vonage sera demandé au rôle ADMIN."
 fi

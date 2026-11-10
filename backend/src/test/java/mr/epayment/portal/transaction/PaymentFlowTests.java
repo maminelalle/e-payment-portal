@@ -261,13 +261,19 @@ class PaymentFlowTests {
 
     @Test
     void totalsAndCsvExportFollowTheFilters() throws Exception {
-        String ok = reference(pay(subject, "BANKILY", "1250.00", UUID.randomUUID().toString()));
-        String ko = reference(pay(subject, "BANKILY", "300.51", UUID.randomUUID().toString()));
+        // Commission du contrat (1,5 %, article 4) : sur chaque paiement réussi, jamais sur un échec.
+        String ok = reference(pay(subject, "BANKILY", "1250.00", UUID.randomUUID().toString())
+                .andExpect(jsonPath("$.commissionRate").value(1.5))
+                .andExpect(jsonPath("$.commissionAmount").value(18.75)));
+        String ko = reference(pay(subject, "BANKILY", "300.51", UUID.randomUUID().toString())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.commissionAmount").doesNotExist()));
 
-        // Toutes pages confondues : 2 transactions, seul le paiement réussi est encaissé.
+        // Toutes pages confondues : 2 transactions, seul le paiement réussi est encaissé et commissionné.
         mvc.perform(get("/api/abonne/paiements/totaux").with(subscriber(subject)))
                 .andExpect(jsonPath("$.count").value(2))
-                .andExpect(jsonPath("$.collected").value(1250.0));
+                .andExpect(jsonPath("$.collected").value(1250.0))
+                .andExpect(jsonPath("$.commissions").value(18.75));
         mvc.perform(get("/api/abonne/paiements/totaux").param("statut", "FAILED").with(subscriber(subject)))
                 .andExpect(jsonPath("$.count").value(1))
                 .andExpect(jsonPath("$.collected").value(0));
@@ -277,8 +283,9 @@ class PaymentFlowTests {
         String csv = mvc.perform(get("/api/abonne/paiements/export.csv").with(subscriber(subject)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-        assertThat(csv).startsWith("﻿Référence;Date;Moyen;Montant");
-        assertThat(csv).contains(ok + ";", "1 250,00;MRU;Réussie", ko + ";", "Échouée", "Solde insuffisant.");
+        assertThat(csv).startsWith("﻿Référence;Date;Moyen;Montant;Commission");
+        assertThat(csv).contains(ok + ";", "1 250,00;18,75;MRU;Réussie", ko + ";", "300,51;;MRU;Échouée",
+                "Solde insuffisant.");
         String adminCsv = mvc.perform(get("/api/admin/transactions/export.csv").param("q", ok).with(admin()))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         assertThat(adminCsv).contains("Abonné", "Société Paiement", ok).doesNotContain(ko);
@@ -402,7 +409,7 @@ class PaymentFlowTests {
                 .andReturn().getResponse().getContentAsString(), "$.id");
         mvc.perform(put("/api/admin/contrats/{id}", contractId).with(admin()).contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"templateId":"%s","startDate":"%s","endDate":"%s","methods":[
+                        {"templateId":"%s","startDate":"%s","endDate":"%s","commissionRate":1.5,"methods":[
                         {"code":"BANKILY","perTransactionLimit":%d,"monthlyLimit":%d}]}"""
                         .formatted(templateId, LocalDate.now(), LocalDate.now().plusYears(1), perTransaction, monthly)))
                 .andExpect(status().isOk());

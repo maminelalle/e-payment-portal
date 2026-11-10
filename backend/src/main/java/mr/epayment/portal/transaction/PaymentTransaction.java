@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
 import mr.epayment.portal.gateway.PaymentProvider.Outcome;
@@ -47,6 +48,14 @@ class PaymentTransaction {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionStatus status;
+
+    /** Taux de commission du contrat qui autorise le paiement, figé à la création (null : aucune commission). */
+    @Column(name = "commission_rate", updatable = false)
+    private BigDecimal commissionRate;
+
+    /** Commission due : calculée quand le paiement réussit (contrat, article 4). */
+    @Column(name = "commission_amount")
+    private BigDecimal commissionAmount;
 
     @Column(name = "provider_status")
     private String providerStatus;
@@ -94,7 +103,7 @@ class PaymentTransaction {
     }
 
     PaymentTransaction(String reference, UUID subscriberId, UUID paymentMethodId, UUID contractId, BigDecimal amount,
-            String currency, String idempotencyKey, String payerPhone, String description) {
+            String currency, String idempotencyKey, String payerPhone, String description, BigDecimal commissionRate) {
         this.id = UUID.randomUUID();
         this.reference = reference;
         this.subscriberId = subscriberId;
@@ -105,6 +114,7 @@ class PaymentTransaction {
         this.idempotencyKey = idempotencyKey;
         this.payerPhone = payerPhone;
         this.description = description;
+        this.commissionRate = commissionRate;
         this.status = TransactionStatus.CREATED;
         this.createdAt = Instant.now();
         this.updatedAt = createdAt;
@@ -140,6 +150,9 @@ class PaymentTransaction {
         } else if (redirectUrl != null) {
             this.redirectUrl = redirectUrl;
         }
+        if (status == TransactionStatus.SUCCEEDED && commissionRate != null) {
+            this.commissionAmount = commission(amount, commissionRate);
+        }
         if (status == TransactionStatus.FAILED) {
             this.failureCode = failureCode == null ? "DECLINED" : failureCode;
             this.failureMessage = FailureMessages.of(this.failureCode);
@@ -170,6 +183,19 @@ class PaymentTransaction {
         this.updatedAt = Instant.now();
         this.completedAt = updatedAt;
         return true;
+    }
+
+    /** Montant × taux, arrondi au centime le plus proche (0,005 → 0,01). */
+    static BigDecimal commission(BigDecimal amount, BigDecimal rate) {
+        return amount.multiply(rate).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+
+    BigDecimal getCommissionRate() {
+        return commissionRate;
+    }
+
+    BigDecimal getCommissionAmount() {
+        return commissionAmount;
     }
 
     void attachReceipt(String objectKey) {

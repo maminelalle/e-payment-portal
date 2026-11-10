@@ -39,6 +39,7 @@
   <tr th:if="${tx.description != null}"><td>Motif</td><td th:text="${tx.description}">Facture octobre</td></tr>
   <tr><td>Référence fournisseur</td><td th:text="${tx.providerReference}">BKL-1</td></tr>
   <tr><td>Contrat</td><td th:text="${tx.contract}">CTR-2026-0001</td></tr>
+  <tr th:if="${tx.commission != null}"><td>Commission (contrat)</td><td th:text="${tx.commission}">187,50 MRU (1,50 %)</td></tr>
 </table>
 
 <table class="verify">

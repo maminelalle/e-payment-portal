@@ -90,7 +90,7 @@ paiements → suivi : ✅ de bout en bout, par l'écran, dans `parcours.spec` (e
 |----------|------|-------------|
 | Frontend Angular ou React | ✅ | Angular 21 + PrimeNG (D2, D9) |
 | Backend Java / Spring Boot, API REST | ✅ | Spring Boot 4.1, monolithe modulaire Spring Modulith (D1) — `ModularityTests` |
-| PostgreSQL | ✅ | PostgreSQL 16, Flyway V1 → V16 |
+| PostgreSQL | ✅ | PostgreSQL 16, Flyway V1 → V17 |
 | Stockage documentaire sécurisé | ✅ | stockage S3 (SeaweedFS, D10), documents servis seulement après contrôle d'accès |
 | 7.1 Modules Auth, Subscriber, Contract, E-Signature, Payment Methods, Entitlements, Gateway, Transactions, Notification, Audit | ✅ | un paquetage par module (`auth`, `subscriber`, `contract`, `signature`, `catalog`, `entitlement`, `gateway`, `transaction`, `notification`, `audit`) |
 | 7.2 HTTPS et API REST sécurisées | ✅ | Nginx TLS, HSTS, CSP, jetons JWT — scan ZAP 0 échec |
@@ -102,7 +102,7 @@ paiements → suivi : ✅ de bout en bout, par l'écran, dans `parcours.spec` (e
 
 Les 13 entités (User, Role/Permission, Subscriber, Contract_Template, Contract, Payment_Method, Contract_Payment_Method,
 Signature, Subscriber_Entitlement, Payment_Provider, Transaction, Notification, Audit_Log) et les relations 8.1 :
-✅ — voir `02-modele-donnees.md` (à jour de V16). Chaque transaction est rattachée au contrat qui l'a autorisée.
+✅ — voir `02-modele-donnees.md` (à jour de V17). Chaque transaction est rattachée au contrat qui l'a autorisée ; le taux et le montant de commission du contrat sont figés sur chaque transaction réussie.
 
 ## 9. Sécurité et conformité
 

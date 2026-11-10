@@ -34,6 +34,9 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
             }
             <th>Moyen</th>
             <th class="amount">Montant</th>
+            @if (showCommission()) {
+              <th class="amount">Commission</th>
+            }
             <th>Statut</th>
             <th class="action">Reçu</th>
           </tr>
@@ -59,6 +62,11 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
                 </span>
               </td>
               <td class="amount"><bdi>{{ formatAmount(t.amount, t.currency) }}</bdi></td>
+              @if (showCommission()) {
+                <td class="amount commission" [title]="t.commissionRate != null ? 'Taux du contrat : ' + t.commissionRate + ' %' : 'Aucune commission au contrat'">
+                  <bdi>{{ t.commissionAmount != null ? formatAmount(t.commissionAmount, t.currency) : '—' }}</bdi>
+                </td>
+              }
               <td>
                 <span [class]="'status-pill ' + tones[t.status]" [title]="t.failureMessage ?? ''" [attr.aria-description]="t.failureMessage">{{ labels[t.status] }}</span>
                 @if (t.status === 'FAILED' && t.failureMessage) { <span class="failure">{{ t.failureMessage }}</span> }
@@ -74,7 +82,7 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
             </tr>
           } @empty {
             <tr>
-              <td [attr.colspan]="showSubscriber() ? 7 : 6" class="empty">{{ emptyText() }}</td>
+              <td [attr.colspan]="(showSubscriber() ? 7 : 6) + (showCommission() ? 1 : 0)" class="empty">{{ emptyText() }}</td>
             </tr>
           }
         </tbody>
@@ -89,6 +97,7 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
     tbody tr:hover td { background: var(--surface-sunken); }
     tbody tr:last-child td { border-block-end: 0; }
     .amount { text-align: end; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .commission { font-weight: 400; color: var(--ink-muted); }
     .action { text-align: end; }
     td:last-child { text-align: end; }
     .failure { display: block; max-width: 28ch; margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--ink-subtle); white-space: normal; }
@@ -100,6 +109,8 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
 export class TransactionTable {
   readonly transactions = input.required<Transaction[]>();
   readonly showSubscriber = input(false);
+  /** Colonne « Commission » : commission du contrat sur chaque paiement réussi. */
+  readonly showCommission = input(false);
   readonly emptyText = input("Aucun paiement pour l'instant.");
   /** Demande de téléchargement du reçu d'un paiement réussi. */
   readonly receipt = output<Transaction>();

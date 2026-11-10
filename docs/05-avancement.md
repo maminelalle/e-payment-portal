@@ -97,7 +97,7 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - Contrats en PDF, envoi pour signature, signature par code email + sceau PAdES.
 - Activation automatique des droits après signature ; espace abonné ; démo du workflow complet.
 - Correction de la boucle de retour sur la page de connexion.
-- MFA admin désactivable en local (`infra/keycloak/mfa-admin.sh off|on`).
+- MFA admin par OTP WhatsApp Vonage Messages, avec authenticator Keycloak personnalisé, JWT d'application, numéro E.164 et variables secrètes hors dépôt ; désactivable en local (`infra/keycloak/mfa-admin.sh off|on`).
 
 ### 02–03/11/2026 — Semaines 1 à 4
 - Cadrage, socle technique, Keycloak (rôles, MFA admin), audit, gestion des abonnés et du catalogue.
@@ -137,14 +137,15 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [x] Profil abonné (§4.5) : mettre à jour ses coordonnées (téléphone, adresse) avec vérification — fait le 05/11 (D27) : code par email (5 min, 3 essais, 1 demande par minute), audit avant/après, avis de sécurité par email. Trouvé et corrigé au passage : débordement de l'en-tête abonné sur téléphone, choix de langue absent sur mobile, icônes remplacées par des carrés en arabe
 - [x] Modèles de contrat (§3.4) — fait le 05/11 (D31) : écran « Modèles » (versions, nombre de contrats, aperçu PDF avec données d'exemple, versions proposées / archivées, au moins une proposée) ; le contenu reste livré par migration (D14)
 - [x] Chiffrement des données sensibles en base (§9 : NNI/NIF) — fait le 05/11 (D30) : AES-256-GCM + empreinte HMAC pour l'unicité, clé DATA_ENCRYPTION_KEY, données existantes chiffrées au démarrage (14 sur la recette)
-- Hors périmètre du stage (D12, « après les 3 mois ») : vraies API fournisseurs, SMS, remboursements et contestations, coffre-fort de secrets, rôles admin fins
+- Hors périmètre du stage (D12, « après les 3 mois ») : vraies API fournisseurs, remboursements et contestations, coffre-fort de secrets, rôles admin fins
 
 ### Améliorations proposées, non réalisées (à arbitrer)
 - [ ] Lien / QR code de paiement à envoyer à un client ; paiements récurrents ou programmés
 - [ ] Relevés mensuels en PDF ; moyens et montants favoris
 - [ ] Demande de nouveau moyen depuis le portail (avenant au contrat) ; support / réclamation sur une transaction
 - [ ] Plusieurs utilisateurs par personne morale (comptable, caissier) ; rôles admin fins (super-admin, opérateur, auditeur)
-- [ ] Commissions et facture mensuelle par abonné ; modèles d'email et de SMS modifiables ; invitation par import CSV
+- [x] Commission contractuelle sur chaque paiement réussi (taux et montant figés sur la transaction, reçus, historiques, totaux et exports)
+- [ ] Facture mensuelle par abonné ; modèles d'email et de SMS modifiables ; invitation par import CSV
 - [ ] API et webhooks pour les abonnés (clés générées depuis le portail) ; notifications push (service worker PWA)
 - [ ] Connexion sans mot de passe (passkey, via Keycloak WebAuthn)
 - [ ] Traduction arabe complète : l'actuelle traduit le texte affiché par dictionnaire ; une vraie i18n par clés reste à faire

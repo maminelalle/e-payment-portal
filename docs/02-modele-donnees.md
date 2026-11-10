@@ -1,6 +1,6 @@
 # 02 — Modèle de données
 
-Semaine 1 · Cadrage, mis à jour le 05/11/2026 (migrations V1 à V16). Base PostgreSQL 16, migrations Flyway
+Semaine 1 · Cadrage, mis à jour le 05/11/2026 (migrations V1 à V17). Base PostgreSQL 16, migrations Flyway
 (`backend/src/main/resources/db/migration`).
 
 Conventions :
@@ -108,7 +108,7 @@ uniques lorsqu'ils sont renseignés. Le format (10 chiffres, 8 chiffres) est vé
 | id | uuid | PK |
 | code | varchar(30) | unique, `^[A-Z][A-Z0-9_]{1,29}# 02 — Modèle de données
 
-Semaine 1 · Cadrage, mis à jour le 05/11/2026 (migrations V1 à V16). Base PostgreSQL 16, migrations Flyway
+Semaine 1 · Cadrage, mis à jour le 05/11/2026 (migrations V1 à V17). Base PostgreSQL 16, migrations Flyway
 (`backend/src/main/resources/db/migration`).
 
 Conventions :
@@ -397,3 +397,4 @@ Table en ajout seul (pas de `UPDATE`/`DELETE` par l'application).
 | `V14__catalog_management.sql` | payment_provider.kind, payment_method.conditions, format du code | S12 |
 | `V15__contract_amendments.sql` | statut `REPLACED`, amendment_number, modèle « Avenant n°… » | S12 |
 | `V16__encrypted_identifiers.sql` | NNI / NIF chiffrés, empreintes nni_hash / nif_hash | S12 |
+| `V17__transaction_commission.sql` | Taux et montant de commission figés sur les transactions | S12 |

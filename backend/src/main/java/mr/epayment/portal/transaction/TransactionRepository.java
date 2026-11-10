@@ -45,7 +45,8 @@ interface TransactionRepository extends JpaRepository<PaymentTransaction, UUID> 
     /** Totaux sur les mêmes filtres que {@link #search} : nombre de transactions et montant encaissé (réussies). */
     @Query("""
             select new mr.epayment.portal.transaction.FilteredTotals(count(t),
-                   coalesce(sum(case when t.status = 'SUCCEEDED' then t.amount else 0 end), 0))
+                   coalesce(sum(case when t.status = 'SUCCEEDED' then t.amount else 0 end), 0),
+                   coalesce(sum(t.commissionAmount), 0))
             from PaymentTransaction t
             where (:subscriberId is null or t.subscriberId = :subscriberId)
               and (:status is null or t.status = :status)

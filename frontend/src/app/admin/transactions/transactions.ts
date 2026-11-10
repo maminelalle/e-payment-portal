@@ -24,13 +24,14 @@ const PAGE_SIZE = 20;
         <p class="page-subtitle">
           {{ total() }} transaction{{ total() > 1 ? 's' : '' }}
           @if (collected() > 0) { · {{ formatAmount(collected()) }} encaissés sur la période }
+          @if (commissions() > 0) { · {{ formatAmount(commissions()) }} de commissions }
         </p>
       </div>
       <p-button label="Exporter (Excel, CSV)" icon="pi pi-file-excel" severity="secondary" [outlined]="true" [loading]="exporting()"
         [disabled]="!total()" (onClick)="exportCsv()" />
     </div>
     <app-transaction-filters [methods]="methods()" [initialReference]="q()" [initialStatus]="status()" [initialFrom]="du()" (changed)="applyFilter($event)" />
-    <app-transaction-table [transactions]="rows()" [showSubscriber]="true"
+    <app-transaction-table [transactions]="rows()" [showSubscriber]="true" [showCommission]="true"
       emptyText="Aucune transaction ne correspond à ces critères." (receipt)="download($event)" />
     @if (rows().length < total()) {
       <p-button label="Afficher plus" severity="secondary" [outlined]="true" (onClick)="more()" [loading]="loading()" styleClass="more" />
@@ -52,6 +53,7 @@ export class AdminTransactions implements OnInit {
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
   protected readonly collected = signal(0);
+  protected readonly commissions = signal(0);
   protected readonly loading = signal(false);
   protected readonly exporting = signal(false);
   private readonly messages = inject(MessageService);
@@ -68,7 +70,10 @@ export class AdminTransactions implements OnInit {
         debounceTime(250),
         switchMap(() => {
           this.loading.set(true);
-          this.api.transactionTotals(this.filter).subscribe({ next: (t) => this.collected.set(t.collected), error: () => this.collected.set(0) });
+          this.api.transactionTotals(this.filter).subscribe({
+            next: (t) => { this.collected.set(t.collected); this.commissions.set(t.commissions); },
+            error: () => { this.collected.set(0); this.commissions.set(0); },
+          });
           return this.api.transactions(0, PAGE_SIZE, this.filter);
         }),
         takeUntilDestroyed(inject(DestroyRef)),

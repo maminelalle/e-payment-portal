@@ -123,7 +123,7 @@ public class PaymentService {
                     "TRX-%06d".formatted(transactions.nextReferenceNumber()), subscriber.id(),
                     authorization.paymentMethodId(), authorization.contractId(), command.amount(),
                     authorization.currency(), command.idempotencyKey(), wallet ? command.payerPhone() : null,
-                    command.description())));
+                    command.description(), authorization.commissionRate())));
         } catch (DataIntegrityViolationException e) {
             // Même clé envoyée deux fois en parallèle : on renvoie celle qui a été enregistrée.
             return transactions.findBySubscriberIdAndIdempotencyKey(subscriber.id(), command.idempotencyKey())
@@ -408,7 +408,7 @@ public class PaymentService {
                 tx.getAmount(), tx.getCurrency(), tx.getDescription(), tx.getPayerPhone(), tx.getCardMaskedPan(),
                 tx.getFailureCode(), tx.getFailureMessage(), tx.getRedirectUrl(), tx.getContractId(),
                 tx.getSubscriberId(), subscriber.reference(), subscriber.displayName(), tx.getCreatedAt(),
-                tx.getCompletedAt());
+                tx.getCompletedAt(), tx.getCommissionRate(), tx.getCommissionAmount());
     }
 
     private Map<String, PaymentMethodView> catalogByCode() {
