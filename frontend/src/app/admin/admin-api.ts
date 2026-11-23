@@ -8,6 +8,7 @@ import {
   AuditFilter,
   Contract,
   ContractTemplateSummary,
+  CurrentContract,
   ContractVersion,
   ContractStatus,
   ContractTemplate,
@@ -91,6 +92,13 @@ export class AdminApi {
 
   resendInvitation(id: string): Observable<{ invitationSent: boolean }> {
     return this.http.post<{ invitationSent: boolean }>(`/api/admin/abonnes/${id}/invitation`, null);
+  }
+
+  /** Contrat courant de chaque abonné demandé (au plus 100), indexé par identifiant d'abonné. */
+  currentContracts(subscriberIds: string[]): Observable<Record<string, CurrentContract>> {
+    return this.http.get<Record<string, CurrentContract>>('/api/admin/contrats/courants', {
+      params: new HttpParams({ fromObject: { abonnes: subscriberIds } }),
+    });
   }
 
   searchContracts(query: {

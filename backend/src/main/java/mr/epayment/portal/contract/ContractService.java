@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -237,6 +238,20 @@ public class ContractService {
     @Transactional(readOnly = true)
     public Optional<ContractView> currentForSubscriber(UUID subscriberId) {
         return currentOf(subscriberId).map(this::toView);
+    }
+
+    /** Contrat courant (référence, statut) de chaque abonné d'une page de la liste admin ; absent si aucun. */
+    @Transactional(readOnly = true)
+    public Map<UUID, CurrentContract> currentContracts(Collection<UUID> subscriberIds) {
+        Map<UUID, CurrentContract> result = new LinkedHashMap<>();
+        for (UUID subscriberId : subscriberIds) {
+            currentOf(subscriberId).ifPresent(c -> result.put(subscriberId,
+                    new CurrentContract(c.getId(), c.getReference(), c.getStatus(), c.getEndDate())));
+        }
+        return result;
+    }
+
+    public record CurrentContract(UUID id, String reference, ContractStatus status, LocalDate endDate) {
     }
 
     @Transactional(readOnly = true)

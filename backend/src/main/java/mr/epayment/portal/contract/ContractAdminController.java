@@ -11,10 +11,12 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import mr.epayment.portal.contract.ContractService.ContractPdf;
 import mr.epayment.portal.contract.ContractService.DraftChanges;
 import mr.epayment.portal.contract.ContractTemplate.TemplateView;
+import mr.epayment.portal.shared.BusinessRuleException;
 import mr.epayment.portal.shared.PageResponse;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +53,15 @@ class ContractAdminController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return service.search(statut, abonne, q, page, size);
+    }
+
+    /** Contrat courant de chaque abonné demandé (liste des abonnés : colonne « Contrat »), 100 au plus. */
+    @GetMapping("/courants")
+    Map<UUID, ContractService.CurrentContract> current(@RequestParam List<UUID> abonnes) {
+        if (abonnes.size() > 100) {
+            throw new BusinessRuleException("100 abonnés au plus par demande.");
+        }
+        return service.currentContracts(abonnes);
     }
 
     @GetMapping("/modeles")

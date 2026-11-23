@@ -93,6 +93,11 @@ class WorkflowTests {
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[*].status", org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("ACTIVE"))));
 
+        // Liste des abonnés : colonne « Contrat » (contrat courant de chaque abonné de la page)
+        mvc.perform(get("/api/admin/contrats/courants").param("abonnes", subscriberId).with(admin()))
+                .andExpect(jsonPath("$['" + subscriberId + "'].id").value(contractId))
+                .andExpect(jsonPath("$['" + subscriberId + "'].status").value("ACTIVE"));
+
         // Fiche abonné côté admin : les mêmes moyens autorisés (conception §3.2)
         mvc.perform(get("/api/admin/abonnes/{id}/moyens", subscriberId).with(admin()))
                 .andExpect(jsonPath("$[*].code", org.hamcrest.Matchers.containsInAnyOrder("BANKILY", "VISA")));

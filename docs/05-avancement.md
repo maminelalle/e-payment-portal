@@ -26,6 +26,15 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
 
+### 23/11/2026 — Dernières retouches d'interface
+- Moyens de l'abonné : plafonds présentés « Par opération / Par mois ».
+- Liste des abonnés : colonne « Contrat » (référence et statut du contrat courant, une seule requête par page) ;
+  avertissement si le téléphone saisi appartient déjà à un abonné (non bloquant : un numéro peut être partagé).
+- Transactions sur téléphone : une carte par transaction (libellé / valeur), plus de défilement horizontal.
+- Arabe dans l'espace admin : 130 textes fixes ajoutés au dictionnaire (menus, écrans, filtres, formulaires,
+  contrats, modèles) ; les libellés des cartes mobiles sont traduits aussi.
+- Vérifié : backend 78/78, frontend 14/14, E2E 22/22 sur la recette ; captures FR / AR, bureau et mobile.
+
 ### 23/11/2026 — MFA WhatsApp fiabilisée, commissions au tableau de bord
 - Commission (D32) : indicateur « Commissions ce mois » au tableau de bord admin (comparé au mois précédent).
 - MFA admin WhatsApp (D33), corrections de l'authentificateur Keycloak :
@@ -162,7 +171,7 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [ ] Facture mensuelle par abonné ; modèles d'email et de SMS modifiables ; invitation par import CSV
 - [ ] API et webhooks pour les abonnés (clés générées depuis le portail) ; notifications push (service worker PWA)
 - [ ] Connexion sans mot de passe (passkey, via Keycloak WebAuthn)
-- [ ] Traduction arabe complète : l'actuelle traduit le texte affiché par dictionnaire ; une vraie i18n par clés reste à faire
+- [~] Traduction arabe : espaces abonné et admin couverts (texte fixe, par dictionnaire) ; les messages dynamiques (notifications, erreurs du serveur) restent en français, une vraie i18n par clés reste à faire
 
 ### Points secondaires
 - [ ] Thème Keycloak aux couleurs du portail (page de connexion)

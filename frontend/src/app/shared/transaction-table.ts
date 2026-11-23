@@ -44,34 +44,34 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
         <tbody>
           @for (t of transactions(); track t.reference) {
             <tr>
-              <td><bdi class="ep-ref">{{ t.reference }}</bdi></td>
-              <td>
+              <td data-label="Référence"><bdi class="ep-ref">{{ t.reference }}</bdi></td>
+              <td data-label="Date">
                 <bdi class="ep-ltr">{{ t.createdAt | date: 'dd/MM/yyyy' }}</bdi>
                 <span class="ep-cell-secondary"><bdi>{{ t.createdAt | date: 'HH:mm' }}</bdi></span>
               </td>
               @if (showSubscriber()) {
-                <td>
+                <td data-label="Abonné">
                   <span class="ep-cell-primary">{{ t.subscriberName }}</span>
                   <bdi class="ep-ref ep-cell-secondary">{{ t.subscriberReference }}</bdi>
                 </td>
               }
-              <td>
+              <td data-label="Moyen">
                 <span class="method">
                   <app-method-logo [method]="{ name: t.methodName, shortLabel: t.shortLabel, color: t.color, logoUrl: t.logoUrl }" [size]="28" />
                   {{ t.methodName }}
                 </span>
               </td>
-              <td class="amount"><bdi>{{ formatAmount(t.amount, t.currency) }}</bdi></td>
+              <td class="amount" data-label="Montant"><bdi>{{ formatAmount(t.amount, t.currency) }}</bdi></td>
               @if (showCommission()) {
-                <td class="amount commission" [title]="t.commissionRate != null ? 'Taux du contrat : ' + t.commissionRate + ' %' : 'Aucune commission au contrat'">
+                <td class="amount commission" data-label="Commission" [title]="t.commissionRate != null ? 'Taux du contrat : ' + t.commissionRate + ' %' : 'Aucune commission au contrat'">
                   <bdi>{{ t.commissionAmount != null ? formatAmount(t.commissionAmount, t.currency) : '—' }}</bdi>
                 </td>
               }
-              <td>
+              <td data-label="Statut">
                 <span [class]="'status-pill ' + tones[t.status]" [title]="t.failureMessage ?? ''" [attr.aria-description]="t.failureMessage">{{ labels[t.status] }}</span>
                 @if (t.status === 'FAILED' && t.failureMessage) { <span class="failure">{{ t.failureMessage }}</span> }
               </td>
-              <td>
+              <td data-label="Reçu">
                 @if (t.status === 'SUCCEEDED') {
                   <p-button icon="pi pi-download" label="Reçu" [text]="true" size="small"
                     [ariaLabel]="'Télécharger le reçu ' + t.reference" (onClick)="receipt.emit(t)" />
@@ -104,6 +104,27 @@ export const TRANSACTION_STATUS_TONES: Record<TransactionStatus, string> = {
     .method { display: inline-flex; align-items: center; gap: 10px; }
     .small { font-size: 0.8rem; }
     .empty { text-align: center !important; color: var(--ink-muted); padding: var(--space-12) var(--space-6); }
+
+    /* Téléphone : une carte par transaction (libellé à gauche, valeur à droite), sans défilement horizontal. */
+    @media (max-width: 640px) {
+      table { min-width: 0; }
+      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      tbody tr { display: block; padding: var(--space-3) var(--space-4); border-block-end: 1px solid var(--border); }
+      tbody tr:last-child { border-block-end: 0; }
+      tbody tr:hover td { background: transparent; }
+      td {
+        display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px var(--space-2);
+        padding: 4px 0; border: 0; text-align: end;
+      }
+      td[data-label]::before {
+        content: attr(data-label); flex-shrink: 0; margin-inline-end: auto; font-size: 12px; font-weight: 600;
+        color: var(--ink-subtle);
+        text-align: start;
+      }
+      td .ep-cell-secondary { margin-inline-start: 6px; }
+      .failure { flex-basis: 100%; max-width: none; margin-top: 0; text-align: end; }
+      .empty { display: block; }
+    }
   `,
 })
 export class TransactionTable {

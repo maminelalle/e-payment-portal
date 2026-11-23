@@ -158,6 +158,14 @@ export interface ContractTemplateSummary {
   contractCount: number;
 }
 
+/** Contrat courant d'un abonné (colonne « Contrat » de la liste des abonnés). */
+export interface CurrentContract {
+  id: string;
+  reference: string;
+  status: ContractStatus;
+  endDate: string | null;
+}
+
 /** Une version d'un contrat : l'initial (amendmentNumber 0) ou l'un de ses avenants. */
 export interface ContractVersion {
   id: string;

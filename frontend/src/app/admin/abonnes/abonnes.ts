@@ -11,15 +11,17 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
-import { debounceTime, Subject, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, of, Subject, switchMap } from 'rxjs';
 
 import {
+  CurrentContract,
   Subscriber,
   SUBSCRIBER_STATUS_LABELS,
   SUBSCRIBER_TYPE_LABELS,
   SubscriberStatus,
   SubscriberType,
 } from '../../core/api.models';
+import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatPhone } from '../../shared/formatting';
 import { applyServerErrors, fieldError } from '../../shared/form-errors';
 import { StatusTag } from '../../shared/status-tag';
@@ -30,6 +32,7 @@ const PAGE_SIZE = 10;
 @Component({
   selector: 'app-abonnes',
   imports: [
+    ContractStatusTag,
     FormsModule,
     ReactiveFormsModule,
     ButtonModule,
@@ -76,6 +79,9 @@ export class Abonnes implements OnInit {
   protected typeFilter: SubscriberType | null = null;
   private page = 0;
 
+  protected readonly contracts = signal<Record<string, CurrentContract>>({});
+  /** Abonnés qui ont déjà le téléphone saisi dans le formulaire de création. */
+  protected readonly phoneOwners = signal<Subscriber[]>([]);
   protected readonly drawerOpen = signal(false);
   protected readonly saving = signal(false);
   protected readonly formError = signal<string | null>(null);
@@ -106,12 +112,31 @@ export class Abonnes implements OnInit {
           this.rows.set(page.items);
           this.total.set(page.total);
           this.loading.set(false);
+          this.loadContracts(page.items.map((s) => s.id));
         },
         error: () => this.loading.set(false),
       });
     this.loadSummary();
     this.applyTypeRules('MORALE');
     this.form.controls.type.valueChanges.pipe(takeUntilDestroyed()).subscribe((type) => this.applyTypeRules(type));
+    // Téléphone déjà connu : simple avertissement (un numéro peut être partagé, par exemple entreprise et gérant).
+    this.form.controls.phone.valueChanges
+      .pipe(
+        map((phone) => phone.replace(/\D/g, '').slice(-8)),
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap((digits) => digits.length === 8
+          ? this.api.searchSubscribers({ q: digits, page: 0, size: 3 }).pipe(map((page) => page.items))
+          : of([] as Subscriber[])),
+        takeUntilDestroyed(),
+      )
+      .subscribe((matches) => this.phoneOwners.set(matches));
+  }
+
+  /** Colonne « Contrat » : contrat courant des abonnés affichés, en une requête. */
+  private loadContracts(ids: string[]): void {
+    if (!ids.length) return;
+    this.api.currentContracts(ids).subscribe({ next: (c) => this.contracts.set(c), error: () => this.contracts.set({}) });
   }
 
   ngOnInit(): void {

@@ -22,15 +22,15 @@ import { MethodLogo } from '../../shared/method-logo';
             }
           </header>
           <h3>{{ m.name }}</h3>
-          <p class="muted">
-            {{ m.category === 'WALLET' ? 'Wallet mobile' : 'Carte bancaire' }} · plafond
-            {{ formatAmount(m.perTransactionLimit, m.currency) }}
-          </p>
-          @if (showDetails()) {
-            <p class="muted small">
-              Mensuel : {{ formatAmount(m.monthlyLimit, m.currency) }}<br />
-              {{ m.instructions }}
-            </p>
+          <p class="muted">{{ m.category === 'WALLET' ? 'Wallet mobile' : 'Carte bancaire' }}</p>
+          <dl class="limits">
+            <dt>Par opération</dt>
+            <dd><bdi>{{ formatAmount(m.perTransactionLimit, m.currency) }}</bdi></dd>
+            <dt>Par mois</dt>
+            <dd><bdi>{{ formatAmount(m.monthlyLimit, m.currency) }}</bdi></dd>
+          </dl>
+          @if (showDetails() && m.instructions) {
+            <p class="muted small">{{ m.instructions }}</p>
             @if (m.conditions) {
               <p class="muted small">
                 <strong>{{ m.category === 'CARD' ? "Règles d'acceptation" : "Conditions d'utilisation" }} :</strong>
@@ -75,6 +75,21 @@ import { MethodLogo } from '../../shared/method-logo';
     }
     p {
       margin: 0 0 16px;
+    }
+    .limits {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2px 12px;
+      margin: 0 0 16px;
+      font-size: 0.85rem;
+    }
+    .limits dt {
+      color: var(--ink-muted);
+    }
+    .limits dd {
+      margin: 0;
+      text-align: end;
+      font-variant-numeric: tabular-nums;
     }
     .small {
       font-size: 0.8rem;

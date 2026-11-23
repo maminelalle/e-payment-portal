@@ -66,12 +66,13 @@
         <th>Nom / raison sociale</th>
         <th>Type</th>
         <th>Téléphone</th>
+        <th>Contrat</th>
         <th>Statut</th>
       </tr>
     </ng-template>
     <ng-template #body let-s>
       <tr class="clickable" tabindex="0" (click)="open(s)" (keydown.enter)="open(s)">
-        <td class="muted">{{ s.reference }}</td>
+        <td class="muted nowrap">{{ s.reference }}</td>
         <td>
           <div class="identity">
             <span class="avatar small">{{ initials(s.displayName) }}</span>
@@ -82,13 +83,23 @@
           </div>
         </td>
         <td>{{ typeLabel(s) }}</td>
-        <td><bdi class="ep-ltr">{{ formatPhone(s.phone) }}</bdi></td>
+        <td class="nowrap"><bdi class="ep-ltr">{{ formatPhone(s.phone) }}</bdi></td>
+        <td>
+          @if (contracts()[s.id]; as c) {
+            <span class="contract-cell">
+              <bdi class="muted">{{ c.reference }}</bdi>
+              <app-contract-status-tag [status]="c.status" />
+            </span>
+          } @else {
+            <span class="muted">—</span>
+          }
+        </td>
         <td><app-status-tag [status]="s.status" /></td>
       </tr>
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="5" class="empty">Aucun abonné ne correspond à ces critères.</td>
+        <td colspan="6" class="empty">Aucun abonné ne correspond à ces critères.</td>
       </tr>
     </ng-template>
   </p-table>
@@ -150,6 +161,10 @@
         <input pInputText id="phone" formControlName="phone" placeholder="+222 22 00 00 01" inputmode="tel" />
         @if (error('phone'); as message) {
           <small class="error">{{ message }}</small>
+        } @else if (phoneOwners().length) {
+          <small class="warning" role="status">
+            Numéro déjà utilisé par {{ phoneOwners()[0].displayName }} ({{ phoneOwners()[0].reference }}) : vérifiez avant de créer.
+          </small>
         }
       </div>
       <div class="field">
