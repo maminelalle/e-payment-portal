@@ -1,0 +1,131 @@
+/* Page de connexion Keycloak aux couleurs du Portail E-Payment (tokens du portail : frontend/src/styles/tokens.css). */
+:root {
+  --ep-brand: #1d44b8;
+  --ep-brand-hover: #16379a;
+  --ep-brand-soft: #e8edfb;
+  --ep-ink: #0f172a;
+  --ep-ink-muted: #475569;
+  --ep-border: #e2e8f0;
+  --ep-surface: #ffffff;
+  --ep-page: #f3f5fa;
+  --ep-danger: #b91c1c;
+}
+
+.login-pf body {
+  background: var(--ep-page) none;
+  color: var(--ep-ink);
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+
+/* En-tête : pastille « EP » et nom du portail, comme dans l'application. */
+#kc-header {
+  padding: 48px 0 24px;
+}
+
+#kc-header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0;
+  color: var(--ep-ink);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
+#kc-header-wrapper::before {
+  content: "EP";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--ep-brand);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Carte du formulaire */
+.card-pf {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 36px;
+  border: 1px solid var(--ep-border);
+  border-top: 0;
+  border-radius: 14px;
+  background: var(--ep-surface);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.login-pf-page .login-pf-header {
+  margin-bottom: 20px;
+}
+
+#kc-page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ep-ink);
+}
+
+.login-pf-page .login-pf-header h1 {
+  text-align: start;
+}
+
+.pf-c-form__label-text,
+.pf-c-form__label {
+  font-weight: 600;
+  color: var(--ep-ink-muted);
+}
+
+.pf-c-form-control {
+  border-radius: 8px;
+}
+
+.pf-c-form-control:focus {
+  border-bottom-color: var(--ep-brand);
+  outline: 2px solid var(--ep-brand-soft);
+}
+
+/* Bouton principal et liens dans la couleur de la marque */
+.pf-c-button.pf-m-primary {
+  border-radius: 8px;
+  background-color: var(--ep-brand);
+  font-weight: 600;
+}
+
+.pf-c-button.pf-m-primary:hover,
+.pf-c-button.pf-m-primary:focus {
+  background-color: var(--ep-brand-hover);
+}
+
+.login-pf a,
+.login-pf a:hover {
+  color: var(--ep-brand);
+}
+
+/* Messages */
+.pf-c-alert.pf-m-inline {
+  border-radius: 8px;
+}
+
+.pf-c-form__helper-text.pf-m-error,
+.kc-feedback-text {
+  color: var(--ep-danger);
+}
+
+@media (max-width: 767px) {
+  .card-pf {
+    padding: 24px 20px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  #kc-header {
+    padding: 28px 0 16px;
+  }
+}

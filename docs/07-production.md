@@ -94,6 +94,11 @@ avec les sauvegardes, hors du serveur : sans elle, les identifiants restaurés s
 La base `keycloak` (comptes, MFA) est sauvegardée en même temps (`EXTRA_DB_NAMES`) ; la restaurer avec
 `restore.sh /backups/db/keycloak-<date>.dump keycloak` (Keycloak arrêté).
 
+## Page de connexion
+
+Thème Keycloak `epayment` (`infra/keycloak/themes/epayment`), copié dans l'image Keycloak et activé par
+`loginTheme` dans les realms. Sur un Keycloak déjà installé : `kcadm.sh update realms/epayment -s loginTheme=epayment`.
+
 ## MFA des administrateurs (D33)
 
 Le rôle ADMIN reçoit, après son mot de passe, un code à 6 chiffres par **WhatsApp** (Vonage Messages).

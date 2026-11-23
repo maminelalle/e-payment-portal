@@ -1,6 +1,7 @@
 {
   "realm": "epayment",
   "displayName": "E-Payment",
+  "loginTheme": "epayment",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": false,

@@ -26,6 +26,14 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
 
+### 23/11/2026 — Points secondaires
+- Page de connexion Keycloak aux couleurs du portail : thème `epayment` (`infra/keycloak/themes`), fond clair,
+  pastille « EP », carte blanche, bouton et liens dans la couleur de la marque ; intégré à l'image Keycloak et
+  activé dans les deux realms (`loginTheme`).
+- PDF du contrat : pied de page dans la même police que le document (migration V18) ; un test vérifie qu'aucune
+  police Times ne reste dans l'aperçu (il échouait avant le correctif).
+- Arabe : 23 messages de notification à texte fixe traduits (« Profil mis à jour », « Export impossible »…).
+
 ### 23/11/2026 — Dernières retouches d'interface
 - Moyens de l'abonné : plafonds présentés « Par opération / Par mois ».
 - Liste des abonnés : colonne « Contrat » (référence et statut du contrat courant, une seule requête par page) ;
@@ -174,8 +182,8 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - [~] Traduction arabe : espaces abonné et admin couverts (texte fixe, par dictionnaire) ; les messages dynamiques (notifications, erreurs du serveur) restent en français, une vraie i18n par clés reste à faire
 
 ### Points secondaires
-- [ ] Thème Keycloak aux couleurs du portail (page de connexion)
-- [ ] Pied de page du PDF de contrat dans la police du document
+- [x] Thème Keycloak aux couleurs du portail (page de connexion)
+- [x] Pied de page du PDF de contrat dans la police du document
 - [ ] Certificat de scellement reconnu (voir « Limites connues »)
 - [ ] CI GitHub Actions bloquée par la facturation du compte GitHub (action du propriétaire du compte, pas du code)
 

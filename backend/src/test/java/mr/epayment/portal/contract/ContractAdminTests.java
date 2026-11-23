@@ -208,9 +208,20 @@ class ContractAdminTests {
         String id = com.jayway.jsonpath.JsonPath.<java.util.List<String>>read(body, "$[?(@.code == 'STANDARD')].id")
                 .getFirst();
 
-        mvc.perform(get("/api/admin/modeles/{id}/apercu", id).with(admin()))
+        byte[] preview = mvc.perform(get("/api/admin/modeles/{id}/apercu", id).with(admin()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/pdf"));
+                .andExpect(content().contentType("application/pdf"))
+                .andReturn().getResponse().getContentAsByteArray();
+        // Une seule famille de police, pied de page compris (plus de Times dans les zones de marge).
+        try (var document = org.apache.pdfbox.Loader.loadPDF(preview)) {
+            java.util.Set<String> fonts = new java.util.HashSet<>();
+            for (var page : document.getPages()) {
+                for (var name : page.getResources().getFontNames()) {
+                    fonts.add(page.getResources().getFont(name).getName());
+                }
+            }
+            assertThat(fonts).isNotEmpty().noneMatch(font -> font.contains("Times"));
+        }
         // Seule version proposée : l'archiver laisserait l'assistant sans modèle
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                         .patch("/api/admin/modeles/{id}/statut", id).with(admin())

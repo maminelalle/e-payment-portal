@@ -7,3 +7,5 @@ RUN mvn -q package
 
 FROM quay.io/keycloak/keycloak:26.8.1
 COPY --from=build /src/target/keycloak-vonage-otp-1.0.0.jar /opt/keycloak/providers/
+# Thème de connexion aux couleurs du portail (activé par loginTheme dans les realms)
+COPY themes/epayment /opt/keycloak/themes/epayment
