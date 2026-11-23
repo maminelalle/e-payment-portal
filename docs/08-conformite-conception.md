@@ -111,7 +111,7 @@ Signature, Subscriber_Entitlement, Payment_Provider, Transaction, Notification, 
 | HTTPS / TLS partout | ✅ | Nginx, redirection HTTP → HTTPS, HSTS | scan ZAP |
 | Mots de passe hachés, jamais en clair | ✅ | gérés par Keycloak, jamais vus par le portail | — |
 | Rôles et permissions côté serveur | ✅ | — | `SecurityRulesTests` |
-| Authentification renforcée admin et opérations sensibles | ✅ | TOTP obligatoire pour l'admin ; code email pour signer et changer ses coordonnées | `admin.spec` (TOTP calculé) |
+| Authentification renforcée admin et opérations sensibles | ✅ | code WhatsApp obligatoire pour l'admin (D33) ; code email pour signer et changer ses coordonnées | `admin.spec` (code du compte de test lu dans Mailpit) |
 | Signatures vérifiées, intégrité, identité, preuves | ✅ | D15, D17 | `SignatureTests` |
 | Webhooks vérifiés, anti-rejeu | ✅ | D20 | `WebhookTests` |
 | Idempotence des paiements | ✅ | `Idempotency-Key`, unicité (abonné, clé) | `PaymentFlowTests` |

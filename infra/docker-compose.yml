@@ -23,9 +23,15 @@ services:
       retries: 10
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.8.1
+    # Même image qu'en production : Keycloak + authentificateur MFA admin (infra/keycloak/sms-authenticator).
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    image: epayment-keycloak:26.8.1-vonage
     command: start-dev --import-realm
     environment:
+      # Développement : le code MFA admin arrive dans Mailpit (http://localhost:8025), pas par WhatsApp.
+      MFA_OTP_DEFAULT_CHANNEL: email
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_DB: postgres

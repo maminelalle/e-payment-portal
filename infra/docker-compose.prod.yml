@@ -68,6 +68,8 @@ services:
       VONAGE_WHATSAPP_TEMPLATE_LANGUAGE: ${VONAGE_WHATSAPP_TEMPLATE_LANGUAGE}
       VONAGE_WHATSAPP_SANDBOX: ${VONAGE_WHATSAPP_SANDBOX:-false}
       VONAGE_MESSAGES_URL: ${VONAGE_MESSAGES_URL:-https://api.nexmo.com/v1/messages}
+      # whatsapp (par défaut) ou email ; un compte peut le remplacer par son attribut mfaChannel (compte de test E2E)
+      MFA_OTP_DEFAULT_CHANNEL: ${MFA_OTP_DEFAULT_CHANNEL:-whatsapp}
     volumes:
       - ./keycloak/prod/epayment-realm.json:/opt/keycloak/data/import/epayment-realm.json:ro
       - ./secrets/vonage-private.key:/run/secrets/vonage-private.key:ro

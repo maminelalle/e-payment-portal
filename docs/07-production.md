@@ -41,7 +41,7 @@ joignables que sur le réseau Docker interne.
    développement est utilisé (signature valide mais identité « Inconnu », voir l'avancement).
 5. Démarrage : `docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.prod up -d --build`.
 6. Première connexion avec `KEYCLOAK_FIRST_ADMIN_EMAIL` et le mot de passe temporaire : Keycloak impose
-   un nouveau mot de passe puis l'enrôlement TOTP.
+   un nouveau mot de passe, puis le code MFA envoyé par WhatsApp (D33).
 
 Le realm de production ne contient **aucun compte de démonstration** ; ses secrets, URL et paramètres SMTP
 sont des placeholders `${VAR}` remplacés par Keycloak à l'import (au premier démarrage seulement : ensuite,
@@ -94,6 +94,23 @@ avec les sauvegardes, hors du serveur : sans elle, les identifiants restaurés s
 La base `keycloak` (comptes, MFA) est sauvegardée en même temps (`EXTRA_DB_NAMES`) ; la restaurer avec
 `restore.sh /backups/db/keycloak-<date>.dump keycloak` (Keycloak arrêté).
 
+## MFA des administrateurs (D33)
+
+Le rôle ADMIN reçoit, après son mot de passe, un code à 6 chiffres par **WhatsApp** (Vonage Messages).
+
+| Variable (`infra/.env.prod`, jamais commitée) | Rôle |
+|-----------------------------------------------|------|
+| `VONAGE_WHATSAPP_APPLICATION_ID`, clé `infra/secrets/vonage-private.key` | application Vonage (JWT) |
+| `VONAGE_WHATSAPP_FROM`, `VONAGE_WHATSAPP_TEMPLATE_NAME`, `VONAGE_WHATSAPP_TEMPLATE_LANGUAGE` | expéditeur et modèle WhatsApp approuvé |
+| `VONAGE_WHATSAPP_SANDBOX`, `VONAGE_API_KEY`, `VONAGE_API_SECRET` | bac à sable Vonage (`true`) |
+| `VONAGE_ADMIN_PHONE` | numéro utilisé si l'administrateur n'a pas d'attribut `phoneNumber` |
+| `MFA_OTP_DEFAULT_CHANNEL` | `whatsapp` (défaut) ou `email` |
+
+Chaque administrateur devrait avoir **son** numéro : console Keycloak → utilisateur → attribut « Téléphone MFA »
+(`+222XXXXXXXX`). L'attribut « Canal du code MFA » (`email`) ne sert qu'au compte de test E2E, qui reçoit son code
+dans Mailpit. Ces deux attributs ne sont modifiables que par un administrateur Keycloak. En cas de panne de Vonage,
+passer temporairement `MFA_OTP_DEFAULT_CHANNEL=email` (code envoyé à l'email du compte) puis redémarrer Keycloak.
+
 ## Conservation et archivage (conception §7.2 et §9)
 
 | Donnée | Durée de conservation | Où | Règle |
@@ -143,9 +160,10 @@ bord, état des fournisseurs, recherche Ctrl+K, compteurs, audit) et absence de 
 ```sh
 cd frontend
 npx playwright install chromium          # une seule fois
-# Développement (comptes de démonstration, MFA admin désactivée : infra/keycloak/mfa-admin.sh off)
+# Développement (comptes de démonstration ; code MFA admin dans Mailpit, ou MFA coupée : infra/keycloak/mfa-admin.sh off)
 npm run e2e
-# Recette HTTPS : administrateur de test créé dans Keycloak (la MFA reste active, le test calcule le TOTP)
+# Recette HTTPS : administrateur de test créé dans Keycloak (la MFA reste active : son code arrive par email,
+# le test le lit dans Mailpit ; les vrais administrateurs le reçoivent par WhatsApp)
 sh ../infra/keycloak/create-e2e-admin.sh e2e-admin@epayment.mr '<mot de passe>'
 E2E_BASE_URL=https://<recette> E2E_ADMIN_EMAIL=e2e-admin@epayment.mr E2E_ADMIN_PASSWORD='<mot de passe>' \
   npx playwright test

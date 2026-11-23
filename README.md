@@ -85,7 +85,9 @@ Comptes de démonstration du realm `epayment` :
 2. L'email d'invitation « Mettre à jour votre compte » arrive dans Mailpit (http://localhost:8025) ; le lien (valable 72 h) permet de définir le mot de passe.
 3. L'abonné se connecte sur http://localhost. L'admin l'**active** depuis sa fiche ; **Suspendre** bloque la connexion et ferme ses sessions.
 
-Le realm livré exige maintenant un OTP WhatsApp Vonage pour le rôle ADMIN. Les variables `VONAGE_*` restent uniquement dans `infra/.env.prod` et ne doivent jamais être commitées. Le numéro administrateur doit être au format international `+222XXXXXXXX`. Le nom du modèle approuvé est configuré par `VONAGE_WHATSAPP_TEMPLATE_NAME`.
+Le realm livré exige un code reçu par WhatsApp (Vonage) pour le rôle ADMIN (D33). Les variables `VONAGE_*` restent uniquement dans `infra/.env.prod` et ne doivent jamais être commitées. Le numéro administrateur doit être au format international `+222XXXXXXXX` (attribut « Téléphone MFA » de l'utilisateur, sinon `VONAGE_ADMIN_PHONE`). Le nom du modèle approuvé est configuré par `VONAGE_WHATSAPP_TEMPLATE_NAME`.
+
+**En développement**, Keycloak envoie ce code par email (`MFA_OTP_DEFAULT_CHANNEL=email` dans `infra/docker-compose.yml`) : il arrive dans Mailpit (http://localhost:8025), sans compte Vonage. Après un `git pull` qui modifie l'extension, reconstruire l'image : `docker compose -f infra/docker-compose.yml up -d --build keycloak`.
 
 Pour tester plus vite **en local**, on peut couper puis remettre la MFA (le fichier du realm n'est pas modifié) :
 

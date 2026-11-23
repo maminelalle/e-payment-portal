@@ -32,7 +32,7 @@ for (const client of realm.clients) {
 }
 
 // Pas de comptes de démonstration : un seul administrateur, mot de passe temporaire à changer
-// à la première connexion (le TOTP est ensuite exigé pour le rôle ADMIN).
+// à la première connexion (le code MFA WhatsApp est ensuite exigé pour le rôle ADMIN).
 realm.users = realm.users
   .filter((u) => u.serviceAccountClientId || u.realmRoles?.includes('ADMIN'))
   .map((u) =>

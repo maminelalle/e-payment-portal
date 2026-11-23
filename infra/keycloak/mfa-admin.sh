@@ -36,5 +36,5 @@ if [ "$MODE" = off ]; then
   done
   echo "MFA admin DÉSACTIVÉE en local. Pour la réactiver : bash $0 on"
 else
-  echo "MFA admin ACTIVÉE : l'OTP SMS Vonage sera demandé au rôle ADMIN."
+  echo "MFA admin ACTIVÉE : code exigé pour le rôle ADMIN (en développement, il arrive dans Mailpit : http://localhost:8025)."
 fi

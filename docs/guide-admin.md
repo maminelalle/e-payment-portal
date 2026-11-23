@@ -4,8 +4,8 @@
 
 1. Ouvrir le portail et cliquer sur **Se connecter**.
 2. Saisir son email et son mot de passe (12 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial).
-3. Saisir le code à 6 chiffres de l'application d'authentification (Google Authenticator, Microsoft Authenticator…).
-   À la toute première connexion, scanner le QR code affiché par Keycloak pour l'enregistrer.
+3. Saisir le code à 6 chiffres reçu par **WhatsApp** (valable 5 minutes, 5 essais). Recharger la page dans la
+   minute ne renvoie pas de nouveau code ; après 5 erreurs, il faut se reconnecter.
 
 La console d'administration Keycloak n'est pas accessible depuis Internet : tout se fait depuis le portail.
 

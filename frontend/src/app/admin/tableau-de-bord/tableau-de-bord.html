@@ -31,6 +31,11 @@
       <span class="kpi-value" [title]="amount(d.collectedThisMonth.current)">{{ count(roundAmount(d.collectedThisMonth.current)) }}<small>MRU</small></span>
       <ng-container *ngTemplateOutlet="trendNote; context: { $implicit: trend(d.collectedThisMonth) }" />
     </div>
+    <div class="card kpi">
+      <span class="kpi-label">Commissions ce mois</span>
+      <span class="kpi-value" [title]="amount(d.commissionsThisMonth.current)">{{ amount(d.commissionsThisMonth.current) }}</span>
+      <ng-container *ngTemplateOutlet="trendNote; context: { $implicit: trend(d.commissionsThisMonth) }" />
+    </div>
   </section>
 
   <section class="overview">

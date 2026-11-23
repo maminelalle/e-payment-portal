@@ -22,15 +22,15 @@ Boîte mail de test : http://localhost:8025 (Mailpit).
    | Boulangerie El Amane | contrat actif Bankily + Visa, 3 paiements | répartition des paiements |
    | Mohamed Lemine Ahmed (personne physique) | contrat **à signer** (Masrvi) | signature en direct |
 
-3. Compte administrateur `admin@epayment.mr` : application d'authentification (TOTP) enregistrée sur le
-   téléphone, connexion testée une fois.
+3. Compte administrateur `admin@epayment.mr` : son numéro WhatsApp renseigné (attribut « Téléphone MFA » dans
+   la console Keycloak, sinon `VONAGE_ADMIN_PHONE`), connexion testée une fois avec le code reçu par WhatsApp.
 4. Navigateur : deux fenêtres (admin / abonné en navigation privée), zoom 110 %, Mailpit dans un onglet.
 
 ## Déroulé
 
 | # | Écran | Ce qu'on montre | Conception |
 |---|-------|-----------------|------------|
-| 1 | Connexion admin | Keycloak, mot de passe + code TOTP | §9 authentification renforcée |
+| 1 | Connexion admin | Keycloak, mot de passe + code reçu par WhatsApp | §9 authentification renforcée |
 | 2 | Tableau de bord | indicateurs du mois, abonnés / contrats / transactions par statut, répartition moyen / type / fournisseur ; clic sur « Échouée » → liste filtrée | §3.1 |
 | 3 | Moyens de paiement | catalogue, « Tester les connexions », conditions ; Sedad non raccordé ne s'active pas | §3.3 |
 | 4 | Abonnés → Atlas | coordonnées, contrats, **moyens autorisés**, dernières transactions | §3.2 |

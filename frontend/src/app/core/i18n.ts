@@ -82,6 +82,8 @@ const ARABIC: TranslationMap = {
   'Nombre par jour': 'العدد يومياً',
   'Répartition par moyen': 'التوزيع حسب وسيلة الدفع',
   'Répartition': 'التوزيع',
+  'Commissions ce mois': 'عمولات هذا الشهر',
+  'Commission': 'العمولة',
   'Un avenant à votre contrat est prêt à être signé': 'ملحق لعقدك جاهز للتوقيع',
   'Signer l’avenant': 'توقيع الملحق',
   'Remplacé par avenant': 'مستبدل بملحق',

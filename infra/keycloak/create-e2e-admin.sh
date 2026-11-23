@@ -1,6 +1,7 @@
 #!/bin/sh
 # RECETTE uniquement : crée (ou réinitialise) un administrateur de test pour Playwright.
-# La MFA reste active : à la première connexion, le test enrôle lui-même le TOTP.
+# La MFA reste active : ce compte reçoit son code par email (attribut mfaChannel=email), que le test lit dans
+# Mailpit ; les vrais administrateurs le reçoivent par WhatsApp.
 #   sh infra/keycloak/create-e2e-admin.sh e2e-admin@epayment.mr 'Mot#DePasse2026'
 # Nécessite la pile de production démarrée (conteneur epayment-prod-keycloak-1) et infra/.env.prod.
 set -eu
@@ -20,10 +21,7 @@ if [ -z "$id" ]; then
   id=$(kc get users -r epayment -q "email=$email" -q exact=true --fields id --format csv --noquotes | head -1)
 fi
 kc add-roles -r epayment --uid "$id" --rolename ADMIN
-# Repart d'un état sans TOTP : le prochain test refait l'enrôlement.
-for cred in $(kc get "users/$id/credentials" -r epayment --fields id,type --format csv --noquotes | grep ',otp$' | cut -d, -f1); do
-  kc delete "users/$id/credentials/$cred" -r epayment
-done
+kc update "users/$id" -r epayment -s 'attributes.mfaChannel=["email"]'
 # Mot de passe identique au précédent : refusé par l'historique du realm, sans conséquence.
 kc set-password -r epayment --userid "$id" --new-password "$password" 2>/dev/null || echo "Mot de passe inchangé."
 echo "Administrateur de test prêt : $email"

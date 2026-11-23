@@ -26,6 +26,20 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
 
+### 23/11/2026 — MFA WhatsApp fiabilisée, commissions au tableau de bord
+- Commission (D32) : indicateur « Commissions ce mois » au tableau de bord admin (comparé au mois précédent).
+- MFA admin WhatsApp (D33), corrections de l'authentificateur Keycloak :
+  - mauvais code : le formulaire revient avec les essais restants (avant : page d'erreur, connexion à refaire) ;
+  - pas de nouveau WhatsApp si la page est rechargée dans la minute (coût et spam) ;
+  - empreinte du code avec un sel propre à la connexion (ne dépend plus de \`VONAGE_API_SECRET\`) ;
+  - attributs \`phoneNumber\` et \`mfaChannel\` déclarés au profil utilisateur, modifiables par un administrateur
+    Keycloak seulement : ils étaient ignorés par Keycloak, le code partait toujours vers \`VONAGE_ADMIN_PHONE\`.
+- Canal email pour le développement et les tests : la pile de dev utilise l'image Keycloak avec l'extension et
+  envoie le code dans Mailpit (avant : realm de dev pointant vers un authentificateur absent de son image) ; le
+  compte de test E2E reçoit son code par email et Playwright le lit dans Mailpit.
+- Vérifié sur la recette : 22 E2E verts avec la nouvelle MFA ; mauvais code puis bon code ; un seul email malgré un
+  rechargement. Backend 78/78, frontend 14/14.
+
 ### 04/11/2026 — Design system Claude Design et améliorations UX
 - Charte du design system appliquée : IBM Plex Sans / Sans Arabic / Mono, bleu sceau `#1D44B8`, tokens clair et
   sombre (`frontend/src/styles/tokens.css`), classes `ep-…` (`styles/components.css`), preset PrimeNG recoloré.

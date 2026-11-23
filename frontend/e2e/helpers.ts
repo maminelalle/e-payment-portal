@@ -28,14 +28,16 @@ const TOTP_LAST = 'e2e/.auth/totp-last';
 
 /**
  * Connexion par la page Keycloak, puis retour sur l'espace du rôle.
- * Si Keycloak demande un code TOTP (MFA admin), le code est calculé ; à la première connexion,
- * l'enrôlement est fait en lisant la clé affichée en mode manuel.
+ * MFA admin : le compte de test reçoit son code par email (attribut mfaChannel=email), lu dans Mailpit.
+ * Ancien flux TOTP (E2E_ADMIN_MFA=totp) : le code est calculé ; à la première connexion, l'enrôlement est fait
+ * en lisant la clé affichée en mode manuel.
  */
 export async function login(page: Page, account: { email: string; password: string }, space: '/admin' | '/abonne') {
   await page.goto('/connexion');
   await page.getByRole('button', { name: 'Se connecter' }).click();
   await page.locator('#username').fill(account.email);
   await page.locator('#password').fill(account.password);
+  const since = new Date();
   await page.locator('#kc-login').click();
 
   const done = new RegExp(`${space}(/|$)`);
@@ -51,10 +53,16 @@ export async function login(page: Page, account: { email: string; password: stri
     writeFileSync(TOTP_FILE, secret);
     await page.locator('#totp').fill(await freshTotp(secret));
     await page.locator('#saveTOTPBtn, input[type=submit]').first().click();
-  } else if (next === 'otp') {
+  } else if (next === 'otp' && process.env['E2E_ADMIN_MFA'] === 'totp') {
     const secret = process.env['E2E_ADMIN_TOTP_SECRET'] ?? (existsSync(TOTP_FILE) ? readFileSync(TOTP_FILE, 'utf8') : '');
     if (!secret) throw new Error('Code TOTP demandé : définir E2E_ADMIN_TOTP_SECRET');
     await page.locator('#otp').fill(await freshTotp(secret));
+    await page.locator('#kc-login').click();
+  } else if (next === 'otp') {
+    const mail = await waitForMail(account.email, /Code de connexion/i, since);
+    const code = mail.Text.match(/\b\d{6}\b/)?.[0];
+    if (!code) throw new Error('Code MFA introuvable dans l’email reçu par ' + account.email);
+    await page.locator('#otp').fill(code);
     await page.locator('#kc-login').click();
   }
   await expect(page).toHaveURL(done, { timeout: 20_000 });
