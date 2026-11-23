@@ -9,6 +9,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -290,6 +292,35 @@ class PaymentFlowTests {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         assertThat(adminCsv).contains("Abonné", "Société Paiement", ok).doesNotContain(ko);
         mvc.perform(get("/api/admin/transactions/export.csv").with(subscriber(subject))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void monthlyStatementListsPaymentsTotalsAndCommissions() throws Exception {
+        String ok = reference(pay(subject, "BANKILY", "1250.00", UUID.randomUUID().toString()));
+        String ko = reference(pay(subject, "BANKILY", "300.51", UUID.randomUUID().toString()));
+        String month = java.time.YearMonth.now(java.time.ZoneId.of("Africa/Nouakchott")).toString();
+
+        byte[] pdf = mvc.perform(get("/api/abonne/paiements/releve").param("mois", month).with(subscriber(subject)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("releve-ABN-")))
+                .andReturn().getResponse().getContentAsByteArray();
+        try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            String text = new org.apache.pdfbox.text.PDFTextStripper().getText(document);
+            // 1 250 réussi (commission 1,5 % = 18,75), 300,51 échoué : encaissé 1 250, sans commission sur l'échec
+            assertThat(text).contains("Relevé mensuel", ok, ko, "Société Paiement", "1 250,00 MRU", "18,75 MRU",
+                    "Commissions dues", "Échouée");
+        }
+        mvc.perform(get("/api/admin/transactions/releve").param("abonne", subscriberId).param("mois", month)
+                        .with(admin()))
+                .andExpect(status().isOk()).andExpect(content().contentType("application/pdf"));
+        mvc.perform(get("/api/abonne/paiements/releve").param("mois", "novembre").with(subscriber(subject)))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors.mois").exists());
+        mvc.perform(get("/api/abonne/paiements/releve").param("mois", "2099-01").with(subscriber(subject)))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/admin/transactions/releve").param("abonne", subscriberId).param("mois", month)
+                        .with(subscriber(subject)))
+                .andExpect(status().isForbidden());
     }
 
     @Autowired

@@ -14,6 +14,7 @@ import { TransactionTable } from '../../shared/transaction-table';
 import { ContractStatusTag } from '../../shared/contract-status-tag';
 import { formatAmount, formatIsoDate, formatPhone } from '../../shared/formatting';
 import { MethodLogo } from '../../shared/method-logo';
+import { StatementDownload } from '../../shared/statement-download';
 import { applyServerErrors, fieldError } from '../../shared/form-errors';
 import { StatusTag } from '../../shared/status-tag';
 import { AdminApi } from '../admin-api';
@@ -24,6 +25,7 @@ type StatusAction = 'activer' | 'suspendre' | 'desactiver';
   selector: 'app-abonne-fiche',
   imports: [
     MethodLogo,
+    StatementDownload,
     DatePipe,
     FormsModule,
     ReactiveFormsModule,
@@ -56,6 +58,8 @@ export class AbonneFiche {
   /** Moyens ouverts par le contrat en vigueur (conception §3.2). */
   protected readonly methods = signal<EntitledMethod[]>([]);
   protected readonly formatAmount = formatAmount;
+  /** Relevé mensuel de cet abonné (aussi facture des commissions du mois). */
+  protected readonly statement = (month: string) => this.api.subscriberStatement(this.id(), month);
   protected readonly formatDate = formatIsoDate;
   protected readonly notFound = signal(false);
   protected readonly busy = signal(false);

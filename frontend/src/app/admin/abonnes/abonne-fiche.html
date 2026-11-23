@@ -105,7 +105,10 @@
     </section>
 
     <section class="card section wide">
-      <h2>Dernières transactions</h2>
+      <div class="section-head">
+        <h2>Dernières transactions</h2>
+        <app-statement-download [fetch]="statement" [fileName]="'releve-' + s.reference" />
+      </div>
       <app-transaction-table [transactions]="transactions()" (receipt)="downloadReceipt($event)" />
     </section>
   </div>

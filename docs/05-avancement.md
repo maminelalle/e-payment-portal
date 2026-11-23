@@ -26,6 +26,17 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
 
+### 23/11/2026 — Relevé mensuel PDF (et facture des commissions)
+- Nouveau document `releve.html` (StatementService) : pour un mois donné, toutes les transactions de l'abonné
+  (réussies et échouées), le total encaissé, le détail par moyen de paiement et les commissions dues au titre du
+  contrat (article 4) ; il sert aussi de facture mensuelle des commissions.
+- Abonné : bouton « Relevé PDF » avec choix du mois (12 derniers) sur la page Transactions
+  (`GET /api/abonne/paiements/releve?mois=AAAA-MM`).
+- Admin : même bouton sur la fiche abonné (`GET /api/admin/transactions/releve?abonne=…&mois=…`, réservé à l'admin).
+- Mois mal formé ou futur refusé (400) ; textes traduits en arabe.
+- Vérifié : backend (test du contenu PDF, droits et erreurs), frontend 14/14, E2E 23/23 sur la recette (nouveau
+  scénario de téléchargement du relevé).
+
 ### 23/11/2026 — Points secondaires
 - Page de connexion Keycloak aux couleurs du portail : thème `epayment` (`infra/keycloak/themes`), fond clair,
   pastille « EP », carte blanche, bouton et liens dans la couleur de la marque ; intégré à l'image Keycloak et
@@ -172,11 +183,13 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ### Améliorations proposées, non réalisées (à arbitrer)
 - [ ] Lien / QR code de paiement à envoyer à un client ; paiements récurrents ou programmés
-- [ ] Relevés mensuels en PDF ; moyens et montants favoris
+- [x] Relevés mensuels en PDF (abonné et admin) — fait le 23/11
+- [ ] Moyens et montants favoris
 - [ ] Demande de nouveau moyen depuis le portail (avenant au contrat) ; support / réclamation sur une transaction
 - [ ] Plusieurs utilisateurs par personne morale (comptable, caissier) ; rôles admin fins (super-admin, opérateur, auditeur)
 - [x] Commission contractuelle sur chaque paiement réussi (taux et montant figés sur la transaction, reçus, historiques, totaux et exports)
-- [ ] Facture mensuelle par abonné ; modèles d'email et de SMS modifiables ; invitation par import CSV
+- [x] Facture mensuelle par abonné : le relevé mensuel détaille les commissions dues du mois — fait le 23/11
+- [ ] Modèles d'email et de SMS modifiables ; invitation par import CSV
 - [ ] API et webhooks pour les abonnés (clés générées depuis le portail) ; notifications push (service worker PWA)
 - [ ] Connexion sans mot de passe (passkey, via Keycloak WebAuthn)
 - [~] Traduction arabe : espaces abonné et admin couverts (texte fixe, par dictionnaire) ; les messages dynamiques (notifications, erreurs du serveur) restent en français, une vraie i18n par clés reste à faire

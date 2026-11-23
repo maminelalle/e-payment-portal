@@ -192,6 +192,14 @@ export class AdminApi {
   }
 
   /** Export CSV (Excel) des transactions filtrées. */
+  /** Relevé mensuel PDF d'un abonné (aussi facture des commissions du mois). */
+  subscriberStatement(subscriberId: string, month: string): Observable<Blob> {
+    return this.http.get('/api/admin/transactions/releve', {
+      params: { abonne: subscriberId, mois: month },
+      responseType: 'blob',
+    });
+  }
+
   transactionsCsv(filter: TransactionFilter = {}): Observable<Blob> {
     return this.http.get('/api/admin/transactions/export.csv', { params: filterParams(filter, 0, 1), responseType: 'blob' });
   }

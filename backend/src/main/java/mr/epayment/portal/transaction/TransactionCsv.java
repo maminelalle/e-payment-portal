@@ -26,6 +26,11 @@ final class TransactionCsv {
     private TransactionCsv() {
     }
 
+    /** Libellé français d'un statut (« Réussie », « Échouée »…), partagé avec le relevé mensuel. */
+    static String label(TransactionStatus status) {
+        return LABELS.get(status);
+    }
+
     static byte[] write(List<TransactionView> rows, boolean withSubscriber) {
         StringBuilder csv = new StringBuilder("﻿");
         line(csv, withSubscriber

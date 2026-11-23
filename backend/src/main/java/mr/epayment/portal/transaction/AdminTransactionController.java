@@ -18,9 +18,18 @@ import org.springframework.web.bind.annotation.RestController;
 class AdminTransactionController {
 
     private final PaymentService payments;
+    private final StatementService statements;
 
-    AdminTransactionController(PaymentService payments) {
+    AdminTransactionController(PaymentService payments, StatementService statements) {
         this.payments = payments;
+        this.statements = statements;
+    }
+
+    /** Relevé mensuel d'un abonné (PDF), aussi facture des commissions du mois. */
+    @GetMapping("/releve")
+    ResponseEntity<byte[]> statement(@RequestParam UUID abonne, @RequestParam String mois) {
+        var statement = statements.statement(abonne, mois);
+        return Receipts.pdf(new PaymentService.Receipt(statement.fileName(), statement.content()));
     }
 
     @GetMapping

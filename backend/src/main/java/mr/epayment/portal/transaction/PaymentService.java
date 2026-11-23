@@ -5,7 +5,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -220,6 +223,21 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public byte[] exportHistoryCsv(Authentication authentication, Filter filter) {
         return exportCsv(filter.withSubscriber(currentSubscriber.require(authentication).id()), false);
+    }
+
+    /** Transactions d'un abonné sur une période (relevé mensuel), de la plus ancienne à la plus récente. */
+    @Transactional(readOnly = true)
+    public List<TransactionView> periodRows(UUID subscriberId, LocalDate from, LocalDate to) {
+        List<TransactionView> rows = new ArrayList<>(
+                searchUpTo(new Filter(subscriberId, null, null, from, to, null), 0, 5000).content());
+        Collections.reverse(rows);
+        return rows;
+    }
+
+    /** Abonné connecté (relevé de l'espace abonné). */
+    @Transactional(readOnly = true)
+    public UUID currentSubscriberId(Authentication authentication) {
+        return currentSubscriber.require(authentication).id();
     }
 
     private PageResponse<TransactionView> searchUpTo(Filter filter, int page, int size) {

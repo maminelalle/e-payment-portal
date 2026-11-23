@@ -8,6 +8,7 @@ import { Transaction, TransactionFilter } from '../../core/api.models';
 import { downloadBlob } from '../../shared/download';
 import { formatAmount } from '../../shared/formatting';
 import { TransactionFilters } from '../../shared/transaction-filters';
+import { StatementDownload } from '../../shared/statement-download';
 import { TransactionTable } from '../../shared/transaction-table';
 import { AbonneApi } from '../abonne-api';
 
@@ -16,7 +17,7 @@ const PAGE_SIZE = 20;
 /** Historique des paiements de l'abonné, filtrable, avec reçus PDF. */
 @Component({
   selector: 'app-abonne-transactions',
-  imports: [ButtonModule, TransactionFilters, TransactionTable],
+  imports: [StatementDownload, ButtonModule, TransactionFilters, TransactionTable],
   template: `
     <div class="page-header">
       <div>
@@ -27,8 +28,11 @@ const PAGE_SIZE = 20;
           @if (commissions() > 0) { · {{ formatAmount(commissions()) }} de commissions (contrat) }
         </p>
       </div>
-      <p-button label="Exporter (Excel, CSV)" icon="pi pi-file-excel" severity="secondary" [outlined]="true" [loading]="exporting()"
-        [disabled]="!total()" (onClick)="exportCsv()" />
+      <div class="header-actions">
+        <app-statement-download [fetch]="statement" />
+        <p-button label="Exporter (Excel, CSV)" icon="pi pi-file-excel" severity="secondary" [outlined]="true" [loading]="exporting()"
+          [disabled]="!total()" (onClick)="exportCsv()" />
+      </div>
     </div>
     <div class="filters">
       <app-transaction-filters [methods]="methods()" (changed)="applyFilter($event)" />
@@ -40,12 +44,15 @@ const PAGE_SIZE = 20;
     }
   `,
   styles: `
+    .header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
     .filters { margin-top: 0; }
     :host ::ng-deep .more { margin-top: 16px; }
   `,
 })
 export class AbonneTransactions {
   private readonly api = inject(AbonneApi);
+  /** Relevé mensuel de l'abonné connecté. */
+  protected readonly statement = (month: string) => this.api.statement(month);
   protected readonly rows = signal<Transaction[]>([]);
   protected readonly total = signal(0);
   protected readonly collected = signal(0);

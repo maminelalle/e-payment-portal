@@ -35,9 +35,18 @@ import org.springframework.web.bind.annotation.RestController;
 class SubscriberPaymentController {
 
     private final PaymentService payments;
+    private final StatementService statements;
 
-    SubscriberPaymentController(PaymentService payments) {
+    SubscriberPaymentController(PaymentService payments, StatementService statements) {
         this.payments = payments;
+        this.statements = statements;
+    }
+
+    /** Relevé mensuel de l'abonné connecté (PDF) : paiements, totaux et commissions du mois (AAAA-MM). */
+    @GetMapping("/releve")
+    ResponseEntity<byte[]> statement(Authentication authentication, @RequestParam String mois) {
+        var statement = statements.statement(payments.currentSubscriberId(authentication), mois);
+        return Receipts.pdf(new PaymentService.Receipt(statement.fileName(), statement.content()));
     }
 
     /** {@code Idempotency-Key} obligatoire : renvoyer la même demande ne débite jamais deux fois. */

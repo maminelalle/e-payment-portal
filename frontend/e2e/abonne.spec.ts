@@ -44,6 +44,14 @@ test('export CSV de l’historique', async ({ page }) => {
   expect((await download).suggestedFilename()).toBe('mes-transactions.csv');
 });
 
+test('relevé mensuel PDF du mois en cours', async ({ page }) => {
+  await page.goto('/abonne/transactions');
+  await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Relevé PDF' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^releve-\d{4}-\d{2}\.pdf$/);
+});
+
 test('passage en arabe et en mode sombre depuis l’en-tête', async ({ page }) => {
   await page.getByRole('button', { name: 'عربي' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');

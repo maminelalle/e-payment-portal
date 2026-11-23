@@ -137,6 +137,11 @@ export class AbonneApi {
     return this.http.get<TransactionTotals>('/api/abonne/paiements/totaux', { params: filterParams(filter, 0, 1) });
   }
 
+  /** Relevé mensuel PDF (paiements, totaux, commissions) du mois « AAAA-MM ». */
+  statement(month: string): Observable<Blob> {
+    return this.http.get('/api/abonne/paiements/releve', { params: { mois: month }, responseType: 'blob' });
+  }
+
   /** Historique en CSV (Excel), mêmes filtres que la liste. */
   paymentsCsv(filter: TransactionFilter = {}): Observable<Blob> {
     return this.http.get('/api/abonne/paiements/export.csv', { params: filterParams(filter, 0, 1), responseType: 'blob' });

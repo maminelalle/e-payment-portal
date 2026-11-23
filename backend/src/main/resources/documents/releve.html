@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title th:text="'Relevé ' + ${month}">Relevé</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+    @bottom-left { content: "Portail E-Payment · relevé mensuel"; font-family: sans-serif; font-size: 7.5pt; color: #64748b; }
+    @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: sans-serif; font-size: 7.5pt; color: #64748b; }
+  }
+  body { font-family: sans-serif; font-size: 9pt; color: #0f172a; line-height: 1.4; }
+  .brand { font-size: 8pt; color: #1d44b8; font-weight: bold; letter-spacing: 1px; }
+  h1 { font-size: 15pt; margin: 4px 0 2px; }
+  .muted { color: #64748b; }
+  h2 { font-size: 10.5pt; margin: 18px 0 6px; color: #1e3a8a; }
+  .parties { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .parties td { vertical-align: top; width: 50%; padding: 0; }
+  .summary { width: 100%; border-collapse: separate; border-spacing: 6px 0; margin: 14px -6px 0; }
+  .summary td { width: 20%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
+  .summary .label { font-size: 7.5pt; color: #64748b; }
+  .summary .value { font-size: 12pt; font-weight: bold; }
+  table.list { width: 100%; border-collapse: collapse; }
+  table.list th { background: #f1f5f9; font-size: 8pt; text-align: left; padding: 5px 6px; color: #475569; }
+  table.list td { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  .num { text-align: right; white-space: nowrap; }
+  .failed td { color: #64748b; }
+  .total td { font-weight: bold; border-top: 1.5px solid #0f172a; border-bottom: 0; }
+  .note { margin-top: 14px; font-size: 7.5pt; color: #64748b; }
+</style>
+</head>
+<body>
+<div class="brand">PORTAIL E-PAYMENT</div>
+<h1>Relevé mensuel · <span th:text="${month}">Novembre 2026</span></h1>
+<div class="muted">Du <span th:text="${from}">01/11/2026</span> au <span th:text="${to}">30/11/2026</span> · établi le
+  <span th:text="${issuedAt}">23/11/2026</span></div>
+
+<table class="parties">
+  <tr>
+    <td>
+      <strong th:text="${subscriber.name}">Société Atlas Mauritanie SARL</strong><br />
+      <span th:text="${subscriber.reference}">ABN-0016</span> ·
+      <span th:text="${subscriber.identifierLabel}">NIF</span> <span th:text="${subscriber.identifier}">12345678</span><br />
+      <span th:text="${subscriber.email}">contact@exemple.mr</span><br />
+      <span th:text="${subscriber.address}">Nouakchott</span>
+    </td>
+    <td class="num">
+      <span class="muted">Contrat(s) du mois</span><br />
+      <strong th:text="${contracts}">CTR-2026-0016</strong>
+    </td>
+  </tr>
+</table>
+
+<table class="summary">
+  <tr>
+    <td><div class="label">Paiements</div><div class="value" th:text="${count}">8</div></td>
+    <td><div class="label">Réussis</div><div class="value" th:text="${succeeded}">5</div></td>
+    <td><div class="label">Échoués</div><div class="value" th:text="${failed}">3</div></td>
+    <td><div class="label">Montant encaissé</div><div class="value" th:text="${collected}">108 400,00 MRU</div></td>
+    <td><div class="label">Commissions dues</div><div class="value" th:text="${commissions}">1 626,00 MRU</div></td>
+  </tr>
+</table>
+
+<h2>Par moyen de paiement</h2>
+<table class="list">
+  <tr><th>Moyen</th><th class="num">Paiements</th><th class="num">Encaissé</th><th class="num">Commission</th></tr>
+  <tr th:each="m : ${methods}">
+    <td th:text="${m.name}">Bankily</td>
+    <td class="num" th:text="${m.count}">3</td>
+    <td class="num" th:text="${m.collected}">39 500,00 MRU</td>
+    <td class="num" th:text="${m.commission}">592,50 MRU</td>
+  </tr>
+  <tr th:if="${methods.isEmpty()}"><td colspan="4" class="muted">Aucun paiement ce mois-ci.</td></tr>
+  <tr class="total" th:unless="${methods.isEmpty()}">
+    <td>Total</td>
+    <td class="num" th:text="${count}">8</td>
+    <td class="num" th:text="${collected}">108 400,00 MRU</td>
+    <td class="num" th:text="${commissions}">1 626,00 MRU</td>
+  </tr>
+</table>
+
+<h2>Détail des paiements</h2>
+<table class="list">
+  <tr>
+    <th>Date</th><th>Référence</th><th>Moyen</th><th>Motif</th><th>Statut</th>
+    <th class="num">Montant</th><th class="num">Commission</th>
+  </tr>
+  <tr th:each="l : ${lines}" th:class="${l.succeeded} ? '' : 'failed'">
+    <td th:text="${l.date}">05/11 11:52</td>
+    <td th:text="${l.reference}">TRX-000019</td>
+    <td th:text="${l.method}">Bankily</td>
+    <td th:text="${l.description} ?: '—'">Facture fournisseur</td>
+    <td th:text="${l.status}">Réussie</td>
+    <td class="num" th:text="${l.amount}">12 500,00</td>
+    <td class="num" th:text="${l.commission}">187,50</td>
+  </tr>
+  <tr th:if="${lines.isEmpty()}"><td colspan="7" class="muted">Aucun paiement ce mois-ci.</td></tr>
+</table>
+
+<p class="note">
+  Montants en <span th:text="${currency}">MRU</span>. Seuls les paiements réussis sont encaissés et portent une
+  commission, au taux prévu par le contrat qui les a autorisés (article 4). Un paiement en attente peut encore
+  aboutir : le relevé reflète l'état des paiements à sa date d'établissement.
+</p>
+</body>
+</html>
