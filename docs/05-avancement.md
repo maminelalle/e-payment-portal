@@ -32,8 +32,11 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - Figures : captures réelles de la recette (`frontend/e2e-demo/captures.spec.ts`, données de démonstration), pages des
   PDF produits par le portail, schémas (architecture, modèle de données, workflow, états du contrat, paiement,
   planning) dont la source est `docs/rapport/sources/schemas.html`.
-- **À compléter dans Word** (surligné en jaune) : école, filière, logo, nom, encadrant, maître de stage, organisme
-  d'accueil et sa présentation (§ 1.1), remerciements. Mettre ensuite à jour le sommaire (clic droit → Mettre à jour).
+- Rapport de pré-embauche chez **Smart MS SA** (Direction des Opérations et Supports, département CET / P. Développement,
+  poste Ingénieur de Développement et Intégration), encadrant Edje ; logo Smart en page de garde.
+- Reste surligné en jaune (facultatif) : activités, date de création, effectif et organigramme de Smart MS SA (§ 1.1).
+- Régénérer :  (le paquet npm  doit être installé), puis mettre à
+  jour le sommaire dans Word.
 
 ### 23/11/2026 — Relevé mensuel PDF (et facture des commissions)
 - Nouveau document `releve.html` (StatementService) : pour un mois donné, toutes les transactions de l'abonné
