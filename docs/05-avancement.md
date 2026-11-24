@@ -35,7 +35,7 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 - Rapport de pré-embauche chez **Smart MS SA** (Direction des Opérations et Supports, département CET / P. Développement,
   poste Ingénieur de Développement et Intégration), encadrant Edje ; logo Smart en page de garde.
 - Reste surligné en jaune (facultatif) : activités, date de création, effectif et organigramme de Smart MS SA (§ 1.1).
-- Régénérer :  (le paquet npm  doit être installé), puis mettre à
+- Régénérer : `node docs/rapport/sources/generer-rapport.cjs` (le paquet npm `docx` doit être installé), puis mettre à
   jour le sommaire dans Word.
 
 ### 23/11/2026 — Relevé mensuel PDF (et facture des commissions)
