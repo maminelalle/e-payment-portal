@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+  body { margin: 0; background: #fff; font-family: "Segoe UI", Arial, sans-serif; }
+  svg { display: block; margin: 0 0 40px; background: #fff; }
+  text { font-family: "Segoe UI", Arial, sans-serif; fill: #1f2937; }
+  .t { font-size: 15px; font-weight: 600; }
+  .s { font-size: 12.5px; fill: #4b5563; }
+  .xs { font-size: 11px; fill: #6b7280; }
+  .w { fill: #fff; }
+  .box { fill: #fff; stroke: #94a3b8; stroke-width: 1.4; }
+  .brand { fill: #eef2ff; stroke: #1e40af; stroke-width: 1.6; }
+  .ext { fill: #f8fafc; stroke: #64748b; stroke-width: 1.3; stroke-dasharray: 5 4; }
+  .zone { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1; }
+  .ok { fill: #ecfdf5; stroke: #059669; stroke-width: 1.5; }
+  .warn { fill: #fffbeb; stroke: #d97706; stroke-width: 1.5; }
+  .ko { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.5; }
+  .grey { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.4; }
+  .ln { stroke: #475569; stroke-width: 1.5; fill: none; marker-end: url(#a); }
+  .lnd { stroke: #475569; stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; marker-end: url(#a); }
+  .rel { stroke: #64748b; stroke-width: 1.3; fill: none; }
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+</defs></svg>
+
+<!-- 1. Architecture -->
+<svg id="architecture" width="1100" height="600" viewBox="0 0 1100 600">
+  <rect x="20" y="200" width="150" height="90" rx="10" class="box"/>
+  <text x="95" y="238" text-anchor="middle" class="t">Navigateur</text>
+  <text x="95" y="260" text-anchor="middle" class="s">admin · abonné</text>
+
+  <rect x="20" y="420" width="150" height="80" rx="10" class="ext"/>
+  <text x="95" y="452" text-anchor="middle" class="t">WhatsApp</text>
+  <text x="95" y="472" text-anchor="middle" class="xs">Vonage · code MFA admin</text>
+
+  <rect x="230" y="20" width="640" height="560" rx="14" class="zone"/>
+  <text x="250" y="46" class="s">Serveur — Docker Compose</text>
+
+  <rect x="255" y="200" width="140" height="90" rx="10" class="brand"/>
+  <text x="325" y="235" text-anchor="middle" class="t">Nginx</text>
+  <text x="325" y="255" text-anchor="middle" class="xs">HTTPS · CSP · HSTS</text>
+  <text x="325" y="271" text-anchor="middle" class="xs">limitation de débit</text>
+  <path d="M170 245 H253" class="ln"/>
+  <text x="211" y="236" text-anchor="middle" class="xs">HTTPS</text>
+
+  <rect x="455" y="40" width="170" height="64" rx="10" class="box"/>
+  <text x="540" y="68" text-anchor="middle" class="t">Portail Angular</text>
+  <text x="540" y="88" text-anchor="middle" class="xs">fichiers statiques  /</text>
+
+  <rect x="455" y="130" width="170" height="145" rx="10" class="brand"/>
+  <text x="540" y="162" text-anchor="middle" class="t">Backend</text>
+  <text x="540" y="182" text-anchor="middle" class="s">Spring Boot 4.1</text>
+  <text x="540" y="200" text-anchor="middle" class="s">Java 21 · Modulith</text>
+  <text x="540" y="224" text-anchor="middle" class="xs">API REST  /api</text>
+  <text x="540" y="240" text-anchor="middle" class="xs">tâches planifiées</text>
+  <text x="540" y="256" text-anchor="middle" class="xs">(expiration, rapprochement)</text>
+
+  <rect x="455" y="310" width="170" height="70" rx="10" class="box"/>
+  <text x="540" y="340" text-anchor="middle" class="t">Keycloak 26</text>
+  <text x="540" y="360" text-anchor="middle" class="xs">OIDC · rôles · MFA  /auth</text>
+
+  <path d="M395 225 L453 75" class="ln"/>
+  <path d="M395 245 H453" class="ln"/>
+  <path d="M395 265 L453 340" class="ln"/>
+
+  <rect x="470" y="430" width="150" height="66" rx="10" class="box"/>
+  <text x="545" y="458" text-anchor="middle" class="t">PostgreSQL 16</text>
+  <text x="545" y="478" text-anchor="middle" class="xs">portail + Keycloak</text>
+  <rect x="680" y="430" width="150" height="66" rx="10" class="box"/>
+  <text x="755" y="458" text-anchor="middle" class="t">Stockage S3</text>
+  <text x="755" y="478" text-anchor="middle" class="xs">contrats · reçus · logos</text>
+  <rect x="680" y="515" width="150" height="50" rx="10" class="grey"/>
+  <text x="755" y="536" text-anchor="middle" class="s">Sauvegardes</text><text x="755" y="553" text-anchor="middle" class="xs">quotidiennes</text>
+
+  <path d="M625 250 H755 V428" class="ln"/>
+  <path d="M625 262 H650 V463 H622" class="ln"/>
+  <path d="M540 380 V428" class="lnd"/>
+  <path d="M545 496 V540 H678" class="lnd"/>
+  <path d="M755 496 V513" class="lnd"/>
+
+  <rect x="920" y="90" width="165" height="110" rx="10" class="ext"/>
+  <text x="1002" y="120" text-anchor="middle" class="t">Fournisseurs</text>
+  <text x="1002" y="140" text-anchor="middle" class="s">Bankily · Masrvi</text>
+  <text x="1002" y="158" text-anchor="middle" class="s">passerelle Visa</text>
+  <text x="1002" y="180" text-anchor="middle" class="xs">(simulateur)</text>
+  <path d="M625 150 H918" class="ln"/>
+  <text x="770" y="142" text-anchor="middle" class="xs">paiement, statut</text>
+  <path d="M918 180 H627" class="lnd"/>
+  <text x="770" y="196" text-anchor="middle" class="xs">webhooks signés HMAC</text>
+
+  <rect x="920" y="215" width="165" height="70" rx="10" class="ext"/>
+  <text x="1002" y="245" text-anchor="middle" class="t">Email</text>
+  <text x="1002" y="265" text-anchor="middle" class="xs">SMTP (Mailpit en test)</text>
+  <path d="M625 230 H918" class="ln"/>
+
+  <path d="M455 360 L172 455" class="ln"/>
+</svg>
+
+<!-- 2. Workflow -->
+<svg id="workflow" width="1100" height="230" viewBox="0 0 1100 230">
+  <g>
+    <rect x="10" y="40" width="160" height="110" rx="12" class="brand"/>
+    <text x="90" y="72" text-anchor="middle" class="t">1. Création</text>
+    <text x="90" y="96" text-anchor="middle" class="s">l'admin crée</text>
+    <text x="90" y="114" text-anchor="middle" class="s">l'abonné</text>
+    <text x="90" y="136" text-anchor="middle" class="xs">compte + invitation</text>
+
+    <rect x="195" y="40" width="160" height="110" rx="12" class="brand"/>
+    <text x="275" y="72" text-anchor="middle" class="t">2. Contrat</text>
+    <text x="275" y="96" text-anchor="middle" class="s">moyens, plafonds,</text>
+    <text x="275" y="114" text-anchor="middle" class="s">dates, commission</text>
+    <text x="275" y="136" text-anchor="middle" class="xs">brouillon</text>
+
+    <rect x="380" y="40" width="160" height="110" rx="12" class="brand"/>
+    <text x="460" y="72" text-anchor="middle" class="t">3. Envoi</text>
+    <text x="460" y="96" text-anchor="middle" class="s">PDF généré</text>
+    <text x="460" y="114" text-anchor="middle" class="s">et figé (SHA-256)</text>
+    <text x="460" y="136" text-anchor="middle" class="xs">email à l'abonné</text>
+
+    <rect x="565" y="40" width="160" height="110" rx="12" class="warn"/>
+    <text x="645" y="72" text-anchor="middle" class="t">4. Signature</text>
+    <text x="645" y="96" text-anchor="middle" class="s">code à usage</text>
+    <text x="645" y="114" text-anchor="middle" class="s">unique + sceau PAdES</text>
+    <text x="645" y="136" text-anchor="middle" class="xs">preuves conservées</text>
+
+    <rect x="750" y="40" width="160" height="110" rx="12" class="ok"/>
+    <text x="830" y="72" text-anchor="middle" class="t">5. Activation</text>
+    <text x="830" y="96" text-anchor="middle" class="s">un droit ouvert</text>
+    <text x="830" y="114" text-anchor="middle" class="s">par moyen inscrit</text>
+    <text x="830" y="136" text-anchor="middle" class="xs">automatique</text>
+
+    <rect x="935" y="40" width="155" height="110" rx="12" class="ok"/>
+    <text x="1012" y="72" text-anchor="middle" class="t">6. Paiements</text>
+    <text x="1012" y="96" text-anchor="middle" class="s">contrôlés à</text>
+    <text x="1012" y="114" text-anchor="middle" class="s">chaque demande</text>
+    <text x="1012" y="136" text-anchor="middle" class="xs">reçus, suivi, relevés</text>
+  </g>
+  <path d="M170 95 H193" class="ln"/><path d="M355 95 H378" class="ln"/><path d="M540 95 H563" class="ln"/>
+  <path d="M725 95 H748" class="ln"/><path d="M910 95 H933" class="ln"/>
+  <text x="90" y="25" text-anchor="middle" class="xs">ADMIN</text>
+  <text x="460" y="25" text-anchor="middle" class="xs">ADMIN</text>
+  <text x="645" y="25" text-anchor="middle" class="xs">ABONNÉ</text>
+  <text x="830" y="25" text-anchor="middle" class="xs">SYSTÈME</text>
+  <text x="1012" y="25" text-anchor="middle" class="xs">ABONNÉ</text>
+  <text x="550" y="195" text-anchor="middle" class="s">Le contrat signé et actif est la seule source des droits : sans lui, aucun moyen n'est visible ni utilisable.</text>
+</svg>
+
+<!-- 3. Cycle de vie du contrat -->
+<svg id="contrat-etats" width="1100" height="400" viewBox="0 0 1100 400">
+  <rect x="20" y="170" width="130" height="56" rx="28" class="grey"/>
+  <text x="85" y="203" text-anchor="middle" class="t">Brouillon</text>
+  <rect x="200" y="170" width="200" height="56" rx="28" class="warn"/>
+  <text x="300" y="203" text-anchor="middle" class="t">En attente de signature</text>
+  <rect x="460" y="170" width="120" height="56" rx="28" class="brand"/>
+  <text x="520" y="203" text-anchor="middle" class="t">Signé</text>
+  <rect x="650" y="170" width="120" height="56" rx="28" class="ok"/>
+  <text x="710" y="203" text-anchor="middle" class="t">Actif</text>
+  <rect x="900" y="30" width="150" height="56" rx="28" class="warn"/>
+  <text x="975" y="63" text-anchor="middle" class="t">Suspendu</text>
+  <rect x="900" y="170" width="150" height="56" rx="28" class="grey"/>
+  <text x="975" y="203" text-anchor="middle" class="t">Expiré</text>
+  <rect x="900" y="300" width="150" height="56" rx="28" class="ko"/>
+  <text x="975" y="333" text-anchor="middle" class="t">Résilié</text>
+  <rect x="620" y="300" width="180" height="56" rx="28" class="grey"/>
+  <text x="710" y="333" text-anchor="middle" class="t">Remplacé (avenant)</text>
+
+  <path d="M150 198 H198" class="ln"/>
+  <text x="174" y="188" text-anchor="middle" class="xs">envoi</text>
+  <path d="M400 198 H458" class="ln"/>
+  <text x="429" y="188" text-anchor="middle" class="xs">code vérifié</text>
+  <path d="M580 198 H648" class="ln"/>
+  <text x="614" y="188" text-anchor="middle" class="xs">activation</text>
+
+  <path d="M700 170 V50 H898" class="ln"/>
+  <text x="800" y="42" text-anchor="middle" class="xs">suspendre</text>
+  <path d="M900 70 H730 V168" class="lnd"/>
+  <text x="815" y="88" text-anchor="middle" class="xs">reprendre</text>
+  <path d="M770 198 H898" class="ln"/>
+  <text x="834" y="188" text-anchor="middle" class="xs">date de fin</text>
+  <path d="M760 222 L840 222 V328 H898" class="ln"/>
+  <text x="848" y="290" class="xs">résilier</text>
+  <path d="M710 226 V298" class="ln"/>
+  <text x="700" y="268" text-anchor="end" class="xs">avenant activé</text>
+  <text x="550" y="390" text-anchor="middle" class="s">Droits ouverts uniquement à l'état « Actif » ; suspendus, expirés ou révoqués avec le contrat, dans la même transaction.</text>
+</svg>
+
+<!-- 4. Séquence de paiement -->
+<svg id="paiement" width="1100" height="600" viewBox="0 0 1100 600">
+  <g class="t">
+    <rect x="40" y="15" width="150" height="44" rx="8" class="box"/><text x="115" y="43" text-anchor="middle" class="t">Abonné</text>
+    <rect x="300" y="15" width="170" height="44" rx="8" class="brand"/><text x="385" y="43" text-anchor="middle" class="t">Backend</text>
+    <rect x="590" y="15" width="150" height="44" rx="8" class="box"/><text x="665" y="43" text-anchor="middle" class="t">PostgreSQL</text>
+    <rect x="860" y="15" width="180" height="44" rx="8" class="ext"/><text x="950" y="43" text-anchor="middle" class="t">Fournisseur</text>
+  </g>
+  <path d="M115 59 V580" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+  <path d="M385 59 V580" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+  <path d="M665 59 V580" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+  <path d="M950 59 V580" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+
+  <path d="M115 95 H383" class="ln"/><text x="250" y="88" text-anchor="middle" class="s">POST /paiements + Idempotency-Key</text>
+  <rect x="395" y="110" width="260" height="62" rx="6" class="warn"/>
+  <text x="405" y="130" class="s">contrôle : compte actif, droit actif,</text>
+  <text x="405" y="147" class="s">période, moyen actif, plafonds</text>
+  <text x="405" y="164" class="xs">sinon refus 403 NOT_ENTITLED</text>
+  <path d="M385 195 H663" class="ln"/><text x="525" y="188" text-anchor="middle" class="s">transaction CREATED (TRX-…), taux figé</text>
+  <path d="M385 235 H948" class="ln"/><text x="665" y="228" text-anchor="middle" class="s">initiation (hors transaction BD)</text>
+  <path d="M948 265 H387" class="lnd"/><text x="665" y="258" text-anchor="middle" class="s">réponse : PENDING / redirection carte</text>
+  <path d="M385 295 H117" class="lnd"/><text x="250" y="288" text-anchor="middle" class="s">suivi à l'écran</text>
+  <path d="M948 345 H387" class="ln"/><text x="665" y="338" text-anchor="middle" class="s">webhook signé HMAC (horodaté, anti-rejeu)</text>
+  <path d="M385 385 H663" class="ln"/><text x="525" y="378" text-anchor="middle" class="s">SUCCEEDED + commission, ou FAILED</text>
+  <rect x="395" y="400" width="260" height="44" rx="6" class="ok"/>
+  <text x="405" y="420" class="s">reçu PDF (QR de vérification)</text>
+  <text x="405" y="437" class="s">email « paiement réussi / échoué »</text>
+  <rect x="20" y="470" width="1060" height="100" rx="8" class="zone"/>
+  <text x="40" y="495" class="t">Rapprochement (toutes les 2 min)</text>
+  <path d="M385 520 H948" class="ln"/><text x="665" y="513" text-anchor="middle" class="s">redemande le statut des paiements restés « en cours »</text>
+  <path d="M948 550 H387" class="lnd"/><text x="665" y="543" text-anchor="middle" class="s">statut final : un webhook perdu ne bloque jamais une transaction</text>
+</svg>
+
+<!-- 5. Modèle de données -->
+<svg id="donnees" width="1100" height="540" viewBox="0 0 1100 540">
+  <rect x="30" y="30" width="200" height="74" rx="8" class="box"/><text x="130" y="60" text-anchor="middle" class="t">app_user</text><text x="130" y="82" text-anchor="middle" class="xs">compte relié à Keycloak</text>
+  <rect x="330" y="30" width="210" height="74" rx="8" class="box"/><text x="435" y="60" text-anchor="middle" class="t">contract_template</text><text x="435" y="82" text-anchor="middle" class="xs">modèle versionné (Thymeleaf)</text>
+  <rect x="640" y="30" width="230" height="74" rx="8" class="box"/><text x="755" y="60" text-anchor="middle" class="t">payment_method</text><text x="755" y="82" text-anchor="middle" class="xs">Bankily, Masrvi, Visa, Mastercard, Sedad</text>
+  <rect x="950" y="30" width="130" height="74" rx="8" class="box"/><text x="1015" y="60" text-anchor="middle" class="t">payment_</text><text x="1015" y="80" text-anchor="middle" class="t">provider</text>
+
+  <rect x="30" y="200" width="200" height="90" rx="8" class="brand"/><text x="130" y="230" text-anchor="middle" class="t">subscriber</text><text x="130" y="252" text-anchor="middle" class="xs">référence ABN, type, statut,</text><text x="130" y="268" text-anchor="middle" class="xs">NNI / NIF chiffrés</text>
+  <rect x="330" y="200" width="210" height="90" rx="8" class="brand"/><text x="435" y="230" text-anchor="middle" class="t">contract</text><text x="435" y="252" text-anchor="middle" class="xs">référence CTR, dates, commission,</text><text x="435" y="268" text-anchor="middle" class="xs">statut, PDF + SHA-256, avenant</text>
+  <rect x="640" y="200" width="230" height="90" rx="8" class="box"/><text x="755" y="230" text-anchor="middle" class="t">contract_payment_method</text><text x="755" y="252" text-anchor="middle" class="xs">moyen inscrit, plafonds</text><text x="755" y="268" text-anchor="middle" class="xs">par opération et par mois</text>
+
+  <rect x="950" y="200" width="130" height="270" rx="8" class="grey"/>
+  <text x="1015" y="228" text-anchor="middle" class="t">Suivi</text>
+  <text x="1015" y="270" text-anchor="middle" class="s">notification</text><text x="1015" y="288" text-anchor="middle" class="xs">emails envoyés</text>
+  <text x="1015" y="330" text-anchor="middle" class="s">webhook_event</text><text x="1015" y="348" text-anchor="middle" class="xs">anti-rejeu</text>
+  <text x="1015" y="390" text-anchor="middle" class="s">audit_log</text><text x="1015" y="408" text-anchor="middle" class="xs">ajout seul</text>
+
+  <rect x="30" y="380" width="200" height="90" rx="8" class="warn"/><text x="130" y="410" text-anchor="middle" class="t">payment_transaction</text><text x="130" y="432" text-anchor="middle" class="xs">référence TRX, montant, statut,</text><text x="130" y="448" text-anchor="middle" class="xs">taux et commission figés</text>
+  <rect x="330" y="380" width="210" height="90" rx="8" class="box"/><text x="435" y="410" text-anchor="middle" class="t">signature</text><text x="435" y="432" text-anchor="middle" class="xs">code vérifié, IP, navigateur,</text><text x="435" y="448" text-anchor="middle" class="xs">empreintes avant / après</text>
+  <rect x="640" y="380" width="230" height="90" rx="8" class="ok"/><text x="755" y="410" text-anchor="middle" class="t">subscriber_entitlement</text><text x="755" y="432" text-anchor="middle" class="xs">droit : abonné × contrat × moyen</text><text x="755" y="448" text-anchor="middle" class="xs">actif, suspendu, révoqué, expiré</text>
+
+  <g class="rel">
+    <path d="M130 104 V200"/><text x="138" y="122" class="xs" stroke="none">1</text><text x="138" y="194" class="xs" stroke="none">1</text>
+    <path d="M230 245 H330"/><text x="238" y="238" class="xs" stroke="none">1</text><text x="318" y="238" class="xs" stroke="none">n</text>
+    <path d="M435 104 V200"/><text x="443" y="122" class="xs" stroke="none">1</text><text x="443" y="194" class="xs" stroke="none">n</text>
+    <path d="M540 245 H640"/><text x="548" y="238" class="xs" stroke="none">1</text><text x="628" y="238" class="xs" stroke="none">n</text>
+    <path d="M755 104 V200"/><text x="763" y="122" class="xs" stroke="none">1</text><text x="763" y="194" class="xs" stroke="none">n</text>
+    <path d="M870 67 H950"/><text x="878" y="60" class="xs" stroke="none">n</text><text x="938" y="60" class="xs" stroke="none">1</text>
+    <path d="M435 290 V380"/><text x="443" y="308" class="xs" stroke="none">1</text><text x="443" y="374" class="xs" stroke="none">n</text>
+    <path d="M755 290 V380"/><text x="763" y="308" class="xs" stroke="none">1</text><text x="763" y="374" class="xs" stroke="none">1</text>
+    <path d="M130 290 V380"/><text x="138" y="308" class="xs" stroke="none">1</text><text x="138" y="374" class="xs" stroke="none">n</text>
+    <path d="M330 275 H285 V425 H230"/><text x="318" y="268" class="xs" stroke="none">1</text><text x="238" y="418" class="xs" stroke="none">n</text>
+  </g>
+  <text x="490" y="515" text-anchor="middle" class="s">Un seul contrat en vigueur par abonné · un droit par contrat et moyen · une transaction par clé d'idempotence</text>
+</svg>
+
+<!-- 6. Planning -->
+<svg id="planning" width="1100" height="490" viewBox="0 0 1100 490">
+  <text x="20" y="30" class="xs">LOT</text>
+  <g id="weeks"></g>
+</svg>
+<script>
+  const lots = [
+    ['Cadrage : écrans, maquettes, données, API', 1, 1, 'grey'],
+    ['Socle technique (Spring, Angular, Docker, CI)', 2, 2, 'grey'],
+    ['Authentification, rôles, MFA, audit', 3, 3, 'brand'],
+    ['Abonnés et catalogue des moyens', 4, 4, 'brand'],
+    ['Contrats et génération PDF', 5, 5, 'brand'],
+    ['Signature électronique (code + PAdES)', 6, 6, 'warn'],
+    ['Moteur des droits, espace abonné', 7, 7, 'ok'],
+    ['Simulateur des fournisseurs, webhooks', 8, 8, 'box'],
+    ['Adaptateurs Bankily, Masrvi, Visa', 9, 9, 'box'],
+    ['Paiements, reçus, rapprochement', 10, 10, 'ok'],
+    ['Notifications et tableaux de bord', 11, 11, 'brand'],
+    ['Recette, sécurité, mise en ligne', 12, 12, 'warn'],
+  ];
+  const svg = document.getElementById('planning');
+  const ns = 'http://www.w3.org/2000/svg';
+  const x0 = 360, w = 58, y0 = 50, h = 30;
+  function el(tag, attrs, text) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text) e.textContent = text; svg.appendChild(e); return e; }
+  for (let s = 1; s <= 12; s++) {
+    el('text', { x: x0 + (s - 1) * w + w / 2, y: 30, 'text-anchor': 'middle', class: 'xs' }, 'S' + s);
+    el('line', { x1: x0 + (s - 1) * w, y1: 40, x2: x0 + (s - 1) * w, y2: y0 + lots.length * h + 5, stroke: '#e2e8f0' });
+  }
+  lots.forEach(([label, a, b, cls], i) => {
+    const y = y0 + i * h;
+    el('text', { x: 20, y: y + 20, class: 's' }, label);
+    el('rect', { x: x0 + (a - 1) * w + 3, y: y + 5, width: (b - a + 1) * w - 6, height: h - 10, rx: 5, class: cls });
+  });
+  const ms = [[7, 'S7 : workflow complet démontrable'], [10, 'S10 : paiements simulés réalistes'], [12, 'S12 : version pilote en ligne']];
+  ms.forEach(([s, t], k) => {
+    const x = x0 + s * w - 2, y = y0 + lots.length * h + 18;
+    el('path', { d: `M${x} ${y - 8} l7 7 l-7 7 l-7 -7 z`, fill: '#1e40af' });
+    const lx = 20 + k * 360, ly = y0 + lots.length * h + 60;
+    el('path', { d: `M${lx + 7} ${ly - 12} l7 7 l-7 7 l-7 -7 z`, fill: '#1e40af' });
+    el('text', { x: lx + 22, y: ly, class: 's' }, t);
+  });
+</script>
+</body></html>

@@ -26,6 +26,15 @@ Tests automatisés : 64 backend, 8 simulateur, 12 frontend, tous au vert.
 
 ## Mises à jour (de la plus récente à la plus ancienne)
 
+### 24/11/2026 — Rapport de stage
+- Développement arrêté ; rapport rédigé : `docs/rapport/Rapport_de_stage_Portail_E-Payment.docx` (et son PDF), 40 pages,
+  6 chapitres, 27 figures, 14 tableaux, résumé FR / abstract EN, sommaire automatique, annexes.
+- Figures : captures réelles de la recette (`frontend/e2e-demo/captures.spec.ts`, données de démonstration), pages des
+  PDF produits par le portail, schémas (architecture, modèle de données, workflow, états du contrat, paiement,
+  planning) dont la source est `docs/rapport/sources/schemas.html`.
+- **À compléter dans Word** (surligné en jaune) : école, filière, logo, nom, encadrant, maître de stage, organisme
+  d'accueil et sa présentation (§ 1.1), remerciements. Mettre ensuite à jour le sommaire (clic droit → Mettre à jour).
+
 ### 23/11/2026 — Relevé mensuel PDF (et facture des commissions)
 - Nouveau document `releve.html` (StatementService) : pour un mois donné, toutes les transactions de l'abonné
   (réussies et échouées), le total encaissé, le détail par moyen de paiement et les commissions dues au titre du
